@@ -59,6 +59,9 @@ depends_lib         port:libiconv \
                     port:xorg-libXtst \
                     port:dejavu-fonts
 
+# Java 8 should support clang directly
+depends_build       port:llvm-gcc42
+
 # Check if the bootstrap is required
 if {[file exists ${prefix}/share/java/openjdk7/bin/java]} {
     # A previous OpenJDK7 release is already installed
@@ -71,8 +74,7 @@ if {[file exists ${prefix}/share/java/openjdk7/bin/java]} {
 
     # TODO: We need to provide a bootstrap once we have this port building successfully,
     # but for now, rely on Apple's JDK6
-    set bootflags   SA_APPLE_BOOT_JAVA=true \
-                    ALWAYS_PASS_TEST_GAMMA=true
+    set bootflags   "SA_APPLE_BOOT_JAVA=true ALWAYS_PASS_TEST_GAMMA=true"
     set bootstrapvm [exec /usr/libexec/java_home -v 1.6]
 }
 
@@ -89,35 +91,36 @@ build.pre_args {}
 build.post_args {}
 
 build.args \
-    ARCH_DATA_MODEL="${openjdk_datamodel}" \
+    CC="${prefix}/bin/llvm-gcc-4.2" \
+    CXX="${prefix}/bin/llvm-g++-4.2" \
+    LANG="C" \
+    "${bootflags}" \
     ALT_BOOTDIR="${bootstrapvm}" \
-    ALT_JDK_IMPORT_PATH="${bootstrapvm}" \
-    ALT_BINARY_PLUGS_PATH="${prefix}/share/java/icedtea6-plugs/jre/lib/rt-closed.jar" \
-    ALT_DROPS_DIR="${distpath}" \
+    ALT_COMPILER_PATH="${prefix}" \
     ANT_HOME="${prefix}/share/java/apache-ant" \
+    ANT_HOME="${workpath}/apache-ant-${ant_version}" \
     ALT_FREETYPE_HEADERS_PATH="${prefix}/include" \
     ALT_FREETYPE_LIB_PATH="${prefix}/lib" \
-    ALT_CUPS_HEADERS_PATH="/usr/include" \
-    ALT_MOTIF_DIR="${prefix}" \
     ALT_X11_PATH="${prefix}" \
     ALT_DEVTOOLS_PATH=/usr \
     ALT_CACERTS_FILE=/System/Library/Frameworks/JavaVM.framework/Home/lib/security/cacerts \
-    NO_DOCS=true \
-    LANG="C" \
-    BUILD_NUMBER="${version}" \
+    NO_DOCS="true" \
+    SKIP_COMPARE_IMAGES="true" \
+    SKIP_FASTDEBUG_BUILD="true" \
+    SKIP_DEBUG_BUILD="true" \
+    ZIP_DEBUGINFO_FILES=0 \
+    ENABLE_FULL_DEBUG_SYMBOLS=0 \
+    MILESTONE="fcs" \
+    JDK_MICRO_VERSION="0_${jport_minor_version}" \
+    BUILD_NUMBER="b${jport_build_number}" \
     MILESTONE=fcs \
     HOTSPOT_BUILD_JOBS="${build.jobs}"
 
-variant fastdebug {
-    build.post_args FASTDEBUG=true
-}
+
+#ALT_CUPS_HEADERS_PATH="/usr/include"
 
 destroot {
     set path "${destroot}${prefix}/share/java/${name}/"
     xinstall -m 755 -d ${path}
-    system "(cd ${worksrcpath}/build/bsd-${openjdk_build_arch}/j2sdk-image && tar cf - *) | (tar -C ${path} -xf -)"
+    system "(cd ${worksrcpath}/build/macosx-universal/j2sdk-image && tar cf - *) | (tar -C ${path} -xf -)"
 }
-
-livecheck.type  regex
-livecheck.url   http://download.java.net/openjdk/jdk6/
-livecheck.regex openjdk-6-src-(b\[0-9\]+)-.*\\.tar\\.gz
