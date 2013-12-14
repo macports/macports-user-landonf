@@ -154,6 +154,10 @@ build.args \
     JDK_MICRO_VERSION="0_${jport_minor_version}" \
     BUILD_NUMBER="b${jport_build_number}" \
     MILESTONE=fcs \
+    BUNDLE_NAME="OpenJDK 1.${jdk_major_version}.0_${jport_minor_version} (MacPorts)" \
+    BUNDLE_INFO="OpenJDK MacPorts-${version}" \
+    BUNDLE_ID="org.macports.openjdk" \
+    BUNDLE_VENDOR="MacPorts" \
     HOTSPOT_BUILD_JOBS="${build.jobs}"
 
 destroot {
