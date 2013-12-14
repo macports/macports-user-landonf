@@ -2,17 +2,22 @@
 
 PortSystem 1.0
 
-name                openjdk6
-version             b20
-revision            1
-set builddate 21_jun_2010
+name                openjdk7
+
+set jport_minor_version 45
+set jport_build_number  18
+set jdk_major_version   7
+set jdk_minor_version   40
+set jdk_build_number    43
+set jdk_build_date      26_aug_2013
+version             ${jdk_major_version}.${jport_minor_version}.${jport_build_number}
 
 categories          java
 maintainers         landonf openmaintainer
 platforms           darwin
 
 homepage            http://openjdk.java.net/
-description         Oracle's Java 6 virtual machine release under the GPL v2
+description         An open-source implementation of the Java Platform, Standard Edition.
 long_description \
                     OpenJDK is an open-source implementation of the Java Platform, Standard Edition. \
                     \
@@ -20,71 +25,31 @@ long_description \
                     Classpath exception. The Java Hotspot virtual machine source code is \
                     licensed under the GPL version 2 only.
 
-distname            openjdk-6-src-${version}-${builddate}
+# Use our own version of ant to avoid circular dependencies
+set ant_version     1.8.4
+set ant_distfile    apache-ant-${ant_version}-bin
 
-set jaxp_build b20
-set jaxp_file jdk6-jaxp-${jaxp_build}.zip
-set jaxws_build b20
-set jaxws_file jdk6-jaxws-${jaxws_build}.zip
-set jaf_build  b20
-set jaf_file jdk6-jaf-${jaf_build}.zip
-
+use_zip             yes
+distname            openjdk-${jdk_major_version}u${jdk_minor_version}-fcs-src-b${jdk_build_number}-${jdk_build_date}
 distfiles           ${distname}${extract.suffix} \
-                    ${jaxp_file}:jaxp \
-                    ${jaxws_file}:jaxws \
-                    ${jaf_file}:jaf
-extract.only        ${distname}${extract.suffix}
+                    ${ant_distfile}${extract.suffix}:ant
 
-master_sites        http://download.java.net/openjdk/jdk6/promoted/${version}/ \
-                    https://jaxp.dev.java.net/files/documents/913/150648/:jaxp \
-                    https://jax-ws.dev.java.net/files/documents/4202/150724/:jaxws \
-                    https://jax-ws.dev.java.net/files/documents/4202/150725/:jaf \
-                    http://icedtea.classpath.org/builds/icedtea6/src/ \
-                    http://icedtea.classpath.org/builds/icedtea6/src/drops/:jaxp \
-                    http://icedtea.classpath.org/builds/icedtea6/src/drops/:jaxws \
-                    http://icedtea.classpath.org/builds/icedtea6/src/drops/:jaf
+master_sites        http://download.java.net/openjdk/jdk${jdk_major_version}u${jdk_minor_version}/promoted/b${jdk_build_number}/ \
+                    apache:ant/binaries:ant
 
-checksums           ${distname}${extract.suffix} \
-                    md5     0b36adbf67e4f261e1b827ed4be4f447 \
-                    sha256  fcf8f1d614e5965e90ef1b1a6d5eecc2bcc3078eaffbb62b83dfba52da62e54b \
+checksums           ${distname}${extract.suffix} sha256  00f8ea561876cbcad174ba3ca7a9ae10b50df46a782ac64c2ac57ac357b50596 \
                     \
-                    ${jaxp_file} \
-                    md5     22e95fbdb9fb7d8b6b6fc0a1d76d1fbd \
-                    sha256  d097627d4059d488c5a09d4e33cec275a193d4d8bc0fea8ef4f1337170904156 \
-                    \
-                    ${jaxws_file} \
-                    md5     91adfd41e6f001add4f92ae31216b1e3 \
-                    sha256  0c460583898b968a58bf88eb53f90a0e34369e2562d65fb3a143512dfcaeb3eb \
-                    \
-                    ${jaf_file} \
-                    md5     bc95c133620bd68c161cac9891592901 \
-                    sha256  78c7b5c9d6271e88ee46abadd018a61f1e9645f8936cc8df1617e5f4f5074012
-
-patchfiles          patch-set \
-                    patch-nio-kqueue \
-                    patch-compile-W-format \
-                    patch-jdk_src_solaris_javavm_include_typedefs__md.h \
-                    patch-jdk_src_share_java.c \
-                    patch-jdk_src_solaris_native_common_gdefs__md.h \
-                    patch-10.4-ucontext \
-                    patch-ucontext-vm.make \
-                    patch-disable_test_gamma \
-                    patch-darwin-arch \
-                    patch-dock-args \
-                    patch-solaris-timezone-md-return-typo \
-                    patch-cross-compile
+                    ${ant_distfile}${extract.suffix} sha256 d49d60bc0468279125e4a0db4d9b6637cab342a4bd736c90c0b71865b26c1479
+    
 
 use_configure       no
 use_parallel_build  no
 
 depends_lib         port:libiconv \
                     port:freetype \
-                    port:openmotif \
                     port:xorg-libX11 \
                     port:xorg-libXtst \
                     port:dejavu-fonts
-depends_build       port:icedtea6-plugs \
-                    port:apache-ant
 
 # Check if the bootstrap is required
 if {[file exists ${prefix}/share/java/openjdk6/bin/java]} {
@@ -96,105 +61,7 @@ if {[file exists ${prefix}/share/java/openjdk6/bin/java]} {
     set bootstrapvm "${prefix}/share/java/openjdk6_bootstrap"
 }
 
-worksrcdir          "./"
-
-post-extract {
-    set copydirs { \
-        hotspot/agent/src/os/linux \
-        hotspot/agent/src/share/classes/sun/jvm/hotspot/debugger/linux \
-        hotspot/agent/src/share/classes/sun/jvm/hotspot/debugger/linux/amd64 \
-        hotspot/agent/src/share/classes/sun/jvm/hotspot/debugger/linux/x86 \
-        hotspot/agent/src/share/classes/sun/jvm/hotspot/runtime/linux \
-        hotspot/agent/src/share/classes/sun/jvm/hotspot/runtime/linux_x86 \
-        hotspot/agent/src/share/classes/sun/jvm/hotspot/runtime/linux_amd64 \
-        hotspot/src/os/linux/launcher \
-        hotspot/src/os/linux/vm \
-        hotspot/src/os_cpu/linux_x86/vm \
-        hotspot/make/linux \
-        hotspot/make/linux/makefiles \
-        jdk/src/linux/doc/man
-    }
-
-    set copyfiles { \
-        corba/make/common/Defs-linux.gmk \
-        corba/make/common/shared/Defs-linux.gmk \
-        jdk/make/common/Defs-linux.gmk \
-        jdk/make/common/shared/Defs-linux.gmk \
-        jdk/make/java/nio/mapfile-linux \
-        jdk/make/netbeans/common/architectures/name-Linux.properties \
-        jdk/make/sun/awt/mapfile-vers-linux \
-        jdk/make/tools/sharing/classlist.linux \
-        jdk/make/com/sun/tools/attach/mapfile-linux \
-        jdk/src/solaris/classes/java/lang/UNIXProcess.java.linux \
-        jdk/src/solaris/classes/sun/awt/fontconfigs/linux.fontconfig.properties \
-        jdk/src/solaris/classes/sun/tools/attach/LinuxAttachProvider.java \
-        jdk/src/solaris/classes/sun/tools/attach/LinuxVirtualMachine.java \
-        jdk/src/solaris/hpi/include/largefile_linux.h \
-        jdk/src/solaris/native/java/net/linux_close.c \
-        jdk/src/solaris/native/sun/tools/attach/LinuxVirtualMachine.c
-    }
-
-    # Copy over original Linux sources
-    foreach src ${copydirs} {
-        set dest "${worksrcpath}/[strsed ${src} g/linux/bsd/]"
-
-        # Create the parent directories
-        file mkdir "${dest}"
-
-        # Copy the contents, adjust file contents
-        foreach srcfile [glob -types f "${worksrcpath}/${src}/*"] {
-            set destfile [exec echo "${srcfile}" | sed "s/linux/bsd/g; s/Linux/Bsd/g"]
-            copy "${srcfile}" "${destfile}"
-            reinplace "s/linux/bsd/g; s/Linux/Bsd/g" "${destfile}"
-            reinplace "s/linux/bsd/g; s/Linux/Bsd/g" "${destfile}"
-        }
-    }
-
-    foreach src ${copyfiles} {
-        set dest "${worksrcpath}/[exec echo ${src} | sed {s/linux/bsd/g; s/Linux/Bsd/g}]"
-        copy "${worksrcpath}/${src}" "${dest}"
-        reinplace "s/linux/bsd/g; s/Linux/Bsd/g" "${dest}"
-    }
-
-    # Copy the solaris sources
-    copy "${worksrcpath}/jdk/src/solaris/hpi/native_threads/src/threads_solaris.c" \
-         "${worksrcpath}/jdk/src/solaris/hpi/native_threads/src/threads_bsd.c"
-    reinplace "s/solaris/bsd/g; s/Solaris/Bsd/g" \
-        "${worksrcpath}/jdk/src/solaris/hpi/native_threads/src/threads_bsd.c"
-
-
-    copy "${worksrcpath}/jdk/src/share/lib/security/java.security" \
-         "${worksrcpath}/jdk/src/share/lib/security/java.security-openbsd"
-
-    # Workaround for cross compiling
-    file mkdir "${worksrcpath}/jdk/make/sun/xawt_icons"
-    copy "${filespath}/sun_xawt_icons_Makefile" \
-         "${worksrcpath}/jdk/make/sun/xawt_icons/Makefile"
-    copy "${worksrcpath}/jdk/make/sun/xawt/ToBin.java" \
-         "${worksrcpath}/jdk/make/sun/xawt_icons/ToBin.java"
-
-    # Configure font paths.
-#    copy "${filespath}/fontconfig.properties" \
-#        "${worksrcpath}/jdk/src/solaris/classes/sun/awt/fontconfigs/bsd.fontconfig.properties"
-#    reinplace "s|@PREFIX@|${prefix}|g" \
-#        "${worksrcpath}/jdk/src/solaris/classes/sun/awt/fontconfigs/bsd.fontconfig.properties"
-}
-
-post-patch {
-    reinplace "s|/lib:/usr/lib|/lib:/usr/lib:${prefix}/lib|" \
-        "${worksrcpath}/hotspot/src/os/bsd/vm/os_bsd.cpp"
-
-    # Enable the unlimited strength policy file
-    reinplace "s|build-policy install-limited|build-policy install-unlimited|g" \
-        "${worksrcpath}/jdk/make/javax/crypto/Makefile"
-}
-
-post-patch {
-    # Work-around small bugs in the b20 patchset:
-
-    # The agent is only supported on FreeBSD
-    file delete -force "${worksrcpath}/hotspot/agent"
-}
+worksrcdir          "openjdk"
 
 # Override the overzealous setting of build environmental variables and settings. These
 # assume the use of (a well-behaved) autoconf, and cause an assortment of odd build failures when
