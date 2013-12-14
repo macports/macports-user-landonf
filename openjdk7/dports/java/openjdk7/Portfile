@@ -124,7 +124,7 @@ if {${build_arch} == "i386"} {
     set openjdk_build_arch "${build_arch}"
 } else {
     # Unknown architecture
-    return -error "Platform unsupported"
+    return -code error "Platform unsupported"
 }
 
 # LLVM GCC is required by the build, but no longer shipped in Xcode.
@@ -160,8 +160,20 @@ build.args \
     BUNDLE_VENDOR="MacPorts" \
     HOTSPOT_BUILD_JOBS="${build.jobs}"
 
+# We violate mtree in one way:
+# - We install in $prefix/<name><major>. This has long been a standard path for installed JVMs
+#   and models the approach taken by the FreeBSD Java ports.
+destroot.violate_mtree yes
 destroot {
-    set path "${destroot}${prefix}/share/java/${name}/"
+    # Copy in the bundle
+    set target_bundle_name "macports-jdk1.${jdk_major_version}.0_${jport_minor_version}.jdk"
+    set src_bundle_name "jdk1.${jdk_major_version}.0_${jport_minor_version}.jdk"
+
+    set path "${destroot}${prefix}/Library/Java/JavaVirtualMachines/${target_bundle_name}/"
     xinstall -m 755 -d ${path}
-    system "(cd ${worksrcpath}/build/macosx-${openjdk_build_arch}/j2sdk-image && tar cf - *) | (tar -C ${path} -xf -)"
+    system "(cd \"${worksrcpath}/build/macosx-${openjdk_build_arch}/j2sdk-bundle/${src_bundle_name}\" && tar cf - *) | (tar -C \"${path}\" -xf -)"
+
+    # Create a standard path for our Java Home; this is intended to be used by ports (and users)
+    # that don't want to reference the version-and-build-specific bundle path.
+    ln -sf "Library/Java/JavaVirtualMachines/${target_bundle_name}/Contents/Home" "${destroot}${prefix}/${name}"
 }
