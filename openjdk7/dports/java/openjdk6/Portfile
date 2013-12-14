@@ -25,6 +25,14 @@ long_description \
                     Classpath exception. The Java Hotspot virtual machine source code is \
                     licensed under the GPL version 2 only.
 
+supported_archs     x86_64
+
+# Licensed GPLv2-CPE. See also:
+# - http://openjdk.java.net/legal/gplv2+ce.html
+# - http://en.wikipedia.org/wiki/GPL_linking_exception#The_classpath_exception
+license             Permissive 
+
+
 # Use our own version of ant to avoid circular dependencies
 set ant_version     1.8.4
 set ant_distfile    apache-ant-${ant_version}-bin
@@ -52,13 +60,20 @@ depends_lib         port:libiconv \
                     port:dejavu-fonts
 
 # Check if the bootstrap is required
-if {[file exists ${prefix}/share/java/openjdk6/bin/java]} {
-    # A previous OpenJDK6 release is already installed
-    set bootstrapvm "${prefix}/share/java/openjdk6"
+if {[file exists ${prefix}/share/java/openjdk7/bin/java]} {
+    # A previous OpenJDK7 release is already installed
+    set bootflags   {}
+    set bootstrapvm "${prefix}/share/java/openjdk7"
 } else {
     # A bootstrap binary is required to build
-    depends_build-append port:openjdk6_bootstrap
-    set bootstrapvm "${prefix}/share/java/openjdk6_bootstrap"
+    #depends_build-append port:bootstrap_openjdk
+    #set bootstrapvm "${prefix}/share/java/bootstrap_openjdk"
+
+    # TODO: We need to provide a bootstrap once we have this port building successfully,
+    # but for now, rely on Apple's JDK6
+    set bootflags   SA_APPLE_BOOT_JAVA=true \
+                    ALWAYS_PASS_TEST_GAMMA=true
+    set bootstrapvm [exec /usr/libexec/java_home -v 1.6]
 }
 
 worksrcdir          "openjdk"
@@ -72,35 +87,6 @@ worksrcdir          "openjdk"
 build.env {}
 build.pre_args {}
 build.post_args {}
-
-# Determine the OpenJDK architecture
-#
-# XXX:
-# The OpenJDK build scripts currently rely on uname -m, which may return i386 or x86_64
-# regardless of the actual supported architecture. I'll be fixing this upstream (using ARCH_DATA_MODEL to
-# let the user select between amd64/i586 on any x86 target), but in the meantime, we use UNAME_MACHINE
-# to override what uname -m returns.
-supported_archs i386 x86_64 ppc
-if {${build_arch} == "i386"} {
-    build.env-append "UNAME_MACHINE=i386"
-    set openjdk_datamodel "32"
-    set openjdk_build_arch "i586"
-
-} elseif {${build_arch} == "x86_64"} {
-    build.env-append "UNAME_MACHINE=amd64"
-    set openjdk_datamodel "64"
-    set openjdk_build_arch "amd64"
-
-} elseif {${build_arch} == "ppc"} {
-    # Currently unsupported
-    build.env-append "UNAME_MACHINE=ppc"
-    set openjdk_datamodel "32"
-    set openjdk_build_arch "ppc"
-} else {
-    # Unknown architecture
-    set openjdk_datamodel "32"
-    set openjdk_build_arch "unsupported"
-}
 
 build.args \
     ARCH_DATA_MODEL="${openjdk_datamodel}" \
