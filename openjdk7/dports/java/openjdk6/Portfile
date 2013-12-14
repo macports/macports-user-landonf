@@ -25,8 +25,6 @@ long_description \
                     Classpath exception. The Java Hotspot virtual machine source code is \
                     licensed under the GPL version 2 only.
 
-supported_archs     x86_64
-
 # Licensed GPLv2-CPE. See also:
 # - http://openjdk.java.net/legal/gplv2+ce.html
 # - http://en.wikipedia.org/wiki/GPL_linking_exception#The_classpath_exception
@@ -59,8 +57,12 @@ depends_lib         port:libiconv \
                     port:xorg-libXtst \
                     port:dejavu-fonts
 
-# Java 8 should support clang directly
-depends_build       port:llvm-gcc42
+# NOTES:
+# OpenJDK7 requires gcc/llvm-gcc; java 8 should support clang directly
+# Apple's jobjc depends on both Ruby and Haskell. Go figure.
+depends_build       port:llvm-gcc42 \
+                    port:ghc \
+                    port:ruby
 
 # Check if the bootstrap is required
 if {[file exists ${prefix}/share/java/openjdk7/bin/java]} {
@@ -80,6 +82,17 @@ if {[file exists ${prefix}/share/java/openjdk7/bin/java]} {
 
 worksrcdir          "openjdk"
 
+post-patch {
+    # The jobjc build system includes hard-coded references to /usr/bin/ant; Java build tools (such as ant)
+    # are no longer shipped with Xcode 5.0+ on Mavericks.
+    reinplace "s|/usr/bin/ant|${workpath}/apache-ant-${ant_version}/bin/ant|g" \
+        "${worksrcpath}/jdk/make/java/jobjc/Makefile" \
+        "${worksrcpath}/jdk/src/macosx/native/jobjc/JObjC.xcodeproj/project.pbxproj"
+
+    # Fix missing executable permissions on the code generator
+    file attributes "${worksrcpath}/jdk/src/macosx/native/jobjc/src/core/PrimitiveCoder.hs" -permissions 0755 
+}
+
 # Override the overzealous setting of build environmental variables and settings. These
 # assume the use of (a well-behaved) autoconf, and cause an assortment of odd build failures when
 # used with OpenJDK's build system.
@@ -90,14 +103,28 @@ build.env {}
 build.pre_args {}
 build.post_args {}
 
+# Determine the OpenJDK architecture name
+supported_archs     x86_64
+if {${build_arch} == "i386"} {
+    set openjdk_build_arch "i586"
+} elseif {${build_arch} == "x86_64"} {
+    set openjdk_build_arch "${build_arch}"
+} else {
+    # Unknown architecture
+    return -error "Platform unsupported"
+}
+
+# LLVM GCC is required by the build, but no longer shipped in Xcode.
+# In addition, Mavericks has marked a number of APIs required by JDK 7
+# as deprecated, mandating the use of -Wno-deprecated-declarations
 build.args \
     CC="${prefix}/bin/llvm-gcc-4.2" \
     CXX="${prefix}/bin/llvm-g++-4.2" \
+    EXTRA_CFLAGS="-Wno-deprecated-declarations -I\"${filespath}/clang-compat-headers\"" \
     LANG="C" \
     "${bootflags}" \
     ALT_BOOTDIR="${bootstrapvm}" \
     ALT_COMPILER_PATH="${prefix}" \
-    ANT_HOME="${prefix}/share/java/apache-ant" \
     ANT_HOME="${workpath}/apache-ant-${ant_version}" \
     ALT_FREETYPE_HEADERS_PATH="${prefix}/include" \
     ALT_FREETYPE_LIB_PATH="${prefix}/lib" \
@@ -116,11 +143,8 @@ build.args \
     MILESTONE=fcs \
     HOTSPOT_BUILD_JOBS="${build.jobs}"
 
-
-#ALT_CUPS_HEADERS_PATH="/usr/include"
-
 destroot {
     set path "${destroot}${prefix}/share/java/${name}/"
     xinstall -m 755 -d ${path}
-    system "(cd ${worksrcpath}/build/macosx-universal/j2sdk-image && tar cf - *) | (tar -C ${path} -xf -)"
+    system "(cd ${worksrcpath}/build/macosx-${openjdk_build_arch}/j2sdk-image && tar cf - *) | (tar -C ${path} -xf -)"
 }
