@@ -12,6 +12,7 @@ set jdk_minor_version   40
 set jdk_build_number    43
 set jdk_build_date      26_aug_2013
 version             ${jdk_major_version}.${jport_minor_version}.${jport_build_number}
+revision            1
 
 categories          java
 maintainers         landonf openmaintainer
@@ -81,11 +82,13 @@ if {[file exists ${prefix}/share/java/openjdk7/bin/java]} {
     set bootstrapvm "${prefix}/share/java/openjdk7"
 } else {
     # A bootstrap binary is required to build
-    #depends_build-append port:bootstrap_openjdk
-    #set bootstrapvm "${prefix}/share/java/bootstrap_openjdk"
-
-    # TODO: We need to provide a bootstrap once we have this port building successfully,
-    # but for now, rely on Apple's JDK6
+    depends_build-append port:openjdk_bootstrap
+    set bootflags   {}
+    set bootstrapvm "${prefix}/share/java/openjdk_bootstrap"
+}
+if {false} {
+    # Unreachable. We can bootstrap using a system-installed
+    # Java 1.6 binary, but using our own bootstrap is preferred (and automatic).
     set bootflags   "SA_APPLE_BOOT_JAVA=true ALWAYS_PASS_TEST_GAMMA=true"
     set bootstrapvm [exec /usr/libexec/java_home -v 1.6]
 }
