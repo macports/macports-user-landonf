@@ -1,0 +1,28 @@
+PortSystem 1.0
+PortGroup select 1.0
+
+name			java_select
+version			0.1
+categories		sysutils
+platforms		darwin
+license		BSD
+maintainers		landonf
+supported_archs		noarch
+description		common files for selecting default Java version
+long_description	java_select installs files that allow 'port select' to \
+			switch the default version of Java. \
+			It symlinks the standard Java executables \
+			in the MacPorts prefix to the selected version.
+
+homepage		http://www.macports.org/
+distfiles
+
+use_configure           no
+build                   {}
+
+destroot {
+    select::install java ${filespath}/base
+    select::install java ${filespath}/none
+}
+
+livecheck.type	none
