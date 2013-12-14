@@ -1,0 +1,11 @@
+--- configure.py.orig	2013-08-21 01:25:44.000000000 -0400
++++ configure.py	2013-08-21 19:10:47.000000000 -0400
+@@ -547,7 +547,6 @@
+         raise
+     except:
+         sys.stderr.write(
+-"""An internal error occured.  Please report all the output from the program,
+-including the following traceback, to support@riverbankcomputing.com.
++"""An internal error occured.  Please follow the instructions provided by MacPorts < http://www.macports.org > to report this issue.  Please do not report this issue to Riverbank Computing until MacPorts developers have determined that it is appropriate to do so.
+ """)
+         raise

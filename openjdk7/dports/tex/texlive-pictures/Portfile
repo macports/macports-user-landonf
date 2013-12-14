@@ -1,0 +1,38 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           texlive 1.0
+
+name                texlive-pictures
+version             30637
+revision            0
+
+categories          tex
+maintainers         dports
+license             Copyleft Permissive
+description         TeX Live: Graphics, pictures, diagrams
+long_description    Including TikZ, pict, etc.\; MetaPost and PStricks are separate.
+
+checksums           texlive-pictures-30637-run.tar.xz \
+                    rmd160  10d56f5c0af11749cac69edb2eb31586a27e62ca \
+                    sha256  7adb015152af5b9ce85cf0164421d56c2d0ea8c96fc84b0fa36e25bd6868257c \
+                    texlive-pictures-30637-doc.tar.xz \
+                    rmd160  d6c0d425c5ac4947f6e90b89cf1ab2286278d503 \
+                    sha256  9a1ef64a2e30d0c0fb16cb1264a7439ffa3640edd67e1f7405561c66948a6835 \
+                    texlive-pictures-30637-src.tar.xz \
+                    rmd160  add0f9392a0300fd24cfb120b47c995ead82622d \
+                    sha256  e311e776d3083b88a8e47260e49abfc8cd1a08c633e9746d7419e150c56f908b
+
+depends_lib         port:texlive-basic
+
+texlive.maps      \
+    {Map knitfont.map} \
+    {MixedMap xypic.map}
+
+texlive.binaries    cachepic epspdf epspdftk fig4latex mathspic
+
+# use pgf port to satisfy pgf dependency (see #25478)
+depends_lib-append port:pgf
+
+texlive.texmfport

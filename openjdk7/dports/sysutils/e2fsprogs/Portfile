@@ -1,0 +1,105 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem                  1.0
+
+name                        e2fsprogs
+version                     1.42.7
+revision                    2
+categories                  sysutils
+platforms                   darwin
+maintainers                 nomaintainer
+license                     GPL-2 LGPL-2+ MIT BSD
+
+description                 Utilities for use with the ext2, ext3 and ext4 \
+                            filesystems
+
+long_description            Utilities to create, check and manipulate extended 2, \
+                            3 and 4 filesystem (ext2, ext3, ext4) which are \
+                            commonly used on Linux.
+
+homepage                    http://e2fsprogs.sourceforge.net/
+master_sites                sourceforge:project/e2fsprogs/e2fsprogs/v${version}
+
+checksums                   rmd160  365ce2a182e5adc988f3428634a8bed5d05910a2 \
+                            sha256  dc6501b2e75d205e425196d753d92b129c568525d8aad08085c0aa69ee9e7345
+
+depends_build               port:pkgconfig
+depends_lib                 port:gettext
+
+patchfiles                  patch-lib__Makefile.darwin-lib
+
+configure.args-append       --enable-bsd-shlibs
+
+# This project is not C99 conformant
+configure.cflags-append     -std=gnu89
+
+# Enable verbose build messages
+build.args-append           V=1
+
+if {${name} == ${subport}} {
+    universal_variant           no
+
+    configure.args-append       --disable-libuuid \
+                                --disable-uuidd
+
+    depends_lib-append          port:ossp-uuid \
+                                port:libcomerr
+
+    patchfiles-append           patch-Makefile.in-remove-included-libcomerr.diff
+
+    if {[string match *clang* ${configure.compiler}]} {
+        # return type conflicts should really be fixed
+        configure.cflags-append  "-Wno-return-type"
+    }
+
+    pre-build {
+        ln -fs ${prefix}/bin/compile_et ${worksrcpath}/lib/et/compile_et
+        ln -fs ${prefix}/lib/libcom_err.1.1.dylib ${worksrcpath}/lib/libcom_err.dylib
+    }
+
+    destroot.target-append      install-libs
+}
+
+subport libcomerr {
+    description                 common error description library
+    long_description            \
+        libcomerr is an attempt to present a common error-handling mechanism to \
+        manipulate the most common form of error code in a fashion that does \
+        not have the problems identified with mechanisms commonly in use.
+    license                     MIT BSD
+
+    # If we don't force this version of awk, we'd have to add a dependency on
+    # gawk.
+    configure.env-append        AWK=/usr/bin/awk
+
+    patchfiles-append           patch-lib__et__compile_et.sh.in.diff
+
+    build.args-append           -C lib/et
+    destroot.args-append        -C lib/et
+    post-destroot {
+        ln -fs libcom_err.1.1.dylib ${destroot}${prefix}/lib/libcom_err.dylib
+        system "install_name_tool -id ${prefix}/lib/libcom_err.1.1.dylib ${destroot}${prefix}/lib/libcom_err.1.1.dylib"
+    }
+
+    pre-activate {
+        # both kerberos5 and e2fsprogs previsouly conflicted because they installed files now provided by libcomerr
+        if {![catch {set installed [lindex [registry_active kerberos5] 0]}]} {
+            set krb_version [lindex $installed 1]
+            if {[vercmp $krb_version 1.11] < 0} {
+                # kerberos5 used to install some files now provided by libcomerr in versions < 1.11
+                registry_deactivate_composite kerberos5 "" [list ports_nodepcheck 1]
+            }
+        }
+        if {![catch {set installed [lindex [registry_active e2fsprogs] 0]}]} {
+            set e2fs_version [lindex $installed 1]
+            if {[vercmp $e2fs_version 1.42.7] < 0} {
+                # e2fsprogs used to install some files now provided by libcomerr in versions < 1.42.7
+                registry_deactivate_composite e2fsprogs "" [list ports_nodepcheck 1]
+            }
+        }
+    }
+}
+
+livecheck.type              regex
+livecheck.regex             ${name}-(\[0-9.\]+)\\.tar

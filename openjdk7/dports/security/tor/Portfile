@@ -1,0 +1,45 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                tor
+conflicts           tor-devel
+version             0.2.3.25
+categories          security
+platforms           darwin
+maintainers         nomaintainer
+license             BSD
+
+description         anonymizing overlay network for TCP
+
+long_description    Tor provides a distributed network of servers \
+                    (onion routers). Users bounce their TCP streams \
+                    (web traffic, FTP, SSH, etc.) around the \
+                    routers. This makes it hard for recipients, \
+                    observers, and even the onion routers \
+                    themselves to track the source of the stream.
+
+homepage            https://www.torproject.org/
+master_sites        ${homepage}dist/
+
+checksums           rmd160  d8c90343346bc447191616f86da2591a64100b51 \
+                    sha256  bb2d6f1136f33e11d37e6e34184143bf191e59501613daf33ae3d6f78f3176a0
+
+depends_lib         port:libevent \
+                    port:openssl \
+                    port:zlib
+
+configure.args      --mandir=${prefix}/share/man
+
+test.run            yes
+test.target         check
+
+post-destroot {
+    set tsocksconf ${destroot}${prefix}/etc/tor/tor-tsocks.conf
+    move ${tsocksconf} ${tsocksconf}.sample
+}
+
+livecheck.type      regex
+livecheck.url       ${master_sites}?C=M\;O=D
+livecheck.regex     tor-(\\d+\\.\\d+\\.\\d+\\.\\d+)${extract.suffix}

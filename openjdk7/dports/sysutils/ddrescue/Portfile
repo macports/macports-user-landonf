@@ -1,0 +1,31 @@
+# $Id$
+
+PortSystem 1.0
+
+name            ddrescue
+version         1.17
+categories      sysutils
+platforms       darwin
+license         GPL-3+
+maintainers     raimue
+description     GNU ddrescue is a data recovery tool.
+
+long_description \
+                ${description} It copies data from one file or block device (hard disc, \
+                cdrom, etc) to another, trying hard to rescue data in case of \
+                read errors.
+
+homepage        http://www.gnu.org/software/ddrescue/ddrescue.html
+master_sites    gnu:ddrescue
+
+# lzip archive
+depends_extract port:lzip
+extract.suffix  .tar.lz
+extract.cmd     ${prefix}/bin/lzip
+
+checksums       rmd160  fdaf5edf61b195c5a210435f2bd1c1fdb68879af \
+                sha256  bef96c181b031cc7de9d02c0aec2e8dbf860d149fa2f35f967448a48ffd2752f
+
+configure.args  CXX=${configure.cxx}
+
+destroot.target-append  install-man

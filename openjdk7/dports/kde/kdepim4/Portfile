@@ -1,0 +1,50 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+PortGroup           compiler_blacklist_versions 1.0 
+
+name                kdepim4
+version             4.11.4
+categories          kde kde4
+maintainers         intevation.de:bjoern.ricks nicos
+license             GPL-2+ LGPL-2+
+description         KDE4 groupware suite
+long_description    KDE4 groupware suite including a Mail client, \
+                    addressbook, organizer and groupware integration.
+platforms           darwin
+homepage            http://www.kde.org
+master_sites        kde:stable/${version}/src/
+use_xz              yes
+distname            kdepim-${version}
+
+checksums           rmd160  f8e409a4dfe3ab6d77edf42a990fba6c0b144f76 \
+                    sha256  64250635d9e63b25747919634be976c1666e78154d3ad26d5da65ee0be2f63e6
+
+depends_lib-append  port:kde4-runtime \
+                    port:nepomuk-widgets \
+                    port:kdelibs4 port:dblatex \
+                    port:kdepimlibs4 path:lib/pkgconfig/glib-2.0.pc:glib2 \
+                    port:shared-desktop-ontologies port:libassuan \
+                    port:kdepim4-runtime
+
+configure.args-append   ../${distname} \
+                        -DWITH_IndicateQt=OFF
+
+patchfiles-append       patch-clang-headers.diff
+
+if {![variant_isset docs]} {
+    depends_lib-delete  port:dblatex
+    patchfiles-append   patch-CMakeLists.diff
+}
+
+#Blacklist gcc42 and llvm-gcc-42
+compiler.blacklist  gcc-4.2 apple-gcc-4.2 llvm-gcc-4.2 macports-llvm-gcc-4.2
+#Also blacklist clang before Xcode 4.2
+compiler.blacklist-append   {clang < 211.10.1}
+
+universal_variant   no
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

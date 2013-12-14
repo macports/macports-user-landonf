@@ -1,0 +1,55 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           github 1.0
+
+github.setup        ginatrapani todo.txt-cli 2.9 v
+revision            2
+name                todotxt
+categories          office
+license             GPL
+maintainers         snc openmaintainer
+supported_archs     noarch
+
+description         Simple, extensible shell script to manage your todo file.
+long_description    A simple and extensible shell script for managing your \
+                    todo.txt file.
+
+platforms           darwin
+
+checksums           rmd160  9b0a2cceca031f2f9c5e8615c280593befdf03c2 \
+                    sha256  15289aa2edab7a3d59b4c1d296d43fd5d692b5d4545af9fa695fa809c5c6f6cc
+
+use_configure       no
+
+build {}
+
+post-patch {
+    reinplace "s/todo\\.sh/${name}/" ${worksrcpath}/todo_completion
+}
+
+destroot {
+    xinstall -m 755 ${worksrcpath}/todo.sh ${destroot}${prefix}/bin/$name
+    xinstall -d -m 755 ${destroot}${prefix}/share/${name}
+    xinstall -m 644 ${worksrcpath}/todo.cfg ${destroot}${prefix}/share/${name}/todo.cfg-dist
+}
+
+post-destroot {
+    set completions_path ${destroot}${prefix}/share/bash-completion/completions
+    xinstall -d ${completions_path}
+    xinstall -m 644 ${worksrcpath}/todo_completion ${completions_path}/${name}
+}
+
+patch {
+    # default cfg will try to write in $prefix/bin, since this isn't obvious from the config
+    # file we help the user avoiding this
+    reinplace "s|TODO_DIR=`dirname \"\$0\"`|TODO_DIR=\"\$HOME\"/.todo|" ${worksrcpath}/todo.cfg
+}
+
+variant bash_completion {
+    depends_run-append  path:etc/bash_completion:bash-completion
+}
+
+notes "Copy the default configuration file from  ${prefix}/share/${name}/todo.cfg-dist \
+to  ~/.todo/config  and customize it."

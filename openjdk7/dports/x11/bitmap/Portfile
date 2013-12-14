@@ -1,0 +1,35 @@
+# $Id$
+
+PortSystem          1.0
+
+name                bitmap
+version             1.0.7
+categories          x11 graphics
+maintainers         jeremyhu openmaintainer
+license             X11
+description         Bitmap editor and converter utilities for X11
+long_description    ${description}
+
+platforms           darwin
+
+homepage            http://www.x.org/
+master_sites        xorg:individual/app/
+use_bzip2           yes
+
+checksums           sha1    18c4762b8c94b519ee2ca6c3171cc2f85e6b2421 \
+                    rmd160  2b6bb14311b35502bb188ceb86f10ff2b205dd73 \
+                    sha256  7ea2823a930ddfe3bfc0c7fbb16a5b463222edf05284c5cdc40a6d3c5c3988af
+
+depends_build       port:pkgconfig
+
+depends_lib         port:xorg-libXaw port:xbitmaps
+
+post-destroot {
+        # This conflicts with stipple from the bitmap port for case-insensitive file systems
+        delete ${destroot}${prefix}/include/X11/bitmaps/Stipple
+}
+
+
+livecheck.type      regex
+livecheck.regex     ${name}-(\[\\d.\]+)${extract.suffix}
+livecheck.url       http://xorg.freedesktop.org/archive/individual/app/?C=M&O=D

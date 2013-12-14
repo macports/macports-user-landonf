@@ -1,0 +1,294 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+# TODO: Improve universal.  The only issue is with ${prefix}/include/mpif.h
+#       It requires preprocessing, so it will work with #include directives
+#       but not if clients use INCLUDE
+#PortGroup           muniversal 1.0
+universal_variant    no
+
+PortGroup           compiler_blacklist_versions 1.0
+PortGroup           select 1.0
+
+name                mpich
+version             3.0.4
+revision            8
+
+license             BSD
+categories          science parallel net
+platforms           darwin
+maintainers         eborisch \
+                    openmaintainer
+
+description         Message Passing Interface (MPI) Library
+
+long_description    MPICH is a high-performance and widely portable\
+                    implementation of the Message Passing Interface (MPI) \
+                    standard (MPI-1, MPI-2 and MPI-3). The goals of MPICH are:\
+                    (1) to provide an MPI implementation that efficiently\
+                    supports different computation and communication platforms\
+                    including commodity clusters (desktop systems,\
+                    shared-memory systems, multicore architectures), high-speed\
+                    networks (10 Gigabit Ethernet, InfiniBand, Myrinet,\
+                    Quadrics) and proprietary high-end computing systems (Blue\
+                    Gene, Cray) and (2) to enable cutting-edge research in MPI\
+                    through an easy-to-extend modular framework for other\
+                    derived implementations.\
+                    \
+                    \n\nThe mpich port follows the latest mpich 3.x line, and is \
+                    the successor to the mpich2 port. Starting with the major \
+                    release in November 2012, the project is renamed back to \
+                    MPICH (from MPICH2) with a version number of 3.0.
+homepage            http://www.mpich.org/
+
+checksums \
+    rmd160  c14b3b335be863dd36c0a58630c969719d8ef217 \
+    sha256  cf638c85660300af48b6f776e5ecd35b5378d5905ec5d34c3da7a27da0acf0b3
+
+configure.args      --disable-dependency-tracking \
+                    --disable-f77 \
+                    --disable-fc \
+                    --disable-silent-rules \
+                    --enable-base-cache \
+                    --enable-cache \
+                    --enable-cxx \
+                    --enable-fast=O2 \
+                    --enable-shared \
+                    --enable-smpcoll \
+                    --with-device=ch3:nemesis \
+                    --with-pm=hydra \
+                    --with-thread-package=posix \
+                    --enable-versioning \
+                    "F90FLAGS='' F90=''"
+
+# As MPICH creates compiler wrappers, there are lots of
+# variants for what compiler the user would like to wrap.
+
+subport ${name}-gcc43   {}
+subport ${name}-gcc44   {}
+subport ${name}-gcc45   {}
+subport ${name}-gcc46   {}
+subport ${name}-gcc47   {}
+subport ${name}-gcc48   {}
+#subport ${name}-gcc49   {}
+subport ${name}-clang   {}
+subport ${name}-clang31 {}
+subport ${name}-clang32 {}
+subport ${name}-clang33 {}
+subport ${name}-clang34 {}
+subport ${name}-llvm    {}
+subport ${name}-default {}
+
+# Compiler variant set
+#   name     depends_lib    configure.compiler  Description
+array set clist {
+    clang   {clang}
+    clang31 {macports-clang-3.1}
+    clang32 {macports-clang-3.2}
+    clang33 {macports-clang-3.3}
+    clang34 {macports-clang-3.4}
+    gcc43   {macports-gcc-4.3}
+    gcc44   {macports-gcc-4.4}
+    gcc45   {macports-gcc-4.5}
+    gcc46   {macports-gcc-4.6}
+    gcc47   {macports-gcc-4.7}
+    gcc48   {macports-gcc-4.8}
+    gcc49   {macports-gcc-4.9}
+    llvm    {llvm-gcc-4.2}
+}
+
+master_sites        ${homepage}static/tarballs/${version}/
+
+conflicts-append    mpich2 \
+                    mpich2-devel \
+                    lammpi \
+                    openmpi
+
+depends_lib-append  port:libxml2
+
+# Linker for Apple clang version 421.11.66 segfaults 
+# See https://trac.macports.org/ticket/36654#comment:9 
+compiler.blacklist-append   {clang >= 421.11.66 < 425.0.24} 
+
+platform darwin {
+    configure.args-append   --enable-timer-type=mach_absolute_time
+}
+
+# We're making compiler wrappers here... don't default to -O2 for wrappers.
+# Actual library code is compiled with -O2 via --enable-fast=O2 configure arg
+configure.optflags-delete   -O2 -Os
+configure.cppflags-delete   -I${prefix}/include
+configure.ldflags-delete    -L${prefix}/lib
+
+if {${subport} != ${name}} {
+    set cname                   [lindex [split ${subport} -] end]
+    if {${cname} == "default"} {
+        set cname                   mp
+    }
+    depends_run                 port:mpich_select
+    conflicts-append            mpich-devel-default
+    select.group                mpich
+    select.file                 ${filespath}/mpich-${cname}
+
+    if {${subport} != "${name}-default"} {
+        configure.compiler      [lindex $clist($cname) 0]
+        append long_description "\\n\\nTHIS SUBPORT WRAPS ${cname}'s C/C++"
+        depends_lib-append      port:${name}-default
+    } else {
+        append long_description \
+"\\n\\nTHIS SUBPORT WRAPS MACPORTS' DEFAULT COMPILER FOR C/C++"
+    }
+
+    post-extract {
+        reinplace "s|hydra_pmi_proxy|hydra_pmi_proxy-${cname}|" \
+            src/pm/hydra/pm/pmiserv/pmiserv_utils.c
+    }
+
+    configure.args-append   \
+        --libdir=${prefix}/lib/${name}-${cname} \
+        --sysconfdir=${prefix}/etc/${name}-${cname} \
+        --program-suffix=-$cname
+
+    if {${subport} != "${name}-default"} {
+        configure.args-append   \
+            --includedir=${prefix}/include/${name}-${cname}
+    }
+
+    post-destroot {
+        if {${subport} != "${name}-default"} {
+# This version doesn't supply doc/manpages
+# they would conflict with -default
+            delete ${destroot}${prefix}/share/man
+            delete ${destroot}${prefix}/share/doc
+        } else {
+            xinstall -d ${destroot}${prefix}/lib/pkgconfig
+            file copy \
+    ${destroot}${prefix}/lib/mpich-${cname}/pkgconfig/mpich.pc \
+    ${destroot}${prefix}/lib/mpich-${cname}/pkgconfig/openpa.pc \
+    ${destroot}${prefix}/lib/pkgconfig/
+        }
+
+        if {![variant_isset gforker]} {
+            system -W ${destroot}${prefix}/bin \
+                "ln -s mpiexec.hydra-${cname} mpiexec-${cname}"
+        }
+    }
+
+    if { [string first gcc $cname] == 0 } {
+        configure.args-delete   --disable-f77 --disable-fc
+        configure.args-append   --enable-f77 --enable-fc
+        select.file             ${filespath}/mpich-${cname}-fortran
+        variant fortran description {
+            Stub : fortran always enabled for gcc-based version
+        } {}
+        default_variants-append     +fortran
+    } else {
+        set gcc_versions {4.3 4.4 4.5 4.6 4.7 4.8 4.9}
+        set default_fortran_variant +gcc48
+        set g95_conflicts {}
+
+        foreach ver ${gcc_versions} {
+            set ver_no_dot [join [split ${ver} "."] ""]
+
+            set variant_line {variant gcc${ver_no_dot} description \
+              "build with gfortran from gcc${ver_no_dot}" conflicts g95}
+
+            foreach over ${gcc_versions} {
+                if {${ver} == ${over}} {
+                    continue
+                }
+
+                set over_no_dot [join [split ${over} "."] ""]
+                append variant_line " conflicts gcc${over_no_dot}"
+            }
+            append variant_line { {}}
+
+            eval $variant_line
+
+            append g95_conflicts " conflicts gcc${ver_no_dot}"
+
+            if {[variant_isset gcc${ver_no_dot}]} {
+                if {${default_fortran_variant} != "+gcc${ver_no_dot}"} {
+                    set default_fortran_variant ""
+                }
+            }
+        }
+
+        eval [concat {variant g95 description {build with g95}} \
+              $g95_conflicts {{}}]
+
+        if {[variant_isset g95]} {
+            if {${default_fortran_variant} != "+g95"} {
+                set default_fortran_variant ""
+            }
+        }
+
+        if {${default_fortran_variant} != ""} {
+            default_variants "${default_fortran_variant}"
+        }
+
+        foreach ver ${gcc_versions} {
+            set ver_no_dot [join [split ${ver} "."] ""]
+
+            if {[variant_isset gcc${ver_no_dot}]} {
+                depends_lib-append path:lib/libgcc/libgcc_s.1.dylib:libgcc
+                depends_build-append port:gcc${ver_no_dot}
+
+                configure.args-delete   --disable-f77 --disable-fc
+                configure.args-append   --enable-f77 --enable-fc
+                select.file             ${filespath}/mpich-${cname}-fortran
+
+                configure.fc  ${prefix}/bin/gfortran-mp-${ver}
+                configure.f77 ${prefix}/bin/gfortran-mp-${ver}
+                configure.f90 ${prefix}/bin/gfortran-mp-${ver}
+            }
+        }
+
+        if {[variant_isset g95]} {
+            depends_lib-append path:lib/libgcc/libgcc_s.1.dylib:libgcc
+            depends_build-append port:g95
+
+            configure.args-delete   --disable-f77 --disable-fc
+            configure.args-append   --enable-f77 --enable-fc
+            select.file             ${filespath}/mpich-${cname}-fortran
+
+            configure.fc ${prefix}/bin/g95
+            configure.f77 ${prefix}/bin/g95
+            configure.f90 ${prefix}/bin/g95
+        }
+    }
+
+notes "
+
++--- MPICH Usage note ----
+| The mpi\[cc|cxx|f77|f90\] weappers are installed as 
+| mpi\[cc|cxx|f77|f90\]-${cname}. To make ${subport} the default (i.e. the
+| version you get when you run 'mpicc/mpicxx'), please run:
+|  
+| sudo port select --set mpich [file tail ${select.file}]
++-------------------------
+
+"
+
+    variant gforker description {
+        Use gforker process manager instead of the default hydra
+    } {
+        configure.args-append   --with-pm=gforker
+        configure.args-delete   --with-pm=hydra
+    }
+
+    variant tuned description {Build with more optimizations} {
+        configure.args-delete   --enable-fast=O2
+        configure.args-append   --enable-fast=all \
+                                MPICHLIB_CFLAGS='-fomit-frame-pointer -O2'
+    }
+
+    livecheck.type      regex
+    livecheck.regex     mpich-(\[0-9.pbrc\]+)${extract.suffix}
+    livecheck.url       ${homepage}downloads/index.php?s=downloads
+} else {
+    replaced_by         mpich-default
+    PortGroup           obsolete 1.0
+}

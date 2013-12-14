@@ -1,0 +1,65 @@
+# $Id$
+
+PortSystem          1.0
+
+name                libmatroska
+version             1.4.0
+revision            1
+categories          multimedia
+license             LGPL-2+
+maintainers         nomaintainer
+description         Matroska is an extensible open standard audio/video container format.
+long_description    \
+                    Matroska is an extensible open standard audio/video container \
+                    format. This library is there to support this format and has \
+                    been written by the Matroska project team.
+                
+homepage            http://www.matroska.org/
+platforms           darwin
+master_sites        http://dl.matroska.org/downloads/${name}/
+use_bzip2           yes
+
+checksums           md5     5b83155019589b04a49f9db923b5bf74 \
+                    sha1    e2cd74cef7eb6d0223251e755a7af8d283d650e5 \
+                    rmd160  b64136b2ffc1913dda3f3418ab4de3241556f3e1
+
+depends_build       port:libebml
+
+post-extract {
+    system "cd ${worksrcpath}/make && cp -R linux darwin"
+}
+
+use_configure       no
+
+variant universal {}
+if {[variant_isset universal]} {
+    set archflags ${configure.universal_cxxflags}
+} else {
+    set archflags ${configure.cxx_archflags}
+}
+
+set cxx_stdlibflags {}
+if {[info exists configure.cxx_stdlib] &&
+    ${configure.cxx_stdlib} ne {} &&
+    [string match *clang* ${configure.cxx}]} {
+    set cxx_stdlibflags -stdlib=${configure.cxx_stdlib}
+}
+
+build.dir           ${worksrcpath}/make/darwin
+build.args          prefix=${prefix} \
+                    CXX=${configure.cxx} \
+                    CXXFLAGS="${archflags} ${cxx_stdlibflags}" \
+                    LIBEBML_INCLUDE_DIR=${prefix}/include \
+                    LIBEBML_LIB_DIR=${prefix}/lib
+
+test.run            yes
+test.cmd            ./test6 && ./test8 && ./test9
+test.target
+
+# We need -p for install because ld will ask for ranlib if the modification date changes.
+destroot.args       INSTALL_OPTS_LIB='-m 644 -p'
+destroot.destdir    prefix=${destroot}${prefix}
+
+livecheck.type  regexm
+livecheck.url   http://www.bunkus.org/videotools/mkvtoolnix/source.html
+livecheck.regex ${name} (\[0-9.\]+)

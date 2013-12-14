@@ -1,0 +1,32 @@
+# $Id$
+PortSystem 1.0
+name                glm
+version             0.9.4.6
+categories          devel
+platforms           darwin
+supported_archs     noarch
+license             MIT
+maintainers         openmaintainer mmoll
+description         OpenGL Mathematics (GLM) C++ library
+long_description    OpenGL Mathematics (GLM) is a header only C++ \
+                    mathematics library for graphics software based \
+                    on the OpenGL Shading Language (GLSL) specification.
+homepage            http://glm.g-truc.net/
+master_sites        sourceforge:project/ogl-math/${name}-${version}
+checksums           md5     a6867c2f27da0635b80b54efa8617504 \
+                    sha1    a909c34c718e9146575717d429ee55647b692d41 \
+                    rmd160  df129b4d344650bf153cffc834e14bbefecde0e5
+use_zip             yes
+use_configure       no
+build {}
+worksrcdir          ${name}
+destroot {
+    copy ${worksrcpath}/${name} ${destroot}${prefix}/include/${name}
+    delete ${destroot}${prefix}/include/${name}/CMakeLists.txt
+    xinstall -d ${destroot}${prefix}/share/doc
+    copy ${worksrcpath}/doc ${destroot}${prefix}/share/doc/${name}
+}
+
+livecheck.type      regex
+livecheck.url       http://sourceforge.net/projects/ogl-math/files/
+livecheck.regex     "${name}-(\[0-9.\]+\[0-9\])"

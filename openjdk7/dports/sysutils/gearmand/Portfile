@@ -1,0 +1,118 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+# configure: error: unable to determine endian
+PortGroup           muniversal 1.0
+
+name                gearmand
+version             0.41
+set branch          1.0
+categories          sysutils net devel
+platforms           darwin
+license             BSD
+
+description         Framework for distributed computation
+long_description    \
+        Gearman provides a generic application framework  to  farm  out  work \
+        to other machines or processes that are better suited to do the work. \
+        It allows you to do work in parallel,  to  load  balance  processing, \
+        and to call functions between languages.  It can be used in a variety \
+        of applications, from high-availability web sites to the transport of \
+        database replication events. In other words, it is the nervous system \
+        for how distributed processing communicates.
+
+maintainers         medialize.de:rodney.rehm \
+                    andyfowler.com:andy \
+                    openmaintainer
+
+homepage            http://gearman.org/
+master_sites        https://launchpad.net/gearmand/${branch}/${version}/+download/
+
+checksums           rmd160  f657d9ab210099e30077c529cc98fca6881ab64a \
+                    sha256  eda6bc1f66a8f8d66394744b31ea975bd55f7ef2dfcc3698d7f9835a06ceb875
+
+depends_lib         port:boost \
+                    port:libevent
+
+configure.args      --disable-silent-rules \
+                    --disable-libdrizzle \
+                    --disable-libpq \
+                    --disable-libmemcached \
+                    --disable-libtokyocabinet \
+                    --enable-jobserver=${build.jobs} \
+                    --without-mysql \
+                    --without-sqlite3
+
+# gearmand handles parallel building using the --enable-jobserver arg above.
+use_parallel_build  no
+
+merger_arch_compiler yes
+if {![variant_isset universal]} {
+    configure.cc-append " ${configure.cc_archflags}"
+    configure.cxx-append " ${configure.cxx_archflags}"
+}
+
+post-destroot {
+    set docdir ${prefix}/share/doc/${subport}
+    xinstall -d ${destroot}${docdir}
+    xinstall -m 644 -W ${worksrcpath} \
+        AUTHORS \
+        COPYING \
+        ChangeLog \
+        HACKING \
+        README \
+        THANKS \
+        ${destroot}${docdir}
+}
+
+variant dtrace description {Enable DTrace probes} {
+    configure.args-append   --enable-dtrace
+}
+
+variant no_sqlite conflicts sqlite description {Legacy compatibility variant} {}
+variant sqlite description {Build with sqlite3 support} {
+    depends_lib-append      port:sqlite3
+    configure.args-delete   --without-sqlite3
+}
+if {[variant_isset no_sqlite]} {
+    default_variants -sqlite
+} else {
+    default_variants +sqlite
+}
+
+variant drizzle description {Build with libdrizzle support} {
+    depends_lib-append      port:libdrizzle
+    configure.args-delete   --disable-libdrizzle
+    configure.args-append   --enable-libdrizzle
+}
+
+variant postgres description {Build with postgresql support} {
+    depends_lib-append      port:libpqxx
+    configure.args-delete   --disable-libpq
+    configure.args-append   --enable-libpq
+}
+
+variant memcached description {Build with memcached support} {
+    depends_lib-append      port:libmemcached
+    configure.args-delete   --disable-libmemcached
+    configure.args-append   --enable-libmemcached
+}
+
+variant tokyocabinet description {Build with tokyocabinet support} {
+    depends_lib-append      port:tokyocabinet
+    configure.args-delete   --disable-libtokyocabinet
+    configure.args-append   --enable-libtokyocabinet
+}
+
+startupitem.create  yes
+startupitem.executable  ${prefix}/sbin/gearmand -vv \
+                        --port=4730 \
+                        -u root \
+                        --pid-file=${prefix}/var/run/gearmand.pid \
+                        --log-file=${prefix}/var/log/gearmand.log
+
+livecheck.type      regexm
+livecheck.url       https://launchpad.net/${name}/+download
+livecheck.regex     (\[0-9.\]+) release</a>\\s+from the\\s+<a href="/gearmand/${branch}">${branch}</a> series

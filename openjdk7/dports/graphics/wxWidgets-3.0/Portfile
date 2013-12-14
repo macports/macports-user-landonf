@@ -1,0 +1,227 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           active_variants 1.1
+PortGroup           select          1.0
+PortGroup           wxWidgets       1.0
+
+name                wxWidgets-3.0
+subport             wxPython-3.0 {}
+subport             wxgtk-3.0 {}
+version             3.0.0
+revision            4
+
+set installname     wxWidgets
+set wxtype          osx_cocoa
+
+if {${subport} eq ${name}} {
+    wxWidgets.use   wxWidgets-3.0
+} elseif {${subport} eq "wxPython-3.0"} {
+    wxWidgets.use   wxPython-3.0
+    version         2.9.5
+    revision        1
+} elseif {${subport} eq "wxgtk-3.0"} {
+    # with satisfactory Cocoa support there is no real need for GTK-based wxWidgets any more
+    # wxgtk-3.0 is here mainly for testing purposes
+    # it might be useful to report GTK-related bugs upstream
+    # and play with quartz-based GTK
+    # (and maybe backport changes to 2.8)
+    wxWidgets.use   wxGTK-3.0
+    set installname wxGTK
+    set wxtype      gtk3
+}
+set branch          [join [lrange [split ${version} .] 0 1] .]
+
+categories          graphics devel
+platforms           darwin
+license             wxwidgets-3.1
+maintainers         jwa mojca
+
+description         C++ framework for cross-platform GUI development
+long_description    wxWidgets ${branch} is an open-source cross-platform C++ \
+                    GUI framework for Mac OS, Unix, Linux, Windows.
+
+homepage            http://www.wxwidgets.org/
+distname            wxWidgets
+master_sites        sourceforge:project/wxwindows/${version} \
+                    http://biolpc22.york.ac.uk/pub/${version}/ \
+                    http://trac.macports.org/raw-attachment/ticket/19190/:trac
+
+use_bzip2           yes
+
+distfiles           ${distname}-${version}${extract.suffix}
+dist_subdir         ${distname}/${version}
+
+checksums           ${distname}-${version}${extract.suffix} \
+                    rmd160  6113a95125b743309c7b21dd5530f4b675b8b82f \
+                    sha256  ff340539bcb6e45d8dbce848d3c13ebce34da6ffb9004a0a88e9541bec45bf85
+
+depends_lib         port:jpeg \
+                    port:tiff \
+                    port:libpng \
+                    port:zlib \
+                    port:libiconv \
+                    port:expat
+
+depends_run         port:wxWidgets_select
+
+select.group        wxWidgets
+select.file         ${filespath}/${subport}
+
+worksrcdir          ${distname}-${version}/build
+
+patch.dir           ${worksrcpath}/..
+
+patchfiles-append   patch-configure.diff
+
+if {${os.major} >= 10} {
+    # the patch doesn't work on 10.5, but it's still better to have working wxWidgets with a flaw
+    # than not bing able to compile it at all
+    patchfiles-append \
+                    patch-src-osx-cocoa-utils.mm.diff
+}
+
+post-patch {
+    reinplace "s|@@PREFIX@@|${prefix}|g" ${patch.dir}/configure
+}
+
+configure.cmd       ../configure
+configure.args      --prefix=${wxWidgets.prefix} \
+                    --with-libiconv-prefix=${prefix} \
+                    --with-libjpeg \
+                    --with-libtiff \
+                    --with-libpng \
+                    --with-zlib \
+                    --with-opengl \
+                    --with-cocoa \
+                    --without-sdl \
+                    --enable-aui \
+                    --disable-sdltest \
+                    --enable-unicode \
+                    --enable-display \
+                    --enable-xrc \
+                    --enable-graphics_ctx \
+                    --with-macosx-sdk=no \
+                    --with-macosx-version-min=no
+
+if {${subport} eq "wxPython-3.0"} {
+    set wxpythonsubset      wxPython-2.9.5.0-MacPorts-subset
+    distfiles-append        ${wxpythonsubset}${extract.suffix}:trac
+
+    description             wxWidgets ${branch} for the wxPython distribution
+    long_description        The port installs wxWidgets ${branch} for wxPython \
+                            to guarantee compatibility even when the upstream versions \
+                            of wxWidgets and wxPython differ.
+
+    checksums               ${distname}-${version}${extract.suffix} \
+                            rmd160  f5c91099b2cf3e39eadbcf99df0dd9a97017d47f \
+                            sha256  b74ba96ca537cc5d049d21ec9ab5eb2670406a4aa9f1ea4845ea84a9955a6e02 \
+                            ${wxpythonsubset}${extract.suffix} \
+                            rmd160  936858d5856adde043d107164b1b53d3209eb76d \
+                            sha256  c892f257b151726a70886c7cffda51554b48b8e9cc7cfcc962d6988c5fe81856
+
+    patchfiles-delete       patch-configure.diff
+    patchfiles-append       patch-configure295.diff \
+                            patch-upstream-src-osx-cocoa-textctrl.mm.diff \
+                            patch-upstream-src-osx-cocoa-window.mm.diff
+    if {${os.major} >= 10} {
+        patchfiles-delete   patch-src-osx-cocoa-utils.mm.diff
+    }
+
+    post-destroot {
+        # copy a subset of wxPython to wxWidgets to prevent a conflict
+        # between py2X-wxpython-3.0 and py2Y-wxpython-3.0
+        copy ${workpath}/wxPython ${destroot}${wxWidgets.prefix}/include/wx-${branch}/wx/
+    }
+
+    livecheck.type          none
+} elseif {${subport} eq "wxgtk-3.0"} {
+    # both patches could be added to wxWidgets-3.0, but they are not needed for Cocoa
+    #
+    # patch-sdl.diff: the patch allows using --wxth-sdl
+    patchfiles-append       patch-sdl.diff
+
+    depends_build-append    port:pkgconfig
+    depends_lib-append      path:lib/pkgconfig/cairo.pc:cairo \
+                            port:libsdl \
+                            port:libsdl_mixer
+
+    configure.args-delete   --with-cocoa \
+                            --without-sdl
+    configure.args-append   --with-sdl
+
+    #variant gtk2 conflicts gtk3 description {} {
+    #    depends_lib-append      port:gtk2
+    #    configure.args-append   --with-gtk=2
+    #    set wxtype              gtk2
+    #}
+    #variant gtk3 conflicts gtk2 description {} {
+        depends_lib-append      port:gtk3
+        configure.args-append   --with-gtk=3
+    #}
+    #variant quartz conflicts x11 {
+    #    require_active_variants path:lib/pkgconfig/cairo.pc:cairo quartz
+    #    require_active_variants gtk3 quartz
+    #}
+    #variant x11 conflicts quartz {
+        depends_lib-append  port:mesa
+        require_active_variants path:lib/pkgconfig/cairo.pc:cairo x11
+        require_active_variants gtk3 x11
+    #}
+    #if{![variant_isset gtk2] && ![variant_isset gtk3]} {
+    #    default_variants-append +gtk3
+    #}
+    #if{![variant_isset quartz] && ![variant_isset x11]} {
+    #    default_variants-append +quartz
+    #}
+    #if{[variant_isset gtk2]} {
+    #    if{[variant_isset quartz]} {
+    #        require_active_variants gtk2 quartz
+    #    } else {
+    #        require_active_variants gtk2 x11
+    #    }
+    #} else {
+    #    if{[variant_isset quartz]} {
+    #        require_active_variants gtk3 quartz
+    #    } else {
+    #        require_active_variants gtk3 x11
+    #    }
+    #}
+}
+
+post-destroot {
+    set confscript ${wxWidgets.prefix}/lib/wx/config/${wxtype}-unicode-${branch}
+    ln -sf ${confscript} ${destroot}${wxWidgets.prefix}/bin/wx-config
+    xinstall -m 755 -d ${destroot}${prefix}/share/bakefile/presets
+}
+
+destroot.keepdirs ${destroot}${prefix}/share/bakefile/presets
+
+variant universal {
+    set archs [join ${configure.universal_archs} ,]
+    # --disable-precomp-headers is automatically selected with cocoa, but not with gtk
+    # http://trac.wxwidgets.org/ticket/15454
+    configure.args-append   --enable-universal_binary=${archs} \
+                            --disable-precomp-headers
+}
+
+variant monolithic description {build only one library} {
+    configure.args-append   --enable-monolithic
+}
+
+variant debug description {add debug info to libraries} {
+    configure.args-append   --enable-debug
+}
+
+variant stdlib description {add support for various standard library features} {
+    configure.args-append   --enable-stl \
+                            --enable-std_containers \
+                            --enable-std_iostreams \
+                            --enable-std_string \
+                            --enable-std_string_conv_in_wxstring
+}
+
+livecheck.type      regex
+livecheck.url       ${homepage}/downloads/
+livecheck.regex     Release.*(\[23\]\\.\[0-9\]\\.\[0-9\]+)

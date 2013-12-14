@@ -1,0 +1,76 @@
+# $Id$
+
+PortSystem       1.0
+PortGroup        github 1.0
+
+github.setup     ckolivas cgminer 3.8.4 v
+revision         1
+categories       finance
+platforms        darwin
+maintainers      ram openmaintainer
+license          GPL-3
+
+description      ASIC/FPGA miner in c for bitcoin
+long_description \
+  This is a multi-threaded multi-pool FPGA and ASIC miner for bitcoin.
+
+checksums        rmd160  06d9ce3abd9cf476b9a37094239274ffb6eeb637 \
+                 sha256  bc80c2a70154d73cb932d5841652605fb635273cb3850f1de94e7e2ba231b0ef
+
+conflicts        jannson
+
+depends_build-append port:pkgconfig \
+                 port:gawk
+
+depends_lib      port:ncurses \
+                 port:curl
+
+use_autoreconf   yes
+
+post-destroot {
+  xinstall -d ${destroot}${prefix}/share/doc/${name}
+  xinstall -m 644 -W $worksrcpath API-README ASIC-README FPGA-README \
+    LICENSE NEWS README ${destroot}${prefix}/share/doc/${name}
+}
+
+variant avalon description {Add support for Avalon} {
+    configure.args-append --enable-avalon
+}
+
+variant bab description {Add support for BlackArrow Bitfury} {
+    configure.args-append --enable-bab
+}
+
+variant bflsc description {Add support for BFL ASICs} {
+    configure.args-append --enable-bflsc
+}
+
+variant bitforce description {Add support for BitForce FPGAs} {
+    configure.args-append --enable-bitforce
+}
+
+variant bitfury description {Add support for BitFury ASICs} {
+    configure.args-append --enable-bitfury
+}
+
+variant hashfast description {Add support for Hashfast} {
+    configure.args-append --enable-hashfast
+}
+
+variant icarus description {Add support for Icarus} {
+    configure.args-append --enable-icarus
+}
+
+variant klondike description {Add support for Klondike} {
+    configure.args-append --enable-klondike
+}
+
+variant knc description {Add support for KnC miners} {
+    configure.args-append --enable-knc
+}
+
+variant modminer description {Add support for ModMiner FPGAs} {
+    configure.args-append --enable-modminer
+}
+
+default_variants +icarus

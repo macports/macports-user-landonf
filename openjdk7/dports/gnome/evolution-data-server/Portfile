@@ -1,0 +1,85 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            evolution-data-server
+version         3.10.3
+set branch      [join [lrange [split ${version} .] 0 1] .]
+description     Addressbook and calender libs for GNOME.
+long_description    Evolution Data Server provides a central location for \
+                    addressbook and calendar in the GNOME Desktop.
+maintainers     devans openmaintainer
+categories      gnome
+license         LGPL-2+
+platforms       darwin
+homepage        http://www.gnome.org/
+master_sites    gnome:sources/${name}/${branch}/
+
+use_xz          yes
+
+checksums       rmd160  d6f43bc07f8a3664ce79c69014bb9f4e69966b74 \
+                sha256  41af5c658255230de47423fad73f19bfab15b9e0df80141b13f66b55bf295bd2
+
+depends_build   port:pkgconfig \
+                port:gnome-common \
+                port:intltool \
+                port:gtk-doc
+
+depends_lib     port:gtk3 \
+                port:libxml2 \
+                port:libsoup \
+                port:libsecret \
+                port:gcr \
+                port:libiconv \
+                port:nss \
+                port:nspr \
+                port:libgweather \
+                port:libical \
+                port:libgdata \
+                port:gnome-online-accounts \
+                port:gobject-introspection \
+                port:sqlite3 \
+                port:vala
+
+patchfiles      patch-configure.ac.diff \
+                patch-calendar-libedata-cal-e-cal-backend-intervaltree.c.diff \
+                patch-addressbook-libebook-contacts-e-phone-number-private.cpp.diff
+
+use_autoreconf  yes
+autoreconf.args -fvi
+
+configure.args  --enable-smime \
+                --enable-ipv6 \
+                --enable-nntp \
+                --enable-weather \
+                --enable-google \
+                --enable-goa \
+                --enable-introspection=yes \
+                --enable-vala-bindings \
+                --with-nspr-includes=${prefix}/include/nspr  \
+                --with-nspr-libs=${prefix}/lib/nspr  \
+                --with-nss-includes=${prefix}/include/nss \
+                --with-nss-libs=${prefix}/lib/nss \
+                --with-krb5=/usr \
+                --disable-uoa \
+                --disable-silent-rules \
+                --disable-schemas-compile
+
+#
+# port nss is not universal
+#
+
+universal_variant no
+
+variant phonenumber description {Phone number parsing/validation using libphonenumber} {
+    depends_lib-append          port:libphonenumber-cpp
+    configure.cxxflags-append   -DI18N_PHONENUMBERS_USE_BOOST
+    configure.args-append       --with-phonenumber=${prefix}/lib
+}
+
+post-activate    {
+    system "${prefix}/bin/glib-compile-schemas ${prefix}/share/glib-2.0/schemas"
+}
+
+livecheck.type  gnome

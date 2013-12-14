@@ -1,0 +1,102 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                ghc-bootstrap
+set canonicalname   ghc
+version             7.0.4
+revision            1
+categories          lang haskell
+maintainers         gmail.com:kitchen.andy cal openmaintainer
+license             BSD
+platforms           darwin
+supported_archs     i386 x86_64
+universal_variant   no
+installs_libs       no
+
+description         The Glorious Glasgow Haskell Compilation System
+long_description    \
+                    This is a package that installs a binary \
+                    bootstrap ghc compiler.
+
+homepage            http://haskell.org/${canonicalname}
+master_sites        ${homepage}/dist/${version}/
+distname            ${canonicalname}-${version}-${build_arch}-apple-darwin
+worksrcdir          ${canonicalname}-${version}
+use_bzip2           yes
+
+checksums           ${canonicalname}-${version}-i386-apple-darwin${extract.suffix} \
+                        rmd160  ed4cb136a30455e57ca4526d89b019fe4ce638f3 \
+                        sha256  c316fcd59166f1075675d7365b06cca973aec6623254a4a7fb28e74c352c4462 \
+                    ${canonicalname}-${version}-x86_64-apple-darwin${extract.suffix} \
+                        rmd160  14f4c6a044eaa3d04f1645324f9255eebff9a49d \
+                        sha256  74580b919b5205007901d15da88635e4b2dcc887086fb16d238eeb7011a255d4
+
+# -- BEGIN gcc variants
+
+variant gcc43 conflicts gcc44 gcc45 gcc46 gcc47 gcc48 gcc49 description {Compile with gcc 4.3} {
+    configure.compiler      macports-gcc-4.3
+}
+
+variant gcc44 conflicts gcc43 gcc45 gcc46 gcc47 gcc48 gcc49 description {Compile with gcc 4.4} {
+    configure.compiler      macports-gcc-4.4
+}
+
+variant gcc45 conflicts gcc43 gcc44 gcc46 gcc47 gcc48 gcc49 description {Compile with gcc 4.5} {
+    configure.compiler      macports-gcc-4.5
+}
+
+variant gcc46 conflicts gcc43 gcc44 gcc45 gcc47 gcc48 gcc49 description {Compile with gcc 4.6} {
+    configure.compiler      macports-gcc-4.6
+}
+
+variant gcc47 conflicts gcc43 gcc44 gcc45 gcc46 gcc48 gcc49 description {Compile with gcc 4.7} {
+    configure.compiler      macports-gcc-4.7
+}
+
+variant gcc48 conflicts gcc43 gcc44 gcc45 gcc46 gcc47 gcc49 description {Compile with gcc 4.8} {
+    configure.compiler      macports-gcc-4.8
+}
+
+variant gcc49 conflicts gcc43 gcc44 gcc45 gcc46 gcc47 gcc48 description {Compile with gcc 4.9} {
+    configure.compiler      macports-gcc-4.9
+}
+
+if {![variant_isset gcc43] && ![variant_isset gcc44] &&
+    ![variant_isset gcc45] && ![variant_isset gcc46] &&
+    ![variant_isset gcc47] && ![variant_isset gcc49]} {
+    default_variants +gcc48
+}
+
+# -- END gcc variants
+
+configure.pre_args  --prefix=${prefix}/share/ghc-bootstrap
+
+pre-configure {
+    # OK so because this binary has been prebuilt for libraries
+    # in /usr/lib we search these before macports stuff so (hopefully)
+    # weird things don't happen
+    configure.ldflags  -L/usr/lib
+    configure.cppflags -I/usr/include
+}
+
+build {}
+
+post-destroot {
+    # Delete dylibs; they aren't used by the bootstrap ghc and are incorrectly
+    # linked against /usr/local, causing rev-upgrade to complain.
+    # This problem might only be reproducible in i386; the x86_64 version
+    # apparently doesn't ship and dylibs.
+    fs-traverse f ${destroot}${prefix} {
+        if {[file isfile ${f}]} {
+            if {[file extension ${f}] == ".dylib"} {
+                delete ${f}
+            }
+        }
+    }
+}
+
+# TODO don't install documentation
+
+livecheck.type      none

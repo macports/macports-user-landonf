@@ -1,0 +1,107 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                julius
+version             4.2.3
+categories          audio japanese
+platforms           darwin
+maintainers         hum openmaintainer
+license             BSD
+
+description         Large Vocabulary Continuous Speech Recognition (LVCSR) Engine
+
+long_description    Julius is an open-source high-performance large vocabulary \
+                    continuous speech recognition (LVCSR) decoder software for \
+                    speech-related researchers and developers. \
+                    Based on word N-gram and triphone context-dependent HMM, \
+                    it can perform almost real-time decoding on most current \
+                    PCs with small amount of memory.
+
+homepage            http://julius.sourceforge.jp/
+master_sites        sourceforge_jp:julius/59049/
+
+checksums           ${distname}${extract.suffix} \
+                    rmd160  f26e42a4444d79ab6c94827f94bc14a7c4a7f11a \
+                    sha256  917e7fa94db0c9a662de8803d8778262091530637fabfa9e7431396a1a66f5ed
+
+patchfiles          patch-configure.diff \
+                    patch-Makefile.in.diff \
+                    patch-clang.diff
+
+depends_lib         port:libiconv \
+                    port:zlib
+
+# Note: '--enable-words-int' should be declared ahead of '--with-mictype'.
+variant words_int description {Use integer for word ID to extend vocabulary limit} {
+    configure.pre_args-append  --enable-words-int
+}
+
+if {${os.platform} eq "darwin" && ${os.major} >= 10} {
+    depends_lib-append      port:portaudio
+    configure.args-append   --with-mictype=portaudio
+}
+
+destroot.target-append  install.man
+destroot.destdir        prefix=${destroot}${prefix}
+
+post-destroot {
+    xinstall -d ${destroot}${prefix}/share/doc/${name}
+    xinstall -m 644 -W ${worksrcpath} \
+        00readme-ja.txt \
+        00readme.txt \
+        ChangeLog \
+        LICENSE.txt \
+        Release-ja.txt \
+        Release.txt \
+        Sample.jconf \
+        ${destroot}${prefix}/share/doc/${name}
+}
+
+default_variants    +kit
+
+set kit_name        dictation-kit
+set kit_version     v${version}
+set dictation_kit   ${kit_name}-${kit_version}
+set kit_distfile    ${dictation_kit}${extract.suffix}
+
+variant kit description {Add dictation kit and a demo script} {
+    distfiles-append    ${kit_distfile}:kit
+    master_sites-append sourceforge_jp:julius/59050/:kit
+    checksums-append    ${kit_distfile} \
+                        rmd160  b869281bf13b5e9a45ae048fca6371ff5eeb75b0 \
+                        sha256  a6f6374d14bcce4bbffc3358f9f6ac289fa4dda2958166fce35ad26c5e0fe404
+
+    post-destroot {
+        # copy the dictation kit.
+        set lib_dest     ${destroot}${prefix}/lib/${name}
+        xinstall -d ${lib_dest}
+        xinstall -m 644 -W ${workpath}/${dictation_kit} \
+            fast.jconf \
+            light.jconf \
+            ${lib_dest}
+        copy ${workpath}/${dictation_kit}/model ${lib_dest}
+        # configure the dictation kit.
+        set conf_dest    ${lib_dest}/fast.jconf
+        reinplace -locale C "s| model/| ${prefix}/lib/${name}/model/|g"    ${conf_dest}
+        reinplace -locale C "s|#-charconv from to|-charconv EUC-JP UTF-8|" ${conf_dest}
+        # configure an executable demo script file.
+        set script_name  julius_demo
+        set script_dest  ${destroot}${prefix}/bin/${script_name}
+        xinstall -m 755  ${filespath}/${script_name} ${script_dest}
+        reinplace -locale C "s|@prefix@|${prefix}|g" ${script_dest}
+        # copy documentation.
+        set kit_docdir   ${destroot}${prefix}/share/doc/${name}/${kit_name}
+        xinstall -d ${kit_docdir}
+        xinstall -m 644 -W ${workpath}/${dictation_kit} \
+            00readme.txt \
+            HOWTO.txt \
+            TROUBLE.txt \
+            ${kit_docdir}
+    }
+}
+
+livecheck.type      regex
+livecheck.url       http://sourceforge.jp/projects/${name}/releases/rss
+livecheck.regex     <title>${name}.* - (\[0-9.a-z\-\]+)</title>

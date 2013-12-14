@@ -1,0 +1,83 @@
+# -*- Mode: Tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            fltk-devel
+conflicts       fltk
+version         1.3.x-r10022
+categories      aqua devel
+license         LGPL
+platforms       macosx
+maintainers     michaelld openmaintainer
+description     Fast Light Tool Kit
+
+long_description \
+    FLTK (pronounced fulltick) \
+    is a cross-platform C++ GUI toolkit for UNIX/Linux (X11), \
+    Microsoft Windows, and Mac OS X. \
+    FLTK provides modern GUI functionality without the bloat \
+    and supports 3D graphics via OpenGL and \
+    its built-in GLUT emulation. \
+    \
+    FLTK is designed to be small and modular enough to be \
+    statically linked, but works fine as a shared library. \
+    FLTK also includes an excellent UI builder called FLUID \
+    that can be used to create applications in minutes.
+
+homepage        http://www.fltk.org/
+master_sites    http://fltk.org/pub/fltk/snapshots/
+distname        fltk-${version}
+use_bzip2       yes
+
+checksums       rmd160 4c28a13eb1e0765f5d6d7a971aa2bf1673afdd60 \
+                sha256 f6614cea0640cbf058f1a5210580fec57fd86843079076955c2164f1f7cc4154
+
+depends_lib     port:jpeg \
+                port:libpng \
+                port:zlib
+
+use_parallel_build  yes
+
+patchfiles      patch-fluid-Makefile.diff \
+                patch-src-Makefile.diff
+
+post-patch {
+    reinplace "s|/Applications|${applications_dir}/fltk|g" \
+        ${worksrcpath}/fluid/Makefile \
+        ${worksrcpath}/test/Makefile
+
+    # Disable silent rules
+    reinplace "/^\\.SILENT:$/d" ${worksrcpath}/makeinclude.in
+
+    # tell fltk's make script to create config.sub, which is required
+    # before configure will execute properly.  This command actually
+    # runs configure through once, to create the file; we then call
+    # configure manually with the correct argument, which overwrites
+    # this (and other) files to be what we want.
+
+    system "cd ${worksrcpath} && make config.sub"
+}
+
+pre-configure {
+    configure.args-append \
+        --with-archflags="[get_canonical_archflags]"
+}
+
+configure.args  --enable-shared \
+                --disable-localjpeg \
+                --disable-localzlib \
+                --disable-localpng
+
+configure.universal_args-delete --disable-dependency-tracking
+
+post-configure {
+    reinplace -E {s|-arch [a-z0-9_]+||g} ${worksrcpath}/fltk-config
+}
+
+destroot.target install \
+                install-desktop
+
+livecheck.type  regexm
+livecheck.url   ${homepage}
+livecheck.regex "Snapshots:.*\n.*v(1\\.3\\.x-r\\d+)"

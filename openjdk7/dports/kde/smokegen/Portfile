@@ -1,0 +1,26 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                smokegen
+version             4.11.4
+categories          kde kde4
+maintainers         nicos
+license             GPL-2+ LGPL-2.1+
+description         Scripting Meta Object Kompiler Engine
+long_description    ${description}
+homepage            http://www.kde.org
+platforms           darwin
+master_sites        kde:stable/${version}/src/
+use_xz              yes
+
+checksums           rmd160  46a318388dd91f5eddb1a5eeb0f0c7378448c0eb \
+                    sha256  b14e2b9d99120d4d87104ef3836d26bec9c6c979436b57ccf511a95e1dd46f9d
+
+#Binaries do not link to openssl
+license_noconflict  openssl
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

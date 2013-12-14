@@ -1,0 +1,56 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem              1.0
+
+name                    evas
+epoch                   2
+version                 1.7.9
+categories              devel x11
+platforms               darwin
+maintainers             ryandesign openmaintainer
+license                 BSD
+
+description             Evas is a hardware-accelerated canvas API for X11.
+
+long_description        Evas is a hardware-accelerated canvas API for \
+                        X-Windows that can draw anti-aliased text, smooth \
+                        super and sub-sampled images, alpha-blend, as well \
+                        as drop down to using normal X11 primitives such as \
+                        pixmaps, lines and rectangles for speed if your CPU \
+                        or graphics hardware are too slow.
+
+checksums               rmd160  2a8b9adf9d101e48317eee7fbd98071d431207aa \
+                        sha256  ae3065ecc16158b45e83a62042ac7d577c72fb6427123a126ec7ed8abe8408f7
+
+homepage                http://trac.enlightenment.org/e/wiki/Evas
+master_sites            http://download.enlightenment.org/releases/
+use_bzip2               yes
+
+depends_build           port:pkgconfig \
+                        port:mesa
+
+depends_lib             port:eet \
+                        port:fribidi \
+                        port:libpng \
+                        port:librsvg \
+                        port:tiff \
+                        port:giflib
+
+configure.args          --disable-doc \
+                        --disable-silent-rules \
+                        --enable-buffer
+
+# http://trac.enlightenment.org/e/ticket/503
+#                        --enable-gl-x11
+
+use_parallel_build      yes
+
+# http://trac.enlightenment.org/e/ticket/942
+if {[lsearch [get_canonical_archs] i386] != -1} {
+    compiler.blacklist-append llvm-gcc-4.2 macports-llvm-gcc-4.2 gcc-4.2 apple-gcc-4.2
+}
+
+livecheck.type          regex
+livecheck.url           [lindex ${master_sites} 0]
+livecheck.regex         ${name}-(\[0-9a-z.\]+)${extract.suffix}

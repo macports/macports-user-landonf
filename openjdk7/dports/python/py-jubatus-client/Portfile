@@ -1,0 +1,36 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+
+name                py-jubatus-client
+set real_name       jubatus
+version             0.4.1
+python.versions     26 27
+python.default_version 27
+categories-append   devel
+maintainers         hum openmaintainer
+
+description         a Python client for jubatus, a highly distributed online machine learning system
+long_description    ${description}
+
+homepage            http://pypi.python.org/pypi/${real_name}
+platforms           darwin
+license             LGPL-2.1
+
+master_sites        http://pypi.python.org/packages/source/j/${real_name}/
+distname            ${real_name}-${version}
+checksums           rmd160  b478bb6da2925e0af44a0162b8f61944378cd613 \
+                    sha256  940ac1e7cd46ccc52041b1f7116870620e16d6d4fd22a7aed7173f8d7dac394c
+
+if {${name} ne ${subport}} {
+    depends_build-append port:py${python.version}-setuptools
+    depends_lib-append   port:py${python.version}-msgpack
+
+    livecheck.type      none
+} else {
+    livecheck.type      regex
+    livecheck.url       [lindex ${master_sites} 0]
+    livecheck.regex     "${real_name}-(\\d+(?:\\.\\d+)*(-p\\d+)?)${extract.suffix}"
+}

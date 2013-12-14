@@ -1,0 +1,22 @@
+--- configure.orig	2012-09-30 18:31:36.000000000 -0500
++++ configure	2012-11-02 22:52:16.000000000 -0500
+@@ -8220,15 +8220,13 @@
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ 
+-#include <stdio.h>
++#include <string.h>
+ #include <netcdf.h>
+       int main(void) {
+-        char *vlib;
+-        vlib = nc_inq_libvers();
+-        if (strcmp(vlib, "3.0") < 0) {
+-          exit(1);
++        if (strstr(nc_inq_libvers(), "3.") == NULL) {
++          return 1;
+         }
+-        exit(0);
++        return 0;
+       }
+ 
+ _ACEOF

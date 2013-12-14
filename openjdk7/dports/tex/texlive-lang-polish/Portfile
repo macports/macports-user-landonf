@@ -1,0 +1,45 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           texlive 1.0
+
+name                texlive-lang-polish
+version             30749
+revision            0
+
+categories          tex
+maintainers         dports
+license             Copyleft Permissive
+description         TeX Live: Polish
+long_description    Support for Polish.
+
+checksums           texlive-lang-polish-30749-run.tar.xz \
+                    rmd160  9019405b7bf2ced9a5b0d82a8cc67485f460277f \
+                    sha256  a2cba977336401b2dc19df3c8dc375239238ef054d1abfb372ab0bb7f21c8eca \
+                    texlive-lang-polish-30749-doc.tar.xz \
+                    rmd160  4b88a48a10c580b2971c13d99a9a4614fcd1a766 \
+                    sha256  02efe046b8aa0531eadc50cd6a6139ac290dd621a7d43697e961b9759195d89b \
+                    texlive-lang-polish-30749-src.tar.xz \
+                    rmd160  c8835ae836dde9a4561238c19228659057ad476d \
+                    sha256  17893ae999259d84bdebc343642372174629b5c87cf54ada6da62be64ac0e4ed
+
+depends_lib         port:texlive-latex port:texlive-basic
+
+texlive.formats      \
+    {1 mex pdftex mexconf.tex {-translate-file=cp227.tcx *mex.ini}} \
+    {1 pdfmex pdftex mexconf.tex {-translate-file=cp227.tcx *pdfmex.ini}} \
+    {1 utf8mex pdftex mexconf.tex {-enc *utf8mex.ini}}
+
+texlive.languages      \
+    {polish loadhyph-pl.tex 2 2 {} {hyph-pl.pat.txt} {hyph-pl.hyp.txt} {} }
+
+texlive.maps      \
+    {MixedMap ccpl.map} \
+    {MixedMap plother.map} \
+    {MixedMap pltext.map}
+
+texlive.binaries    mex pdfmex utf8mex
+
+
+texlive.texmfport

@@ -1,0 +1,24 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                qpdf
+version             3.0.2
+categories          textproc pdf
+platforms           darwin
+license             BSD
+maintainers         masterleep.com:dojo openmaintainer
+
+description         content-preserving PDF transformation system
+
+long_description    QPDF is a command-line program that does structural, \
+                    content-preserving transformations on PDF files.
+
+homepage            http://qpdf.sourceforge.net/
+master_sites        sourceforge:project/qpdf/qpdf/${version}
+
+checksums           rmd160  2db2a8dc34b8ff6df506a5857cc9bc84cbebdf29 \
+                    sha256  b0c284945a49c46a0da6f54b06ff25237491ccc0c8bb062ae57d30aee80e165e
+
+depends_lib         port:pcre port:zlib

@@ -1,0 +1,29 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                libkmahjongg
+version             4.11.4
+categories          kde kde4
+license             LGPL-2+ GPL-2+
+maintainers         nicos openmaintainer
+description         Utility library for mahjongg's game.
+long_description    ${description}
+platforms           darwin
+homepage            http://games.kde.org/
+master_sites        kde:stable/${version}/src
+use_xz              yes
+distname            ${name}-${version}
+checksums           rmd160  3ffa9fcc9b0d079ce5b4ceb3f33618b26548a843 \
+                    sha256  c241633da44da47e50aa40212c238b28cc101995b614b81b5c534a303176af2c
+
+#Binaries do not link to openssl, nor use the ssl backend of kdelibs4
+license_noconflict  openssl
+
+depends_lib-append  port:kdelibs4 \
+                    port:libkdegames
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

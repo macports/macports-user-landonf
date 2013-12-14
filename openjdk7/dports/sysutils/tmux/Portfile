@@ -1,0 +1,53 @@
+# $Id$
+
+PortSystem 1.0
+
+name            tmux
+version         1.8
+revision        1
+categories      sysutils
+maintainers     yeled
+description     terminal multiplexer
+long_description \
+    tmux is a \"terminal multiplexer\", it enables a number of terminals \
+    (or windows) to be accessed and controlled from a single terminal. \
+    tmux is intended to be a simple, modern, BSD-licensed alternative \
+    to programs such as GNU screen.
+homepage        http://tmux.sourceforge.net/
+platforms       darwin
+license         BSD
+master_sites    sourceforge
+checksums           md5     b9477de2fe660244cbc6e6d7e668ea0e \
+                    sha1    08677ea914e1973ce605b0008919717184cbd033 \
+                    rmd160  b267ab54f6f55292fa1fa9cd0e892bfd5fd27cfb
+
+depends_lib     port:libevent port:ncurses
+
+patchfiles      tmux.1.diff \
+                tmux.h.diff \
+                osdep-darwin.c.diff
+
+configure.env "LIBS=-lresolv"
+
+post-destroot {
+    xinstall -m 0755 -d ${destroot}${prefix}/share/doc/tmux
+    foreach file [glob ${worksrcpath}/examples/*.conf] {
+        xinstall -m 0644 $file ${destroot}${prefix}/share/doc/tmux
+    }
+    xinstall -m 0755 -d ${destroot}${prefix}/share/vim/vimfiles/syntax
+    xinstall -m 0644 ${worksrcpath}/examples/tmux.vim ${destroot}${prefix}/share/vim/vimfiles/syntax
+    xinstall -m 0755 -d ${destroot}${prefix}/share/vim/vimfiles/ftdetect
+    xinstall -m 0644 ${filespath}/tmux.vim ${destroot}${prefix}/share/vim/vimfiles/ftdetect
+}
+
+variant screen description "behave more like screen" {
+    post-destroot {
+        xinstall -m 0644 ${worksrcpath}/examples/screen-keys.conf ${destroot}${prefix}/etc/tmux.conf
+    }
+}
+
+notes "If you want integration with system pasteboard consider installing port tmux-pasteboard as well"
+
+livecheck.type  regex
+livecheck.url   ${homepage}
+livecheck.regex tmux-(\[0-9\]+\\.\[0-9\]+)\\.tar\\.gz

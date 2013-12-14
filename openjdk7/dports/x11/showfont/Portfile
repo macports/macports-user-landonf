@@ -1,0 +1,32 @@
+# $Id$
+
+PortSystem          1.0
+
+name                showfont
+version             1.0.4
+categories          x11 graphics
+license             X11
+maintainers         jeremyhu openmaintainer
+description         Font dumper for X11 font server
+long_description \
+   Showfont displays data about a font that matches the given pattern.  \
+   The information shown includes font information, font properties, \
+   character metrics, and character bitmaps.
+
+platforms           darwin
+
+homepage            http://www.x.org/
+master_sites        xorg:individual/app/
+use_bzip2           yes
+
+checksums           md5     f7be42f846bb9cd951b5cbeb6aa85dde \
+                    sha1    d4aaaf32fba38af3f46813118f316689ca3d86f8 \
+                    rmd160  734b09a48c14cd4a076c401bb82cde2cf723ab77
+
+depends_build       port:pkgconfig
+
+depends_lib         port:xorg-libFS
+
+livecheck.type      regex
+livecheck.regex     ${name}-(\[\\d.\]+)${extract.suffix}
+livecheck.url       http://xorg.freedesktop.org/archive/individual/app/?C=M&O=D

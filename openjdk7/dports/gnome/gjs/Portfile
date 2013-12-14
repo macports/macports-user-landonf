@@ -1,0 +1,45 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            gjs
+version         1.38.1
+set branch      [join [lrange [split ${version} .] 0 1] .]
+description     GObject JavaScriptCore bridge
+long_description \
+                Gjs is a JavaScript binding for GNOME. It's mainly based \
+                on SpiderMonkey JavaScript engine and the GObject \
+                Introspection framework.
+
+maintainers     gmail.com:juanrgar openmaintainer
+license         LGPL-2.1+
+categories      gnome
+platforms       darwin
+homepage        http://live.gnome.org/Gjs
+master_sites    gnome:sources/${name}/${branch}/
+use_xz          yes
+
+checksums       md5     0f3422a114cb69735274e75e325013a3 \
+                sha1    c5530fbe6dde7d02e1f461829385075c5487e2bb \
+                rmd160  479d52d732bdcf6ecb0347530e3dfaae0332dc34
+
+depends_build   port:pkgconfig \
+                port:intltool \
+                port:gettext
+
+depends_lib     port:gobject-introspection \
+                port:readline \
+                path:lib/pkgconfig/cairo.pc:cairo \
+                port:dbus-glib \
+                port:mozjs17 \
+                port:gnome-js-common
+
+patchfiles      patch-fix-uint-type-bz712242.diff
+
+# mozjs17 is not universal
+universal_variant no
+
+configure.args-append "-enable-compile-warnings=no"
+
+livecheck.type  gnome

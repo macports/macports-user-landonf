@@ -1,0 +1,48 @@
+# $Id$
+
+PortSystem              1.0
+PortGroup               conflicts_build 1.0
+
+name                    gawk
+version                 4.1.0
+categories              lang
+license                 GPL-3+
+installs_libs           no
+maintainers             gmail.com:mschamschula openmaintainer
+platforms               darwin
+master_sites            gnu
+homepage                http://www.gnu.org/software/gawk/
+description             The GNU awk utility.
+use_xz                  yes
+
+long_description \
+    The awk utility interprets a special-purpose programming language   \
+    that makes it possible to handle simple data-reformatting jobs with \
+    just a few lines of code. It is a free, extended version of awk.
+
+checksums               sha256  1804d0c7f74fe1e2d127a268d1905aaed0cb237bfb7f124d9ba6adc535143642 \
+                        rmd160  71267e56aabed02ecc77f26661171a7b626dc71d
+
+depends_lib             port:readline \
+                        port:gettext
+
+conflicts_build         nawk
+
+configure.args          --with-libiconv-prefix=${prefix} \
+                        ac_cv_libsigsegv=no
+
+test.run                yes
+test.target             check
+
+post-destroot {
+    delete ${destroot}${prefix}/bin/awk
+
+    xinstall -m 755 -d ${destroot}${prefix}/libexec/gnubin
+    foreach binary [glob -tails -directory ${destroot}${prefix}/bin g*] {
+        ln -s ${prefix}/bin/${binary} ${destroot}${prefix}/libexec/gnubin/[string range $binary 1 end]
+    }
+    xinstall -m 755 -d ${destroot}${prefix}/libexec/gnubin/man/man1
+    foreach manpage [glob -tails -directory ${destroot}${prefix}/share/man/man1 g*] {
+        ln -s ${prefix}/share/man/man1/${manpage}.gz ${destroot}${prefix}/libexec/gnubin/man/man1/[string range $manpage 1 end].gz
+    }
+}

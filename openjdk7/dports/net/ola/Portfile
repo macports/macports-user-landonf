@@ -1,0 +1,70 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                ola
+version             0.8.33
+categories          net comms
+platforms           darwin
+license             GPL-2+ LGPL-2.1+
+maintainers         gmail.com:nomis52 p3k.org:interface
+
+description         An open framework for DMX512 lighting control
+
+long_description    The Open Lighting Architecture (OLA) provides a plugin \
+                    framework for distributing DMX512 control signals on \
+                    Mac and Linux. It provides C++ and Python libraries \
+                    which abstract away the underlying DMX over IP protocol \
+                    or DMX interface.
+
+homepage            http://opendmx.net/index.php/OLA
+master_sites        googlecode:open-lighting
+
+checksums           rmd160 c7f92c6ef83fa011d34d25261ab2a8dcaf159491 \
+                    sha256 effe7295f5c572f1e638f63524873b5243f14b7b264f5499513bd1d4bfc8d40a
+
+depends_build       port:pkgconfig
+
+depends_lib         port:cppunit \
+                    port:protobuf-cpp
+
+configure.args      --disable-http \
+                    --disable-libusb \
+                    --disable-osc
+
+variant python26 conflicts python27 description {Enable the Python 2.6 API} {
+    depends_lib-append      port:py26-protobuf
+    configure.args-append   --enable-python-libs
+    configure.python        ${prefix}/bin/python2.6
+}
+
+variant python27 conflicts python26 description {Enable the Python 2.7 API} {
+    depends_lib-append      port:py27-protobuf
+    configure.args-append   --enable-python-libs
+    configure.python        ${prefix}/bin/python2.7
+}
+
+variant http description {Build with embedded web server} {
+    depends_lib-append      port:libmicrohttpd
+    configure.args-delete   --disable-http
+}
+
+variant osc description {Build with OSC support} {
+    depends_lib-append      port:liblo
+    configure.args-delete   --disable-osc
+}
+
+variant libusb description {Build with libusb support} {
+    depends_lib-append      port:libusb
+    configure.args-delete   --disable-libusb
+}
+
+default_variants    +http +osc +libusb
+
+if {![variant_isset python26]} {
+    default_variants        +python27
+}
+
+test.run            yes
+test.target         check

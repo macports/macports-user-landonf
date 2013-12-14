@@ -1,0 +1,52 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=portfile:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                radare2
+version             0.9.4
+categories          devel
+platforms           darwin
+license             LGPL-3+
+maintainers         g5pw openmaintainer
+description         Opensource tools to disasm, debug, analyze and manipulate binary files.
+long_description    ${name} provides ${description}.
+homepage            http://radare.org
+master_sites        ${homepage}/get/
+
+checksums           rmd160  71d0fad808a215a744bcfb6ab597f70bad071123 \
+                    sha256  7af3413f736b979dbf5db3688e9bc3052879a28428ac4f10086fa7f93cba5de0
+
+# Patch the fixed (and strangely disabled) arch flags. Will talk with the developers 
+# to integrate this in the build process.
+patchfiles          gcc.mk.patch
+
+post-patch {
+    reinplace "s/__ARCH__/${configure.build_arch}/" ${worksrcpath}/mk/gcc.mk
+}
+
+configure.args-append \
+                    --without-ewf
+                    # --with-sysmagic # For some strange reason, system's magic doesn't work.
+
+variant ewf description {Use EWF library} {
+    depends_lib-append \
+                    port:libewf
+    
+    configure.args-delete \
+                    --without-ewf
+}
+
+variant openssl description {Use OpenSSL library} {
+    depends_lib-append \
+                    port:openssl
+
+    configure.args-append \
+                    --with-openssl
+}
+
+default_variants    +ewf +openssl
+
+livecheck.type      regex
+livecheck.url       ${homepage}/y/?p=download
+livecheck.regex     "${name}-(\\d+\\.\\d+(\[0-9rc.\]+)?)${extract.suffix}"

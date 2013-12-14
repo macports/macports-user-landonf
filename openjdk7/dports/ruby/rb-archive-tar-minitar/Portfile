@@ -1,0 +1,28 @@
+# $Id$
+
+PortSystem		1.0
+PortGroup		ruby 1.0
+
+ruby.setup		archive-tar-minitar 0.5.2 basic_install.rb {README doc tests} \
+				rubyforge:33065
+revision		0
+maintainers		nomaintainer
+description		Ruby library and command line utility to deal with POSIX tar archive files.
+long_description	Archive::Tar::Minitar is a pure-Ruby library and \
+                    command-line utility that provides the ability to \
+                    deal with POSIX tar(1) archive files. The \
+                    implementation is based heavily on Mauricio \
+                    Fernandez's implementation in rpa-base, but has \
+                    been reorganised to promote reuse in other projects.
+categories-append	archivers
+license			{Ruby GPL-2}
+homepage        http://rubyforge.org/frs/shownotes.php?release_id=787
+checksums		md5 9413e85d20c88945abefa21a54502e45
+platforms		darwin
+
+destroot.args	--no-ri --no-tests
+post-destroot {
+	reinplace -locale C "s%#!.*ruby.*%#!${ruby.bin}%" ${destroot}${ruby.bindir}/minitar
+	file delete -force ${destroot}${prefix}/bin/minitar.bat${ruby.link_binaries_suffix}
+	file delete -force ${destroot}${ruby.bindir}/minitar.bat
+}

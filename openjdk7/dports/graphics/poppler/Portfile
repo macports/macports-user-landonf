@@ -1,0 +1,114 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+PortGroup       compiler_blacklist_versions 1.0
+PortGroup       muniversal 1.0
+
+name            poppler
+conflicts       pdf2json xpdf-tools
+version         0.24.4
+license         GPL-2+
+maintainers     devans openmaintainer
+categories      graphics
+platforms       darwin
+homepage        http://${name}.freedesktop.org/
+
+description     Poppler is a PDF rendering library based on the xpdf-3.0 code base.
+long_description \
+                ${description}
+
+master_sites    ${homepage}
+
+use_xz          yes
+
+checksums       rmd160  2a71b7da5562e1ac655c9591812551f3fbfe6fe9 \
+                sha256  c8a3509a17e6f0bbb07eeb1b58276b485974a8bff3f5eef1bc8e150ccd7c01e2
+
+depends_build   port:pkgconfig
+
+depends_lib     port:bzip2 \
+                port:curl \
+                port:expat \
+                port:fontconfig \
+                port:freetype \
+                port:gobject-introspection \
+                path:lib/pkgconfig/glib-2.0.pc:glib2 \
+                path:lib/pkgconfig/cairo.pc:cairo \
+                port:lcms2 \
+                port:libpng \
+                port:openjpeg15 \
+                port:poppler-data \
+                port:tiff \
+                port:zlib
+
+post-patch {
+    reinplace "s|\$includedir|${prefix}/include|g" \
+        ${worksrcpath}/configure
+    reinplace "s|tests||" \
+        ${worksrcpath}/qt4/Makefile.in
+}
+
+# Generate newer libtool that passes -stdlib when linking dylibs.
+use_autoreconf  yes
+autoreconf.args -fvi
+
+compiler.blacklist {gcc-4.0 < 5493}
+
+configure.args  --disable-poppler-qt4 \
+                --disable-gtk-test \
+                --disable-silent-rules \
+                --enable-xpdf-headers \
+                --enable-zlib \
+                --enable-libcurl \
+                --enable-poppler-glib \
+                --enable-introspection=yes
+
+# gobject-introspection uses g-ir-scanner, which uses $CC from env
+
+if {[variant_isset universal]} {
+    foreach arch ${configure.universal_archs} {
+        lappend merger_build_args(${arch})  CC='${configure.cc} -arch ${arch}'
+    }
+} else {
+    build.args-append       CC="${configure.cc} ${configure.cc_archflags}"
+}
+
+variant quartz {
+    configure.args-append --without-x
+}
+
+if {![variant_isset quartz]} {
+    if {[file exists ${prefix}/lib/pkgconfig/x11.pc]} {
+            configure.args-append --x-includes=${prefix}/include \
+                                  --x-libraries=${prefix}/lib
+    }
+}
+
+variant qt4 description { Support for the QT4 toolkit } {
+    configure.args-delete --disable-poppler-qt4
+    if ([variant_isset quartz]) {
+        PortGroup qt4 1.0
+    } else {
+        depends_lib-append  port:qt4-x11
+        set qt_dir ${prefix}/libexec/qt4-x11
+        configure.env-append  QTDIR=${qt_dir}
+        set env(PATH) "${qt_dir}/bin:$env(PATH)"
+        configure.pkg_config_path ${qt_dir}/lib/pkgconfig
+    }
+}
+
+variant docs conflicts universal description {Build gtk-doc documentation} {
+    depends_build-append   port:gtk-doc
+    configure.args-append  --enable-gtk-doc
+}
+
+platform darwin 8 {
+    # The rules enabled by gobject-introspection require GNU make 3.81+ (#39144)
+    depends_build-append    port:gmake
+    build.cmd               ${prefix}/bin/gmake
+}
+
+livecheck.type  regex
+livecheck.url   ${master_sites}
+livecheck.regex ${name}-(\[0-9\]+\\.\[0-9\]*\[02468\](\\.\[0-9\]+)*)${extract.suffix}

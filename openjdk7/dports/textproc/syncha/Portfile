@@ -1,0 +1,49 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                syncha
+version             0.3
+categories          textproc
+maintainers         hum openmaintainer
+
+description         a Japanese predicate-argument structure analyzer
+long_description    ${name} is ${description}.
+
+homepage            http://www.cl.cs.titech.ac.jp/~ryu-i/syncha/
+platforms           darwin
+license             LGPL
+
+master_sites        ${homepage}
+checksums           rmd160  14b2d7572ad16c2f49b9659ab07505cac402a212 \
+                    sha256  20cd903c58e5ea2862ba68307c49897d1825386e1102886273999b3fafbcb39b
+extract.suffix      .tgz
+
+depends_lib         port:lp_solve \
+                    port:cabocha
+
+use_configure       no
+supported_archs     noarch
+
+build {}
+
+destroot {
+    # install data and modules.
+    set syncha_dir ${prefix}/share/${name}
+    xinstall -d ${destroot}${syncha_dir}
+    foreach dir {dat src} {
+        copy ${worksrcpath}/${dir} ${destroot}${syncha_dir}
+    }
+    # install an additional document.
+    set doc_dir ${destroot}${prefix}/share/doc/${name}
+    xinstall -d ${doc_dir}
+    xinstall -m 644 ${worksrcpath}/README ${doc_dir}
+    # install an executable script.
+    xinstall -m 755 ${worksrcpath}/syncha ${destroot}${prefix}/bin
+    reinplace "s|use FindBin qw\(\$Bin\);|my \$Bin = \"${syncha_dir}\";|" \
+        ${destroot}${prefix}/bin/syncha
+}
+
+livecheck.type      regex
+livecheck.regex     ${name}-(\[0-9.\]+)\\.tgz

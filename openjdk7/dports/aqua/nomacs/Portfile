@@ -1,0 +1,41 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id $
+
+PortSystem              1.0
+PortGroup               qt4 1.0
+PortGroup               cmake 1.0
+
+name                    nomacs
+version                 1.6.0
+revision                0
+license                 GPL-3+
+maintainers             pvanek openmaintainer
+description             nomacs image viewer application bundle
+long_description        nomacs is a free image viewer. nomacs is small, fast and able to \
+                        handle the most common image formats. Additionally it is possible \
+                        to synchronize multiple viewers. A synchronization of viewers running \
+                        on the same computer or via LAN is possible. It allows to compare \
+                        images and spot the differences (e.g. schemes of architects to show the progress).
+categories              aqua graphics
+platforms               darwin
+homepage                http://nomacs.org
+
+master_sites            sourceforge
+use_bzip2               yes
+distfiles           ${name}-${version}-source.tar.bz2
+
+checksums           rmd160  587fad2f3a9ec968c9c9141e09866274b5e04212 \
+                    sha256  39e25542c8cef90578864e2a2e98a8c6723872cddf82f12f17f6caf9b426683d
+
+depends_lib-append      port:exiv2 \
+                        port:libraw \
+                        port:opencv
+
+# opencv is not universal
+universal_variant       no
+
+configure.args-append   -DOpenCV_DIR=${prefix}/lib/cmake \
+                        -DCMAKE_INSTALL_PREFIX="${applications_dir}" \
+                        ${qt_cmake_defines}
+
+

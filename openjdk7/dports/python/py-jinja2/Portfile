@@ -1,0 +1,48 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+
+name                py-jinja2
+version             2.7.1
+categories-append   devel
+license             BSD
+maintainers         jmr openmaintainer
+supported_archs     noarch
+
+description         Python based sandboxed template engine
+long_description \
+    Jinja is a sandboxed template engine written in pure Python licensed\
+    under the BSD license. It provides a Django-like non-XML syntax and\
+    compiles templates into executable python code. It's basically a\
+    combination of Django templates and python code.
+
+platforms           darwin
+
+homepage            http://jinja.pocoo.org/
+master_sites        https://pypi.python.org/packages/source/J/Jinja2/
+distname            Jinja2-${version}
+
+checksums           md5 282aed153e69f970d6e76f78ed9d027a \
+                    sha1 a9b24d887f2be772921b3ee30a0b9d435cffadda \
+                    rmd160 08a71d6c103c808d8347a4f36f2b16db3fa25128
+
+python.versions     24 25 26 27 31 32 33
+
+if {${name} ne ${subport}} {
+    depends_lib     port:py${python.version}-setuptools \
+                    port:py${python.version}-markupsafe
+    if {${python.version} < 26 || (${python.version} >= 30 && ${python.version} < 33)} {
+        version     2.6
+        distname    Jinja2-${version}
+        checksums   md5 1c49a8825c993bfdcf55bb36897d28a2 \
+                    sha1 f122aeb324b2009bbcee341d0f001a047ac4bbe5 \
+                    rmd160 77829eabfc71dd6cf7eece1fe5d0b96b21de3b18
+    }
+    livecheck.type  none
+} else {
+    livecheck.type  regex
+    livecheck.url   https://pypi.python.org/pypi/Jinja2/
+    livecheck.regex {Jinja2 ([0-9\.]+)}
+}

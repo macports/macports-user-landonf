@@ -1,0 +1,87 @@
+# $Id$
+
+PortSystem 1.0
+
+name		xine-lib
+version         1.2.4
+revision        1
+description	xine-lib is a free multimedia engine, released under the GPL.
+long_description        ${description}
+maintainers	ryandesign openmaintainer
+categories	multimedia
+# included libdvdnav is GPL-2 only, rest is GPL-2+
+license		GPL-2
+platforms	darwin
+homepage	http://www.xine-project.org
+master_sites    sourceforge:project/xine/xine-lib/${version}
+use_xz      yes
+
+checksums       rmd160  9c4b151730a4ede46013fb127545fbb59d56f8b6 \
+                sha256  9c5b1b4ef7bd0591962c322a3afa709eeaa5bae664678548f1340e64f43abbdd
+
+depends_build port:libtool \
+            port:pkgconfig
+depends_lib port:aalib	\
+            port:esound \
+            port:faad2 \
+            path:lib/libavcodec.dylib:ffmpeg \
+            port:flac \
+            port:fontconfig \
+            port:gdk-pixbuf2 \
+            port:ImageMagick \
+            port:jack \
+            port:libcaca \
+            port:libcdio \
+            port:libdca \
+            port:libmad \
+            port:libmpcdec \
+            port:libogg \
+            port:libvorbis \
+            port:mesa \
+            port:vcdimager \
+            port:xorg-libXinerama \
+            port:xorg-libXt \
+            port:xorg-libXvMC \
+            port:xorg-xcb-util
+
+# fix "error: empty character constant" with clang 3.1 and older
+# https://bugs.xine-project.org/show_bug.cgi?id=504
+patchfiles-append src_demuxers_demux_qt.c.diff
+
+# fix "error: initializer element is not a compile-time constant" with clang 3.0 and older
+# https://bugs.xine-project.org/show_bug.cgi?id=505
+patchfiles-append patch-include-xine-post.h
+
+# fix "make[3]: *** No rule to make target `\', needed by `avcodec_video.list'.  Stop."
+# https://bugs.xine-project.org/show_bug.cgi?id=503
+patchfiles-append patch-src-combined-ffmpeg-Makefile.in.diff
+
+if {[string match "*clang*" ${configure.compiler}]} {
+    # disable use of MMX in these files; workaround for
+    # "error: clobbers must be last on the x87 stack"
+    # https://bugs.xine-project.org/show_bug.cgi?id=502
+    patchfiles-append   src_post_goom_ifs.c.diff
+    patchfiles-append   patch-src-post-goom-mmx.c.diff
+}
+
+# bad register name `%rax'
+universal_variant       no
+
+configure.args  --disable-silent-rules
+if {${os.platform} eq "darwin" && [string match *64 $build_arch]} {
+    configure.args-append --build=${build_arch}-apple-${os.platform}${os.version}
+}
+build.args  V=1
+
+platform darwin {
+    # fix "ar: no archive members specified"
+    # https://bugs.xine-project.org/show_bug.cgi?id=456
+    patchfiles-append src_xine-engine_Makefile.in.diff
+}
+
+platform macosx {
+    configure.args-append   --enable-macosx-video \
+                            --enable-coreaudio
+}
+
+livecheck.regex     /${name}-(\[0-9.\]+)${extract.suffix}

@@ -1,0 +1,50 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                kross-interpreters
+version             4.11.4
+categories          kde kde4
+maintainers         nicos
+license             LGPL-2.1+
+description         WEB Development package for the K Desktop Environment.
+long_description    KDE ${description}
+homepage            http://www.kde.org
+platforms           darwin
+master_sites        kde:stable/${version}/src/
+use_xz              yes
+
+checksums           rmd160  792194a438c6f93f077cb494af86aee39e6525e5 \
+                    sha256  5b6b2e66b51ec0c1e0673ce2323917545c338b3e30c2ec71a28a25b3bc8ee5df
+
+depends_lib-append  port:kdelibs4
+#                    port:falcon
+
+patchfiles          patch-CMakeLists.txt.diff
+
+configure.args-append   -DFALCON_INCLUDE_DIR=${prefix}/include/falcon0.9.6/falcon \
+                        -DFALCON_LIBRARIES=${prefix}/lib/libfalcon_engine.dylib
+
+variant python25 conflicts python26 python27 description {Use python 2.5} {
+    configure.pre_args-append   -DCMAKE_PREFIX_PATH=${prefix}/Library/Frameworks/Python.framework/Versions/2.5/
+    depends_lib-append      port:python25
+}
+
+variant python26 conflicts python25 python27 description {Use python 2.6} {
+    configure.pre_args-append   -DCMAKE_PREFIX_PATH=${prefix}/Library/Frameworks/Python.framework/Versions/2.6/
+    depends_lib-append      port:python26
+}
+
+variant python27 conflicts python25 python26 description {Use python 2.7} {
+    configure.pre_args-append   -DCMAKE_PREFIX_PATH=${prefix}/Library/Frameworks/Python.framework/Versions/2.7/
+    depends_lib-append      port:python27
+}
+
+if {![variant_isset python25] && ![variant_isset python26]} {
+    default_variants +python27
+}
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

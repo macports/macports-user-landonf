@@ -1,0 +1,47 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                marble
+version             4.11.4
+categories          kde kde4
+maintainers         nicos
+license             LGPL-2.1+ GFDL-1.2
+description         Virtual Globe
+long_description    KDE virtual globe and world atlas
+homepage            http://www.kde.org
+
+platforms           darwin
+
+master_sites        kde:stable/${version}/src/
+use_xz              yes
+
+checksums           rmd160  0ff7e2915b1fd77864f83f2e4b6065e9bb0b6edd \
+                    sha256  9d658c0685f0ac88d3adc860ba17c640151c9dd6b6cf486052cae462d683a61d
+
+depends_lib-append  port:libkdeedu \
+                    port:gpsd
+
+patchfiles-append   patch-GpsdSymbols.diff
+
+if {![variant_isset docs]} {
+    patchfiles-append   patch-CMakeLists.txt.diff
+}
+
+configure.args-append   -DCMAKE_MODULES_INSTALL_PATH=${cmake_share_module_dir}
+
+post-destroot {
+    #Moving executable to right place
+    xinstall -d ${destroot}${applications_dir}/KDE4/marble-qt.app/Contents/MacOS
+    xinstall -m 644 ${workpath}/build/src/marble-qt.app/Contents/Info.plist \
+        ${destroot}${applications_dir}/KDE4/marble-qt.app/Contents
+    xinstall -m 644 ${workpath}/build/src/marble-qt.app/Contents/MacOS/marble-qt \
+        ${destroot}${applications_dir}/KDE4/marble-qt.app/Contents/MacOS
+    delete ${destroot}${prefix}/marble-qt.app/Contents/Info.plist
+    delete ${destroot}${prefix}/marble-qt.app/Contents/MacOS/marble-qt
+}
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

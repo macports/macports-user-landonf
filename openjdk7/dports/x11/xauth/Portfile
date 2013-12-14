@@ -1,0 +1,33 @@
+# $Id$
+
+PortSystem          1.0
+
+name                xauth
+version             1.0.8
+categories          x11
+license             X11
+platforms           darwin
+maintainers         jeremyhu openmaintainer
+description         X11 authority file utility
+long_description    ${description}
+
+homepage            http://www.x.org/
+master_sites        xorg:individual/app/
+
+checksums           sha1    481d42acbfe30f8593be07d70c258b18f8c877db \
+                    rmd160  f0bcd17d10d5dd7cec0825298403fecb9d29dff5 \
+                    sha256  a8696ae7a50c699d5fb3a41408b60d98843d19ea46e9f09e391cb98c8f7fd4f7
+
+use_bzip2	    yes
+use_parallel_build  yes
+
+depends_build \
+	port:pkgconfig
+
+depends_lib \
+	port:xorg-libXext \
+	port:xorg-libXmu
+
+livecheck.type  regex
+livecheck.url   http://xorg.freedesktop.org/archive/individual/app/?C=M&O=D
+livecheck.regex ${name}-(\\d+(?:\\.\\d+)*)

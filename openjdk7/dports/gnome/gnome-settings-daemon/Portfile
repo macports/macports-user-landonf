@@ -1,0 +1,76 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            gnome-settings-daemon
+version         3.8.5
+license         GPL-2 LGPL-2.1
+set branch      [join [lrange [split ${version} .] 0 1] .]
+description     Gnome 3 settings daemon.
+long_description ${description}
+maintainers     devans openmaintainer
+categories      gnome
+platforms       darwin
+homepage        http://www.gnome.org/
+master_sites    gnome:sources/${name}/${branch}/
+
+use_xz          yes
+
+checksums       rmd160  93986c863df423c712251c528c86f8d123c3dfe9 \
+                sha256  19420c97296802162fd4e0e0a08e797f5038ec8bd98cffe222362e24c7405784
+
+depends_build   port:pkgconfig \
+                port:intltool \
+                port:docbook-xsl \
+                port:docbook-xml
+
+depends_lib     port:gtk3 \
+                port:gsettings-desktop-schemas \
+                port:gnome-desktop \
+                port:lcms2 \
+                port:libnotify \
+                port:fontconfig \
+                port:libcanberra \
+                port:pulseaudio \
+                port:upower \
+                port:xorg-kbproto \
+                port:xorg-libXi \
+                port:xorg-libXtst \
+                port:xorg-libXfixes \
+                port:xorg-libXrandr \
+                port:xorg-libxkbfile
+
+#
+# the following plugins are disabled by patch
+#
+# color (requires colord)
+# power (requires X server support for Xtst extension and segfaults when it doesn't find it)
+# xrandr (works but tries to take over control of display causing problems with Mac OS X)
+#
+
+patchfiles      patch-plugins.diff
+
+use_autoreconf  yes
+autoreconf.args -fvi
+
+configure.args  --x-includes=${prefix}/include \
+                --x-libraries=${prefix}/lib \
+                --disable-gudev \
+                --disable-ibus \
+                --disable-smartcard-support \
+                --disable-maintainer-mode \
+                --disable-silent-rules
+
+platform darwin {
+    if {${os.major} < 10} {
+        configure.args-append --disable-cups
+    }
+}
+
+post-activate    {
+    system "${prefix}/bin/gtk-update-icon-cache-3.0 -f -t ${prefix}/share/icons/hicolor"
+    system "${prefix}/bin/glib-compile-schemas ${prefix}/share/glib-2.0/schemas"
+}
+
+livecheck.type  gnome

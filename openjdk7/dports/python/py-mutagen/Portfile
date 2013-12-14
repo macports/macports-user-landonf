@@ -1,0 +1,37 @@
+# -*- mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+# $Id$
+
+PortSystem 1.0
+PortGroup python 1.0
+
+name            py-mutagen
+version         1.21
+description     A Python module to handle audio metadata
+platforms       darwin
+supported_archs noarch
+categories-append     audio devel
+license         GPL-2
+maintainers     sfiera elelay openmaintainer
+long_description \
+    Supports ASF, FLAC, M4A, Monkey's Audio, MP3, Musepack, Ogg FLAC, Ogg \
+    Speex, Ogg Theora, Ogg Vorbis, True Audio, WavPack and OptimFROG audio \
+    files. All versions of ID3v2 are supported, and all standard ID3v2.4 \
+    frames are parsed. It can read Xing headers to accurately calculate the \
+    bitrate and length of MP3s. ID3 and APEv2 tags can be edited regardless of \
+    audio format. It can also manipulate Ogg streams on an individual \
+    packet/page level.
+
+distname        mutagen-${version}
+homepage        http://code.google.com/p/mutagen/
+master_sites    googlecode:mutagen
+checksums       md5     7491af5d04706b1f60fcab71aadfd27f \
+                sha1    21807dd51f36204891597a368bfa2fab1a30a531 \
+                rmd160  4d3ad4efffbabfb02679841cdbe6461ebd3fb765
+
+python.versions 24 25 26 27
+
+if {${name} eq ${subport}} {
+    livecheck.type		regex
+    livecheck.url		http://code.google.com/p/mutagen/downloads/list
+    livecheck.regex "mutagen-(\\d+(?:\\.\\d+)*)${extract.suffix}"
+}

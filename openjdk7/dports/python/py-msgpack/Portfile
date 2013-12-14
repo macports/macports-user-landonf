@@ -1,0 +1,38 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+
+name                py-msgpack
+version             0.4.0
+revision            0
+categories-append   devel
+platforms           darwin
+license             Apache
+
+python.versions     26 27 31 32 33
+
+maintainers         stromnov openmaintainer
+
+description         MessagePack (de)serializer for Python.
+
+long_description    ${description}
+
+homepage            http://pypi.python.org/pypi/msgpack-python/
+master_sites        http://pypi.python.org/packages/source/m/msgpack-python/
+
+distname            msgpack-python-${version}
+
+checksums           rmd160  8c6f11d83c88ba25538b9797354493e818cbd401 \
+                    sha256  d078094f0b29b2b93cb96a76febc70fbe90ae4eb131ff60a6dc038edda92c278
+
+if {${name} ne ${subport}} {
+    depends_build-append port:py${python.version}-setuptools
+
+    livecheck.type      none
+} else {
+    livecheck.type      regex
+    livecheck.url       ${master_sites}
+    livecheck.regex     {msgpack-python-(\d+(?:\.\d+)*)\.[tz]}
+}

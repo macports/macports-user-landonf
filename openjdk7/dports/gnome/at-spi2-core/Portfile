@@ -1,0 +1,52 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                at-spi2-core
+# you probably want to keep this at the same version as at-spi2-atk
+version             2.10.2
+checksums           rmd160  86ebace671375def667be4884fcc7a0ba7e80f65 \
+                    sha256  d3da58f84f4c8e4d5fe940ecb52fb27b4d9ea2b4dcdb3e1fae0f46b5eaa2dde1
+
+license             LGPL
+set branch          [join [lrange [split ${version} .] 0 1] .]
+description         Gnome Accesibility Technology Service
+long_description \
+   'at-spi' is a part of the Gnome Accessibility Project.  It provides a \
+   Service Provider Interface for the Assistive Technologies available on \
+   the GNOME platform, and a library against which applications can be linked.
+maintainers         cal openmaintainer
+categories          gnome
+platforms           darwin
+homepage            http://a11y.org/
+master_sites        gnome:sources/${name}/${branch}/
+
+use_xz              yes
+
+depends_build       port:pkgconfig \
+                    port:intltool
+
+depends_lib         path:lib/pkgconfig/glib-2.0.pc:glib2 \
+                    port:lib/pkgconfig/dbus-1.pc:dbus \
+                    port:dbus-glib \
+                    port:xorg-libX11 \
+                    port:xorg-libice \
+                    port:xorg-libsm \
+                    port:xorg-libXtst \
+                    port:xorg-libXi \
+                    port:xorg-libXevie \
+                    port:gobject-introspection
+
+configure.args      --disable-xevie \
+                    --enable-introspection=yes \
+                    --x-includes=${prefix}/include \
+                    --x-libraries=${prefix}/lib
+
+# The rules enabled by gobject-introspection require GNU make 3.81+
+platform darwin 8 {
+    depends_build-append    port:gmake
+    build.cmd               ${prefix}/bin/gmake
+}
+
+livecheck.type      gnome

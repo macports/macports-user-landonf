@@ -1,0 +1,239 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem                      1.0
+
+name                            curl
+version                         7.33.0
+categories                      net www
+platforms                       darwin freebsd
+maintainers                     ryandesign
+license                         Curl
+
+description                     Tool for transferring files with URL syntax
+
+long_description                curl is a client to get documents/files from servers, \
+                                using any of the supported protocols. The command is \
+                                designed to work without user interaction or any kind \
+                                of interactivity.
+
+homepage                        http://curl.haxx.se/
+master_sites                    ${homepage}download/ \
+                                ftp://ftp.sunet.se/pub/www/utilities/curl/ \
+                                http://www.execve.net/curl/
+
+use_bzip2                       yes
+
+checksums                       ${distfiles} \
+                                rmd160  8041110d4abd7663ad427f67127010bcf14e05f5 \
+                                sha256  0afde4cd949e2658eddc3cda675b19b165eea1af48ac5f3e1ec160792255d1b3
+
+if {${name} eq ${subport}} {
+    PortGroup                   muniversal 1.0
+
+    depends_build               port:pkgconfig
+
+    depends_lib                 port:libidn \
+                                port:zlib
+
+    patchfiles                  patch-curl.h.diff
+
+    configure.args              --enable-ipv6 \
+                                --without-gnutls \
+                                --without-gssapi \
+                                --without-libmetalink \
+                                --without-librtmp \
+                                --without-libssh2 \
+                                --without-nss \
+                                --without-polarssl \
+                                --without-spnego \
+                                --without-ssl \
+                                --disable-ares \
+                                --disable-ldap \
+                                --disable-ldaps \
+                                --with-libidn \
+                                --with-zlib=${prefix}
+
+    configure.env               PKG_CONFIG_PATH=${prefix}
+
+    post-configure {
+        if {[variant_isset universal]} {
+            set dirs {}
+            foreach arch ${universal_archs_to_use} {
+                lappend dirs ${worksrcpath}-${arch}
+            }
+        } else {
+            set dirs ${worksrcpath}
+        }
+        foreach dir ${dirs} {
+            reinplace -E {s|-arch [a-z0-9_]+||g} \
+                ${dir}/curl-config \
+                ${dir}/libcurl.pc
+            reinplace -E {s/ '(host_alias|--host)=[^']+'//g} ${dir}/curl-config
+        }
+    }
+
+    test.run                    yes
+    test.target                 test-full
+
+    global merger_dont_diff
+    set merger_dont_diff "${prefix}/include/curl/curlbuild.h"
+
+    post-destroot {
+        set docdir ${prefix}/share/doc/${name}
+        xinstall -d ${destroot}${docdir}/html/libcurl ${destroot}${docdir}/pdf/libcurl \
+            ${destroot}${prefix}/share/aclocal
+        xinstall -m 0644 -W ${worksrcpath} \
+            CHANGES \
+            COPYING \
+            README \
+            RELEASE-NOTES \
+            ${destroot}${docdir}
+        xinstall -m 0644 -W ${worksrcpath}/docs \
+            BUGS \
+            CONTRIBUTE \
+            FAQ \
+            FEATURES \
+            HISTORY \
+            INTERNALS \
+            KNOWN_BUGS \
+            MANUAL \
+            RESOURCES \
+            THANKS \
+            TODO \
+            TheArtOfHttpScripting \
+            VERSIONS \
+            ${destroot}${docdir}
+        xinstall -m 0644 ${worksrcpath}/docs/libcurl/libcurl.m4 \
+            ${destroot}${prefix}/share/aclocal/
+        eval xinstall -m 0644 [glob ${worksrcpath}/docs/*.html] ${destroot}${docdir}/html
+        eval xinstall -m 0644 [glob ${worksrcpath}/docs/libcurl/*.html] ${destroot}${docdir}/html/libcurl
+        eval xinstall -m 0644 [glob ${worksrcpath}/docs/*.pdf] ${destroot}${docdir}/pdf
+        eval xinstall -m 0644 [glob ${worksrcpath}/docs/libcurl/*.pdf] ${destroot}${docdir}/pdf/libcurl
+    }
+
+    variant ares description {Support resolving names asynchronously} {
+        depends_lib-append      port:c-ares
+        configure.args-replace  --disable-ares --enable-ares
+    }
+
+    variant gnutls conflicts ssl description {Allow secure connections using GNU TLS} {
+        depends_lib-append      port:gnutls
+        configure.args-replace  --without-gnutls --with-gnutls
+    }
+
+    variant gss description {Support the Generic Security Service API} {
+        # This needs to use the system's Kerberos, not MacPorts' gss or kerberos5.
+        conflicts-append        gss kerberos5
+        configure.args-replace  --without-gssapi --with-gssapi
+    }
+
+    variant metalink description {Support Metalink XML download description files} {
+        depends_lib-append      port:libmetalink
+        configure.args-replace  --without-libmetalink --with-libmetalink=${prefix}
+    }
+
+    variant openldap description {Support performing Lightweight Directory Access Protocol queries with OpenLDAP} {
+        depends_lib-append      port:openldap
+        configure.args-replace  --disable-ldap --enable-ldap
+        configure.args-replace  --disable-ldaps --enable-ldaps
+    }
+
+    variant sftp_scp description {Support SFTP/SCP connections via libssh2} {
+        depends_lib-append      port:libssh2
+        configure.args-replace  --without-libssh2 --with-libssh2
+    }
+
+    variant spnego description {Enable SPNEGO authentication support} {
+        # kind of broken?
+        depends_lib-append      port:fbopenssl
+        configure.args-replace  --without-spnego --with-spnego=${prefix}
+    }
+
+    variant ssl conflicts gnutls description {Allow secure connections using OpenSSL} {
+        depends_lib-append      port:openssl \
+                                path:share/curl/curl-ca-bundle.crt:curl-ca-bundle
+        configure.args-replace  --without-ssl --with-ssl
+        configure.args-append   --with-ca-bundle=${prefix}/share/curl/curl-ca-bundle.crt
+    }
+
+    if {![variant_isset gnutls]} {
+        default_variants +ssl
+    }
+
+    livecheck.type              regex
+    livecheck.url               [lindex ${master_sites} 0]
+    livecheck.regex             ${name}-(\[0-9.\]+)${extract.suffix}
+} else {
+    livecheck.type              none
+}
+
+subport curl-ca-bundle {
+    revision                    0
+    categories                  net
+    license                     {MPL-2 LGPL-2.1+}
+    supported_archs             noarch
+    installs_libs               no
+    conflicts                   certsync
+
+    description                 CA certificate bundle for curl
+
+    long_description            Installs a bundle of certification authority certificates \
+                                (CA certs) which curl (when linked with OpenSSL) uses to \
+                                verify the authenticity of secure web and FTP servers.
+
+    depends_build               path:bin/perl:perl5
+
+    set certdata_file           certdata.txt
+    set certdata_version        1.87
+    set certdata_date           2012-12-29
+    set certdata_distfile       certdata-${certdata_version}.txt
+    set certdata_path           security/nss/lib/ckfw/builtins/${certdata_file}
+
+    # Set this to the UTC date when an update to certdata.txt is committed.
+    set commit_date_utc         2013-01-11
+
+    # Avoid most of the checksum errors that inevitably occur whenever upstream
+    # updates certdata.txt by only using the upstream site on the day the latest
+    # update is committed. After that time, use only our mirrors, which should
+    # have copied the file by then. The success of this strategy relies on
+    # upstream not updating the file again on that day.
+    set days_since_commit [expr {[expr {[clock seconds] - [clock format [clock scan ${commit_date_utc} -gmt yes] -format %s]}] / 86400}]
+    if {${days_since_commit} > 0} {
+        master_sites-append http://distfiles.macports.org/curl/:certdata
+    } else {
+        master_sites-append http://mxr.mozilla.org/mozilla/source/${certdata_path}?raw=1&dummy=:certdata
+    }
+
+    extract.only                ${distfiles}
+    extract.post_args-append    ${worksrcdir}/Makefile ${worksrcdir}/lib/mk-ca-bundle.pl
+
+    distfiles-append            ${certdata_distfile}:certdata
+
+    checksums-append            ${certdata_distfile} \
+                                rmd160  bc21321abe4cf27418880c4ce8e6ebd329df82a1 \
+                                sha256  5b28c27582f302c4bf34ddb114266e143d6d685a688357651be9c9db000d822d
+
+    post-extract {
+        xinstall ${distpath}/${certdata_distfile} ${worksrcpath}/${certdata_file}
+    }
+
+    patchfiles                  patch-no-autodownload.diff
+
+    use_configure               no
+
+    build.target                ca-bundle
+
+    destroot {
+        set ca_bundle_dir ${prefix}/share/curl
+        set openssl_dir ${prefix}/etc/openssl
+        xinstall -d ${destroot}${ca_bundle_dir} ${destroot}${openssl_dir}
+        xinstall -m 644 ${worksrcpath}/lib/ca-bundle.crt ${destroot}${ca_bundle_dir}/curl-ca-bundle.crt
+        ln -s ${ca_bundle_dir}/curl-ca-bundle.crt ${destroot}${openssl_dir}/cert.pem
+    }
+
+    livecheck.type              regex
+    livecheck.url               http://bonsai.mozilla.org/cvsquery.cgi?file=mozilla/${certdata_path}&date=explicit&mindate=${certdata_date}
+    livecheck.version           ${certdata_version}
+    livecheck.regex             '${certdata_file}','(\[0-9.\]+)'
+}

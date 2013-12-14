@@ -1,0 +1,36 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+PortGroup       kde4 1.1
+
+name            kde-l10n-nn
+version         4.11.4
+categories      kde kde4
+maintainers     nicos
+license         {LGPL-2.1 LGPL-3+ GPL-2+ MIT BSD}
+description     KDE Norwegian Nynorsk language files.
+long_description \
+                ${description}
+platforms       darwin
+homepage        http://www.kde.org/
+
+master_sites    kde:stable/${version}/src/kde-l10n/
+use_xz          yes
+
+supported_archs noarch
+depends_lib     port:kdelibs4
+
+checksums           rmd160  4bfc7cdebc36156aaa189a17bfe75d55e7d49356 \
+                    sha256  df6299f3484b62d65137f5db272fec194371d8e0bc9d845ee2569ab174c810f5
+
+if {![variant_isset docs]} {
+    patchfiles-append   patch-CMakeLists.txt.diff
+}
+
+post-destroot {
+    xinstall -d -m 755 ${destroot}${prefix}/share/doc/kde-installed-packages
+    system "touch ${destroot}${prefix}/share/doc/kde-installed-packages/kde-l10n-norwegian-nyorsk"
+}
+
+livecheck.type  none

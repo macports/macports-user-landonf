@@ -1,0 +1,125 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            inkscape
+conflicts       inkscape-devel
+version         0.48.4
+revision        22
+license         GPL-2 LGPL-2.1
+maintainers     devans
+categories      graphics gnome
+platforms       darwin
+homepage        http://www.inkscape.org/
+
+description     Inkscape is an open source SVG editor.
+
+long_description \
+                Inkscape is an open source SVG editor with \
+                capabilities similar to Illustrator, CorelDraw, \
+                Visio, etc. Supported SVG features include basic \
+                shapes, paths, text, alpha blending, transforms, \
+                gradients, node editing, svg-to-png export, \
+                grouping, and more.
+
+use_bzip2       yes
+
+master_sites    sourceforge:project/inkscape/inkscape/${version}
+
+checksums       rmd160  b089ced7694a9803fac8588d93e7e6239c71d3e8 \
+                sha256  8741ad8cbb5aa5cee4f234ebc45479cff2479b16d903870693174bdede8a519d
+
+depends_build   port:pkgconfig \
+                port:intltool \
+                path:bin/perl:perl5
+
+depends_lib     port:desktop-file-utils \
+                port:popt \
+                path:lib/libgc.dylib:boehmgc \
+                port:gsl \
+                port:gtkmm \
+                port:lcms \
+                port:libpng \
+                port:poppler \
+                port:boost \
+                port:ImageMagick \
+                port:libwpg \
+                port:gtkspell2
+
+patchfiles      patch-thru-r9971.diff \
+                patch-r9972-thru-r10003.diff \
+                patch-python-configure.ac.diff
+
+variant python26 conflicts python27 description {Configure to use Python version 2.6} {
+    depends_lib-append \
+        port:py26-lxml \
+        port:py26-numpy
+
+    post-patch {
+        reinplace "s|@@MP_PYTHON_VERSION@@|2.6|" configure.ac
+        reinplace "s|\"python-interpreter\", \"python\"|\"python-interpreter\", \"python2.6\"|g" ${worksrcpath}/src/extension/implementation/script.cpp
+        reinplace "s|^#include \"Object.h\"|#include \"${prefix}/include/poppler/Object.h\"|" ${worksrcpath}/src/extension/internal/pdfinput/pdf-parser.h
+        reinplace "s|^#include \"Object.h\"|#include \"${prefix}/include/poppler/Object.h\"|" ${worksrcpath}/src/extension/internal/pdfinput/pdf-parser.cpp
+    }
+
+    configure.python \
+        ${prefix}/bin/python2.6
+}
+
+variant python27 conflicts python26 description {Configure to use Python version 2.7} {
+    depends_lib-append \
+        port:py27-lxml \
+        port:py27-numpy
+
+    post-patch {
+        reinplace "s|@@MP_PYTHON_VERSION@@|2.7|" configure.ac
+        reinplace "s|\"python-interpreter\", \"python\"|\"python-interpreter\", \"python2.7\"|g" ${worksrcpath}/src/extension/implementation/script.cpp
+        reinplace "s|^#include \"Object.h\"|#include \"${prefix}/include/poppler/Object.h\"|" ${worksrcpath}/src/extension/internal/pdfinput/pdf-parser.h
+        reinplace "s|^#include \"Object.h\"|#include \"${prefix}/include/poppler/Object.h\"|" ${worksrcpath}/src/extension/internal/pdfinput/pdf-parser.cpp
+    }
+
+    configure.python \
+        ${prefix}/bin/python2.7
+}
+
+use_autoreconf  yes
+autoreconf.args -fvi
+
+configure.args  --without-gnome-vfs \
+                --with-python \
+                --enable-lcms \
+                --enable-poppler-cairo
+
+configure.cppflags-append \
+        -I${worksrcpath}/src/extension/script
+
+if {[string match "*clang*" ${configure.compiler}]} {
+    configure.cxxflags-append -std=c++11
+}
+
+if {![variant_isset python26] && ![variant_isset python27]} {
+    default_variants +python27
+}
+
+#
+# the following dummy variants are used
+# to identify this port's binary dependencies
+# based on the variant of gtkmm used for the build
+#
+
+variant x11 conflicts quartz {}
+variant quartz conflicts x11 {}
+
+if {![variant_isset quartz]} {
+    default_variants +x11
+}
+
+post-activate {
+   system "${prefix}/bin/gtk-update-icon-cache -f -t ${prefix}/share/icons/hicolor"
+   system "${prefix}/bin/update-desktop-database ${prefix}/share/applications"
+}
+
+livecheck.type          regex
+livecheck.url           http://sourceforge.net/projects/inkscape/files/inkscape/
+livecheck.regex         "${name}/(\\d+(?:\\.\\d+)*)/"

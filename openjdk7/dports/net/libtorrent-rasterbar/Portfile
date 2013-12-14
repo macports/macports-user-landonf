@@ -1,0 +1,73 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+PortGroup       active_variants 1.1
+
+name            libtorrent-rasterbar
+conflicts       libtorrent-rasterbar-devel
+version         0.16.12
+license         BSD
+categories      net
+maintainers     devans openmaintainer
+platforms       darwin
+homepage        http://www.rasterbar.com/products/libtorrent/
+master_sites    googlecode:libtorrent
+
+description \
+    A C++ bittorrent library (not the same as port libtorrent)
+
+long_description \
+    A C++ bittorrent library designed to run on anything from embedded systems to large scale \
+    seed servers. It comes with python bindings and detailed documentation.
+
+checksums       rmd160  61956d465297f4ad7c989d5839f8a5abacba9e86 \
+                sha256  e8b1cb35d4642e77ac2ab0c73773455c1d0c517cae42060d657da4463eec5668
+
+depends_build   port:pkgconfig
+
+depends_lib     port:boost \
+                port:libgeoip \
+                port:openssl
+
+patchfiles      patch-configure.diff \
+                patch-bindings-python-setup.py.in.diff
+
+post-patch      {
+                    reinplace "s|__MP_BUILD_ARCH__|${build_arch}|" ${worksrcpath}/bindings/python/setup.py.in
+                }
+
+configure.args  --disable-silent-rules \
+                --enable-python-binding \
+                --enable-geoip \
+                --with-libgeoip \
+                --with-boost-libdir="${prefix}/lib" \
+                --with-boost-python="boost_python-mt"
+
+universal_variant no
+
+variant python26 conflicts python27 description {Build bindings for Python 2.6} {
+        require_active_variants boost python26
+        depends_lib-append port:python26
+        configure.python ${prefix}/bin/python2.6
+        configure.env-append \
+                "PYTHON_INSTALL_PARAMS=--prefix=${destroot}${prefix}/Library/Frameworks/Python.framework/Versions/2.6" \
+                PYTHON_EXTRA_LDFLAGS=' '
+}
+
+variant python27 conflicts python26 description {Build bindings for Python 2.7} {
+        require_active_variants boost python27
+        depends_lib-append port:python27
+        configure.python ${prefix}/bin/python2.7
+        configure.env-append \
+                "PYTHON_INSTALL_PARAMS=--prefix=${destroot}${prefix}/Library/Frameworks/Python.framework/Versions/2.7" \
+                PYTHON_EXTRA_LDFLAGS=' '
+}
+
+variant error_logging description {Enable logging of errors to disk} {
+        configure.args-append --enable-logging=errors
+}
+
+if {![variant_isset python26]} {
+        default_variants          +python27
+}

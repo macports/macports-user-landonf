@@ -1,0 +1,41 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                yakmo
+version             2013-04-22
+categories          math textproc
+maintainers         hum openmaintainer
+
+description         C++ implementation of robust, efficient alternative k-means clustering
+
+long_description    Yakmo implements robust, efficient k-means clustering with \
+                    triangular inequality and smart initialization, while \
+                    supporting alternative clustering outputs. The use of the \
+                    triangular inequality allows k-means to skip unnecessary \
+                    distance calculations, while the smart initialization by \
+                    randomized seeding (k-means++) not only improves solution \
+                    accuracy but also accelerates the algorithm convergence. In \
+                    addition, you can obtain alternative clusterings via \
+                    orthogonalization.
+
+homepage            http://www.tkl.iis.u-tokyo.ac.jp/~ynaga/yakmo/
+platforms           darwin
+license             {GPL-2 LGPL-2.1}
+
+master_sites        ${homepage}
+checksums           rmd160  0d48896c2c0f9f1f296baa6cf6c6a6ed103f473e \
+                    sha256  0b4aa5cc79f6d1dcbcfb7793619085c6d3be3367b05abfd24f77f1aee6acfa19
+
+post-destroot {
+    # install additional documents.
+    set doc_dir ${destroot}${prefix}/share/doc/${name}
+    file mkdir ${doc_dir}
+    xinstall -m 644 -W ${worksrcpath} \
+        AUTHORS COPYING GPL LGPL README \
+        ${doc_dir}
+}
+
+livecheck.type      regex
+livecheck.regex     ${name}-(\\d+-\\d+-\\d+)\\.

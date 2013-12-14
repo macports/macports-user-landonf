@@ -1,0 +1,30 @@
+--- setup.orig.py
++++ setup.py
+@@ -27,7 +27,6 @@
+ from distutils.unixccompiler import UnixCCompiler
+ from setuptools import find_packages, setup
+ from setuptools.extension import Extension
+-import distribute_setup
+ import glob
+ import os
+ import platform
+@@ -370,8 +369,8 @@
+             # otherwise we just use the original compile method
+             UnixCCompiler.linker_so = None
+             return self._original_compile(obj, src, *args, **kwargs)
+-        UnixCCompiler.linker_so = ["gfortran"]
+-        self.compiler_so = ["gfortran"]
++        UnixCCompiler.linker_so = [os.environ.get("FC")]
++        self.compiler_so = [os.environ.get("FC")]
+         cc_args = ['-c', '-fno-underscoring']
+         cc_args.append('-fPIC')
+         try:
+@@ -629,8 +628,6 @@
+ 
+ 
+ def setupPackage(gfortran=True, ccompiler=True):
+-    # automatically install distribute if the user does not have it installed
+-    distribute_setup.use_setuptools()
+     # use lib2to3 for Python 3.x
+     if sys.version_info[0] == 3:
+         convert2to3()

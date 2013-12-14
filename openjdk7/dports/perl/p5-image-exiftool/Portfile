@@ -1,0 +1,29 @@
+# $Id$
+
+PortSystem          1.0
+PortGroup           perl5 1.0
+
+perl5.branches      5.8 5.10 5.12 5.14 5.16
+perl5.setup         Image-ExifTool 9.06
+license             {Artistic-1 GPL}
+maintainers         nomaintainer
+description         Perl interface to EXIF metadata
+long_description    ${description}
+
+platforms           darwin
+
+checksums           rmd160  e58eb820516d4a882f1d6e20bf9d3896e71faead \
+                    sha256  2a8c8b816f86935c06768f44655056c9d03300b8179fa9157ebe6686ca4c6b4f
+
+homepage            http://www.sno.phy.queensu.ca/~phil/exiftool/
+master_sites        ${homepage}
+
+if {${perl5.major} != ""} {
+depends_lib-append  port:p${perl5.major}-digest-md5 \
+                    port:p${perl5.major}-io-compress
+
+supported_archs noarch
+}
+livecheck.type      regex
+livecheck.url       ${homepage}
+livecheck.regex     Image-ExifTool-(\[0-9.\]+)${extract.suffix}

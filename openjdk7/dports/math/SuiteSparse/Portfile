@@ -1,0 +1,166 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                SuiteSparse
+epoch               20120107
+version             4.2.1
+categories          math science
+platforms           darwin
+maintainers         michaelld openmaintainer
+license             GPL-2+ LGPL-2.1+
+
+description         Sparse matrix routines
+
+long_description    SuiteSparse is a single archive that contains all packages \
+                    authored by Tim Davis.
+
+homepage            http://www.cise.ufl.edu/research/sparse/SuiteSparse/
+master_sites        http://www.cise.ufl.edu/research/sparse/SuiteSparse/
+distname            SuiteSparse-${version}
+worksrcdir          ${name}
+
+checksums           rmd160  9a2fa65845564efad79311f2ff8573217bd79f0d \
+                    sha256  e8023850bc30742e20a3623fabda02421cb5774b980e3e7c9c6d9e7e864946bd
+
+# fix Mac configuration file
+
+patchfiles-append patch-SuiteSparce_config_Mac.mk.diff
+
+# get path ordering correct
+
+patchfiles-append patch-CHOLMOD_Lib_Makefile.diff
+
+# Real -> RealPart; Imag -> ImagPart to work with some PPC
+
+patchfiles-append patch-KLU-Include-klu_version.h.diff
+
+# use <metis/metis.h>, and a METIS-specific type (idx_t instead of
+# idxtype) and routine (METIS_ComputeVertexSeparator in place of
+# METIS_NodeComputeSeparator)
+
+patchfiles-append patch-CHOLMOD-Partition-choldmod_metis.c.diff
+
+# do not try to build METIS
+
+patchfiles-append \
+    patch-CHOLMOD-Demo-Makefile.diff \
+    patch-SPQR-Demo-Makefile.diff \
+    patch-UMFPACK-Demo-Makefile.diff
+
+configure {
+
+    # SuiteSparse does not use a configure script, so we have to set
+    # configure variables manually.
+
+    set makefile ${worksrcpath}/SuiteSparse_config/SuiteSparse_config.mk
+
+    copy -force \
+        ${worksrcpath}/SuiteSparse_config/SuiteSparse_config_Mac.mk \
+        ${makefile}
+
+    # destroot, pretix, and build arch(es)
+
+    reinplace "s|@DESTROOT@|${destroot}|g" ${makefile}
+    reinplace "s|@PREFIX@|${prefix}|g" ${makefile}
+    reinplace "s|@ARCHES@|\$(TARGET_ARCH)|g" ${makefile}
+
+    # select BLAS and LAPACK
+
+    set BLAS "-framework Accelerate"
+    if {[variant_isset atlas]} {
+        # Threaded lib gets priority over non-threaded (ppc)
+        if {[file exists ${prefix}/lib/libtatlas.dylib]} {
+            # linking to the threaded dylib, is there a reason to use non-threaded?
+            set BLAS "${prefix}/lib/libtatlas.dylib"
+        } else {
+            set BLAS "${prefix}/lib/libsatlas.dylib"
+        }
+    }
+    reinplace "s|@BLAS_LAPACK@|${BLAS}|g" ${makefile}
+
+    # select METIS usage, per the variant
+
+    set METIS_PATH ""
+    set METIS ""
+    set CHOLMOD_CONFIG "-DNPARTITION"
+    if {[variant_isset metis]} {
+        set METIS_PATH "${prefix}"
+        set METIS "${prefix}/lib/libmetis.dylib"
+        set CHOLMOD_CONFIG "\$(GPU_CONFIG)"
+    }
+    reinplace "s|@METIS_PATH@|${METIS_PATH}|g" ${makefile}
+    reinplace "s|@METIS@|${METIS}|g" ${makefile}
+    reinplace "s|@CHOLMOD_CONFIG@|${CHOLMOD_CONFIG}|g" ${makefile}
+}
+
+use_parallel_build  no
+
+pre-build {
+    build.args-append \
+        CC="${configure.cc}" \
+        CXX="${configure.cxx}" \
+        CFLAGS="${configure.cflags}" \
+        TARGET_ARCH="[get_canonical_archflags]"
+}
+
+build.target        default
+
+post-destroot {
+    # Create a dylib from all .a static libs
+
+    set metis ""
+    if {[variant_isset metis]} {
+        catch {exec port installed metis} output
+        if {[string match *+openmpi* ${output}]} {
+            # metis installed with +openmpi variant
+            set metis "-lmetis -fopenmp"
+        } else {
+            set metis "-lmetis"
+        }
+    }
+
+    set atlas "-framework Accelerate"
+    if {[variant_isset atlas]} {
+        if {[file exists ${prefix}/lib/libtatlas.dylib]} {
+            set atlas "-ltatlas"
+        } else {
+            set atlas "-lsatlas"
+        }
+    }
+
+    set major [join [lrange [split ${version} .] 0 0] .]
+
+    set libs [list libamd.a libbtf.a libcamd.a libccolamd.a \
+                   libcholmod.a libcolamd.a libcxsparse.a \
+                   libklu.a libldl.a librbio.a libspqr.a \
+                   libsuitesparseconfig.a libumfpack.a]
+
+    system -W ${destroot}${prefix}/lib "\
+        ${configure.cxx} -Wall ${configure.cflags} [get_canonical_archflags cxx] -dynamiclib -Wl,-all_load \
+        -L${prefix}/lib ${atlas} ${metis} ${libs} -o lib${name}.${version}.dylib \
+        -compatibility_version ${major} -current_version ${version} \
+        -install_name ${prefix}/lib/lib${name}.${version}.dylib"
+
+    ln -s lib${name}.${version}.dylib ${destroot}${prefix}/lib/lib${name}.dylib
+    ln -s lib${name}.${version}.dylib ${destroot}${prefix}/lib/lib${name}.${major}.dylib
+
+    # install documentation
+
+    xinstall -m 755 -d ${destroot}${prefix}/share/doc/${name}
+    eval xinstall -m 644 \
+        [glob ${worksrcpath}/*/Doc/*.pdf] \
+        ${destroot}${prefix}/share/doc/${name}
+}
+
+variant metis description {Include METIS for graph partitioning and sparse matrix ordering} {
+    depends_lib-append port:metis
+}
+
+variant atlas description {Use MacPorts' ATLAS instead of Accelerate Framework} {
+    depends_lib-append port:atlas
+}
+
+livecheck.type      regex
+livecheck.regex     ${name}-(\\d+(\\.\\d+)*)${extract.suffix}

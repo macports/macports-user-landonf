@@ -1,0 +1,41 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           github 1.0
+
+github.setup        rodnaph thieriot 1.1.0 v
+categories          devel shells
+platforms           darwin
+maintainers         pu-gh.com:rod
+license             MIT
+description         Shell tool for managing a projects Jenkins builds
+long_description    Thieriot is a simple shell tool for projects that use \
+                    Git and Jenkins, and allows you to easily check which \
+                    of your branches currently have builds.  And then to \
+                    easily create/start/delete builds with a single command.
+
+depends_lib         port:p5.12-yaml \
+                    port:p5.12-json \
+                    port:p5.12-libwww-perl
+
+checksums           rmd160  832c66436b8e9d620cf6bb0ab73fff8c204c5c32 \
+                    sha256  28c892627d1c26b992fed25cbe8e2b9d0a06b3a1b696fc8064308f9e1176e9ba
+
+use_configure       no
+supported_archs     noarch
+
+post-patch {
+    reinplace       "s&#!/usr/bin/env perl&#!${prefix}/bin/perl5.12&" ${worksrcpath}/trt
+}
+
+build               {}
+
+destroot            {
+    xinstall -m 0755 ${worksrcpath}/trt \
+        ${destroot}${prefix}/bin/trt
+    xinstall -d ${destroot}${prefix}/share/doc/${name}
+    xinstall -m 0644 ${worksrcpath}/LICENSE \
+        ${destroot}${prefix}/share/doc/${name}
+}
+

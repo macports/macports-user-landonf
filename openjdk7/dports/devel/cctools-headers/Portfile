@@ -1,0 +1,36 @@
+# $Id$
+
+PortSystem              1.0
+name                    cctools-headers
+version                 845
+categories              devel
+platforms               darwin
+maintainers             jeremyhu openmaintainer
+license                 APSL-2
+description             Headers for compiler on Mac OS X and Darwin
+long_description        A set of essential headers for compiler on Mac OS X \
+                        and Darwin. Similar to binutils on other platforms.
+
+homepage                http://opensource.apple.com/source/cctools/
+master_sites            http://opensource.apple.com/tarballs/cctools/
+
+distname                cctools-${version}
+
+checksums               rmd160  1adba776519f3175593897eef1ad90ab657d7e65 \
+                        sha256  29890a50772a9a5ab93f0c0b63f2bd51c807f24834e2e40244bf166f8a526829
+
+supported_archs         noarch
+universal_variant       no
+use_configure           no
+build {}
+
+destroot.args           DSTROOT=${destroot}${prefix} RC_ProjectSourceVersion=${version}
+destroot.target         installhdrs
+
+post-destroot {
+    file rename -force ${destroot}${prefix}/usr/include ${destroot}${prefix}/
+    file delete -force ${destroot}${prefix}/usr
+}
+
+livecheck.type          regex
+livecheck.regex         "cctools-(\[\\d.\]+)"

@@ -1,0 +1,41 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+
+name                py-alembic
+version             0.6.1
+revision            0
+categories-append   databases
+platforms           darwin
+license             MIT
+
+python.versions     27 33
+
+maintainers         stromnov openmaintainer
+
+description         A database migration tool for SQLAlchemy.
+long_description    ${description}
+
+homepage            http://bitbucket.org/zzzeek/alembic
+master_sites        https://pypi.python.org/packages/source/a/alembic/
+
+distname            alembic-${version}
+
+checksums           rmd160  96d0087671833daea77d6a056365ca4ed7dded85 \
+                    sha256  1a35c98febe00b4efdd05c4e38c34b7239b23b42ce43c39320ae50a2b39705a5
+
+if {${name} ne ${subport}} {
+    depends_build-append \
+                        port:py${python.version}-setuptools
+
+    depends_lib-append  port:py${python.version}-sqlalchemy \
+                        port:py${python.version}-mako
+
+    livecheck.type          none
+} else {
+    livecheck.type          regex
+    livecheck.url           ${master_sites}
+    livecheck.regex         {alembic-(\d+(?:\.\d+)*)\.[tz]}
+}

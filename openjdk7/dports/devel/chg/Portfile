@@ -1,0 +1,31 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           bitbucket 1.0
+
+bitbucket.setup     yuja chg 970536f9e311
+version             0.1
+revision            2
+
+categories          devel
+platforms           darwin
+license             LGPL-2+
+maintainers         sean openmaintainer
+
+description         A bit faster Mercurial client for Unix with per-user cmdserver daemon.
+long_description    ${description}
+
+use_configure       no
+
+build.args          CC="${configure.cc} [get_canonical_archflags]" CFLAGS=${configure.cflags}
+destroot.args       PREFIX=${prefix}
+
+checksums           rmd160  c7ffa49b9a7ee54b58054526afc0e20c6badf0cb \
+                    sha256  32a980ebe8dd1c8e417a30de9ac284abacb336c560b06a6c8134df9121560b82
+
+# move the support files to mercurial (python 2.7) hgext directory
+post-destroot {
+    xinstall -d ${destroot}${frameworks_dir}/Python.framework/Versions/2.7/lib/python2.7/site-packages/hgext
+    move ${destroot}${prefix}/share/chg/hgext/chgsupport.py ${destroot}${frameworks_dir}/Python.framework/Versions/2.7/lib/python2.7/site-packages/hgext
+}

@@ -1,0 +1,25 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem              1.0
+PortGroup               php 1.1
+
+name                    php-gearman
+version                 1.1.1
+categories-append       net devel
+platforms               darwin freebsd openbsd
+maintainers             medialize.de:rodney.rehm openmaintainer
+license                 PHP-3.01
+
+php.branches            5.3 5.4 5.5
+php.pecl                yes
+
+description             Library to provide API for communicating with gearmand, using libgearman.
+long_description        Library to provide API for communicating with gearmand, and writing clients and workers.
+
+checksums               rmd160  3223cd63c3b2f1f7fa6b50d4ca94f84049a02f82 \
+                        sha256  2212b8496cd82b27d8bcee1435d2dda7be2b9fc44bb76c575e018ec89cc5ec15
+
+if {${name} != ${subport}} {
+    depends_lib-append  port:gearmand
+}

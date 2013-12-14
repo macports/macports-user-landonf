@@ -1,0 +1,41 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+PortGroup           github 1.0
+
+github.setup        kivy kivy 1.7.2
+
+name                py-kivy
+revision            0
+categories-append   devel
+platforms           darwin
+license             LGPL
+
+python.versions     26 27
+
+maintainers         stromnov openmaintainer
+
+description         Library for development of multi-touch enabled applications
+
+long_description    Kivy is a Python library for development of multi-touch \
+                    enabled media rich applications. The aim is to allow for \
+                    quick and easy interaction design and rapid prototyping, \
+                    while making your code reusable and deployable.
+
+homepage            http://kivy.org/
+
+checksums           rmd160  7e719d92f1f7e1e58ce05c72a1597ccc5197c2b7 \
+                    sha256  14cf92a2000fbdee948076c6883e4059640b2e4b9e683c41c60bab216fb30690
+
+if {${name} ne ${subport}} {
+    depends_build-append \
+                        port:py${python.version}-cython
+
+    depends_run-append  port:py${python.version}-game
+
+    patchfiles          patch-setup.py.diff
+
+    livecheck.type      none
+}

@@ -1,0 +1,158 @@
+# $Id$
+
+PortSystem        1.0
+
+name              nds2-client
+version           0.10.3
+revision          2
+categories        science
+platforms         darwin
+license           GPL-2
+maintainers       aronnax
+
+description       Network Data Server Client
+long_description \
+  Client tool for accessing streamed LIGO data using the Network \
+  Data Server version 2.
+
+homepage          https://www.lsc-group.phys.uwm.edu/daswg/projects/nds-client.html
+master_sites      https://www.lsc-group.phys.uwm.edu/daswg/download/software/source
+
+checksums         rmd160  3325f2461c72156a183b05d19ce65acf6167a9f9 \
+                  sha256  16fa9a66cf384d2477f09dca8cf3e9982cb6911c56a27681138cd40947d6c946
+
+depends_build-append \
+                  port:pkgconfig
+
+default_variants  +doc +gssapi +swig_python27 +swig_java
+
+configure.args    --disable-silent-rules \
+                  --disable-doc \
+                  --disable-mex-matlab \
+                  --disable-mex-octave \
+                  --disable-swig-python \
+                  --disable-swig-octave \
+                  --disable-swig-java \
+                  --without-sasl \
+                  --without-gssapi
+
+# Upstream build-related patches
+patchfiles        0001-Drop-Jikes-because-it-can-t-compile-Java-1.5-source.patch \
+                  0002-Check-default-include-path-for-jni.h-before-resortin.patch \
+                  0003-Don-t-use-LINKFORSHARED-it-s-not-for-building-Python.patch
+
+# Need autoreconf because patches affect configure.ac
+use_autoreconf    yes
+
+set pythons_suffixes {25 26 27 31 32}
+
+set pythons_ports {}
+foreach s ${pythons_suffixes} {
+    lappend pythons_ports swig_python${s}
+}
+
+variant doc description "Enable HTML documentation" {
+
+    depends_build-append            port:docbook-xsl \
+                                    port:libxslt
+    configure.args-strsed           s/--disable-doc/--enable-doc/
+
+}
+
+variant mex_octave description "Enable MEX Octave interface" {
+
+    configure.args-strsed           s/--disable-mex-octave/--enable-mex-octave/
+
+}
+
+variant mex_matlab description "Enable MEX MATLAB interface" {
+
+    configure.args-strsed           s/--disable-mex-matlab/--enable-mex-matlab/
+
+}
+
+foreach s ${pythons_suffixes} {
+    set p python${s}
+    set v [string index ${s} 0].[string index ${s} 1]
+    set i [lsearch -exact ${pythons_ports} swig_${p}]
+    set c [lreplace ${pythons_ports} ${i} ${i}]
+    set d ${frameworks_dir}/Python.framework/Versions/${v}/lib/python${v}
+    eval [subst {
+        variant swig_${p} description "Enable SWIG Python interface for Python ${v}" conflicts ${c} {
+
+            depends_build-append    port:swig-python
+            depends_lib-append      port:${p} port:py${s}-numpy
+            configure.args-strsed   s/--disable-swig-python/--enable-swig-python/
+            destroot.args-append    pythondir="${d}" pyexecdir="${d}"
+
+        }
+    }]
+}
+
+variant swig_octave description "Enable SWIG Octave interface" {
+
+    depends_build-append            port:swig-octave
+    configure.args-strsed           s/--disable-swig-octave/--enable-swig-octave/
+
+    # At least as of Octave 3.2.4, the Octave C++ API does not work with clang.
+    compiler.blacklist-append       *clang*
+
+}
+
+variant swig_java description "Enable SWIG Java interface" {
+
+    # Need GNU Classpath to get jni.h header
+    depends_build-append            bin:javac:gcc48 port:swig-java port:gnu-classpath
+    depends_lib-append              bin:java:kaffe
+    configure.args-strsed           s/--disable-swig-java/--enable-swig-java/
+
+}
+
+variant sasl description "Use cyrus-sasl2 for authentication" conflicts gssapi {
+
+    configure.args-strsed           s/--without-sasl/--with-sasl=${prefix}/
+    depends_lib-append              port:cyrus-sasl2
+
+}
+
+variant gssapi description "Use kerberos5 gssapi for authentication" conflicts sasl {
+
+    configure.args-strsed           s/--without-gssapi/--with-gssapi=${prefix}/
+    depends_lib-append              port:kerberos5
+
+}
+
+set need_octave 0
+if {[variant_isset mex_octave]} {
+    set need_octave 1
+}
+if {[variant_isset swig_octave]} {
+    set need_octave 1
+}
+if ${need_octave} {
+    # The Octave dependency can be satisfied by either octave or octave-devel.
+    depends_lib-append              path:bin/octave:octave
+    destroot.args-append            pkgoctexecdir="${prefix}/share/octave/site/m"
+}
+
+set need_sqlite 0
+foreach s ${pythons_ports} {
+    if {[variant_isset ${s}]} {
+        set need_sqlite 1
+    }
+}
+if {[variant_isset swig_octave]} {
+    set need_sqlite 1
+}
+if {[variant_isset swig_java]} {
+    set need_sqlite 1
+}
+if ${need_sqlite} {
+    depends_lib-append port:sqlite3
+}
+
+use_parallel_build yes
+
+livecheck.type    regex
+livecheck.url     ${master_sites}
+livecheck.regex   {nds2-client-(\d+(?:\.\d+)*).tar.gz}

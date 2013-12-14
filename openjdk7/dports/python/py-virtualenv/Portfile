@@ -1,0 +1,80 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+PortGroup           select 1.0
+
+name                py-virtualenv
+set real_name       virtualenv
+version             1.10.1
+revision            0
+categories-append   devel
+platforms           darwin
+license             MIT
+
+python.versions     24 25 26 27 31 32 33
+
+maintainers         akitada openmaintainer
+
+description         Virtual Python Environment builder
+long_description    virtualenv is a tool to create isolated Python \
+                    environments.
+
+homepage            http://pypi.python.org/pypi/${real_name}
+master_sites        http://pypi.python.org/packages/source/v/${real_name}/
+
+distname            ${real_name}-${version}
+
+checksums           rmd160  c8b0b7f5add048173673ae2259ed792b6a393b93 \
+                    sha256  857449d69b9ec7d058dcc2e37c53d3895432300881aa61fd2ade178a807b0aa7
+
+subport py24-virtualenv {
+    version             1.7.2
+    revision            0
+    distname            ${real_name}-${version}
+    checksums           rmd160  bdd0c3ef92ed2b954ee60a4d4df31dc1c17e4b1e \
+                        sha256  8cbbe308ab0f446a4ceacf24b2656bedd33ea22825b0750fd079766cc6e91bf4
+}
+
+subport py25-virtualenv {
+    version             1.9.1
+    revision            0
+    distname            ${real_name}-${version}
+    checksums           rmd160  67813be5625bf5669bf03d233409d992a207ca28 \
+                        sha256  d04f750c968e18de42ff15f50759f15ba22800b12247b95826e2f8b160f7d99a
+}
+
+if {${name} ne ${subport}} {
+    depends_lib-append  port:py${python.version}-setuptools
+    depends_run-append  port:virtualenv_select
+
+    select.group        virtualenv
+    select.file         ${filespath}/virtualenv${python.version}
+
+    # The virtualenv build process creates both virtualenv and virtualenv-${python.branch}
+    # but we only want one. We cannot keep the unsuffixed one, because by the time the port's
+    # post-destroot block runs, the portgroup's post-destroot block (which creates suffixed
+    # versions by renaming or symlinking) has already run. Therefore we will keep the
+    # suffixed one and tell the portgroup not to create its own suffixed versions.
+    python.link_binaries_suffix
+    python.move_binaries no
+
+    post-destroot {
+        delete ${destroot}${prefix}/bin/virtualenv
+        if {${prefix} != ${python.prefix}} {
+            delete ${destroot}${python.prefix}/bin/virtualenv
+        }
+
+        xinstall -m 755 -d ${destroot}${prefix}/share/doc/${subport}
+        foreach f [glob -directory ${worksrcpath}/docs *] {
+            copy $f ${destroot}${prefix}/share/doc/${subport}/[file tail $f]
+        }
+    }
+
+    livecheck.type      none
+} else {
+    livecheck.type      regex
+    livecheck.url       http://pypi.python.org/pypi/virtualenv
+    livecheck.regex     virtualenv (1\.\[0-9\]+\.\[0-9\]+)
+}

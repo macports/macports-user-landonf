@@ -1,0 +1,96 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+
+name                py-obspy
+version             0.8.4
+revision            2
+categories-append   science
+platforms           darwin
+maintainers         bo.ingv.it:Peter.Danecek openmaintainer
+
+license             LGPL-3
+
+description         Python framework for processing seismological data
+
+long_description    ObsPy is an open-source project dedicated to provide a Python \
+                    framework for processing seismological data. It provides \
+                    support for file formats and signal processing routines \
+                    which allow the manipulation, analysis and visualization \
+                    of seismological time series. The goal of the ObsPy project is \
+                    to facilitate rapid application development for seismology.
+
+homepage            http://obspy.org/
+
+use_zip             yes
+distname            obspy-${version}
+master_sites        https://pypi.python.org/packages/source/o/obspy/
+
+checksums           md5     9da79d3a0604d433085ad4dc0e430100 \
+                    rmd160  4a5b6e486304cd4e0a96d94ddc8bf88eb0a6f574 \
+                    sha256  6e9e0a5c0e673ae41d64ca265d4abdadf2b83a60ff27c516a8dbb0e2b38965cf
+
+python.versions     26 27
+
+if {${name} ne ${subport}} {
+    depends_build-append    port:py${python.version}-setuptools
+    depends_lib-append      port:py${python.version}-numpy \
+                            port:py${python.version}-scipy \
+                            port:py${python.version}-lxml \
+                            port:py${python.version}-suds \
+                            port:py${python.version}-sqlalchemy
+
+    # py-scipy is not universal
+    universal_variant       no
+
+    patchfiles              patch-setup.py.diff
+
+    set gcc_versions {4.3 4.4 4.5 4.6 4.7 4.8 4.9}
+    set default_fortran_variant +gcc48
+
+    foreach ver ${gcc_versions} {
+        set ver_no_dot [join [split ${ver} "."] ""]
+
+        set variant_line {variant gcc${ver_no_dot} description "build with gfortran from gcc${ver_no_dot}"}
+
+        foreach over ${gcc_versions} {
+            if {${ver} == ${over}} {
+                continue
+            }
+
+            set over_no_dot [join [split ${over} "."] ""]
+            append variant_line " conflicts gcc${over_no_dot}"
+        }
+        append variant_line { {}}
+
+        eval $variant_line
+
+        if {[variant_isset gcc${ver_no_dot}]} {
+            if {${default_fortran_variant} != "+gcc${ver_no_dot}"} {
+                set default_fortran_variant ""
+            }
+        }
+    }
+
+    if {${default_fortran_variant} != ""} {
+        default_variants-append "${default_fortran_variant}"
+    }
+
+    foreach ver ${gcc_versions} {
+        set ver_no_dot [join [split ${ver} "."] ""]
+
+        if {[variant_isset gcc${ver_no_dot}]} {
+            depends_lib-append path:lib/libgcc/libgcc_s.1.dylib:libgcc
+            depends_build-append port:gcc${ver_no_dot}
+
+            configure.fc  ${prefix}/bin/gfortran-mp-${ver}
+            compiler.library_path ${prefix}/lib/gcc${ver_no_dot}
+        }
+    }
+}
+
+livecheck.type      regex
+livecheck.url       ${master_sites}
+livecheck.regex     ">obspy-(\\d+\\.\\d+\\.\\d+)\\.zip<"

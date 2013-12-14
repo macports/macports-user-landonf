@@ -1,0 +1,39 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           texlive 1.0
+
+name                texlive-formats-extra
+version             30396
+revision            0
+
+categories          tex
+maintainers         dports
+license             Copyleft Permissive
+description         TeX Live: Additional formats
+long_description    Collected TeX `formats', i.e., large-scale macro packages designed to be dumped into .fmt files, other than most common ones, such as latex and context.
+
+checksums           texlive-formats-extra-30396-run.tar.xz \
+                    rmd160  b040bdcb49c53a2bcbeda57d7a96ec815ebf6196 \
+                    sha256  646e19b282408de926d34f335056c851ef94aa317214dd2f6ca7e3fef40df829 \
+                    texlive-formats-extra-30396-doc.tar.xz \
+                    rmd160  827ccdb43c619a5dd410e790fc07b4c9dfc368be \
+                    sha256  77c3118ac762498af77a26a8c6578793d1ba05a559f82ed0c612a310b0647f59 \
+                    texlive-formats-extra-30396-src.tar.xz \
+                    rmd160  9dd6f679b694c9aaebbda788fe6165df747c9992 \
+                    sha256  41dd59845cb0cef39d075a2d4fff88a75a3b23d4f2cc02e14a3854f53f4a5b0a
+
+depends_lib         port:texlive-basic
+
+texlive.formats      \
+    {1 eplain pdftex language.dat {-translate-file=cp227.tcx *eplain.ini}} \
+    {1 mllatex pdftex language.dat {-translate-file=cp227.tcx -mltex *mllatex.ini}} \
+    {1 mltex pdftex - {-translate-file=cp227.tcx -mltex mltex.ini}} \
+    {1 texsis pdftex - {-translate-file=cp227.tcx texsis.ini}}
+
+texlive.binaries    eplain mllatex mltex texsis
+
+depends_lib-append  port:texlive-latex
+
+texlive.texmfport

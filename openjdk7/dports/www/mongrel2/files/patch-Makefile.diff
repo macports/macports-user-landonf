@@ -1,0 +1,8 @@
+--- Makefile.orig	2013-05-25 17:53:41.000000000 -0500
++++ Makefile	2013-12-13 19:21:43.000000000 -0600
+@@ -1,4 +1,4 @@
+-CFLAGS=-g -O2 -Wall -Wextra -Isrc -pthread -rdynamic -DNDEBUG $(OPTFLAGS) -D_FILE_OFFSET_BITS=64
++CFLAGS=-g -O2 -Wall -Wextra -Isrc -pthread -DNDEBUG $(OPTFLAGS) -D_FILE_OFFSET_BITS=64
+ LIBS=-lzmq -ldl -lsqlite3 $(OPTLIBS)
+ PREFIX?=/usr/local
+ 

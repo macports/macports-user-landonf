@@ -1,0 +1,26 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           perl5 1.0
+
+perl5.branches      5.8 5.10 5.12 5.14 5.16
+perl5.setup         Try-Tiny 0.11 ../by-authors/id/D/DO/DOY/
+maintainers         nomaintainer
+license             MIT
+description         minimal try/catch with proper localization of $@
+long_description    \
+       The main focus of this module is to provide simple and reliable error \
+       handling for those having a hard time installing TryCatch, but who \
+       still want to write correct \"eval\" blocks without 5 lines of \
+       boilerplate each time.  It\'s designed to work as correctly as \
+       possible in light of the various pathological edge cases and to be \
+       compatible with any style of error values (simple strings, \
+       references, objects, overloaded objects, etc).
+
+platforms           darwin
+
+checksums           rmd160  01bb65da99e3ab98042809b1f455136ec0d1e703 \
+                    sha256  059e154ed82760bf6c1b6fddded800228bd97612d18159c68bfc36a8ea2bc885
+
+supported_archs noarch

@@ -1,0 +1,36 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+PortGroup       kde4 1.1
+
+name            kde-l10n-pt_BR
+version         4.11.4
+categories      kde kde4
+maintainers     nicos
+license         {LGPL-2.1 LGPL-3+ GPL-2+ MIT BSD}
+description     KDE Brazil Portuguese language files.
+long_description \
+                ${description}
+platforms       darwin
+homepage        http://www.kde.org/
+
+master_sites    kde:stable/${version}/src/kde-l10n/
+use_xz          yes
+
+supported_archs noarch
+depends_lib     port:kdelibs4
+
+checksums           rmd160  4726d73643d7d4530a21e378d39f56fcfd0d32fb \
+                    sha256  fb53c9b2350f3824daf47391458b07b279ca228e29172275dcde8117c4cede1b
+
+if {![variant_isset docs]} {
+    patchfiles-append   patch-CMakeLists.txt.diff
+}
+
+post-destroot {
+    xinstall -d -m 755 ${destroot}${prefix}/share/doc/kde-installed-packages
+    system "touch ${destroot}${prefix}/share/doc/kde-installed-packages/kde-l10n-brazil-portuguese"
+}
+
+livecheck.type  none

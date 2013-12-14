@@ -1,0 +1,30 @@
+# $Id$
+
+PortSystem          1.0
+
+name                xbacklight
+version             1.2.0
+categories          x11
+license             X11
+maintainers         jeremyhu openmaintainer
+description         Control an LCD backlight through RandR
+long_description    ${description}
+
+platforms           darwin
+
+homepage            http://www.x.org/
+master_sites        xorg:individual/app/
+use_bzip2           yes
+
+checksums           md5     04189c90850c36592b9f2b358f8581e4 \
+                    sha1    6c43b29098e18a9d539b20fb7d0002e295ecdc20 \
+                    rmd160  61319d9caf42d6115da884ef3caf15724e2abfde
+
+depends_build       port:pkgconfig
+
+depends_lib         port:xorg-libXrandr \
+                    port:xorg-xcb-util
+
+livecheck.type      regex
+livecheck.regex     ${name}-(\[\\d.\]+)${extract.suffix}
+livecheck.url       http://xorg.freedesktop.org/archive/individual/app/?C=M&O=D

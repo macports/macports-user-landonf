@@ -1,0 +1,59 @@
+# $Id$
+
+PortSystem      1.0
+PortGroup       active_variants 1.1
+PortGroup       wxWidgets 1.0
+
+name            wxMaxima
+version         12.01.0
+revision        5
+maintainers     usami-k openmaintainer
+license         gpl
+platforms       darwin
+categories      math aqua
+description     Graphical user interface for Maxima
+long_description \
+                wxMaxima is a cross platform GUI for the computer algebra \
+                system maxima based on wxWidgets.
+homepage        http://wxmaxima.sourceforge.net/
+master_sites    sourceforge:project/wxmaxima/${name}/${version}
+livecheck.regex ${name}-(\[a-z0-9.\]+)${extract.suffix}
+checksums           md5     ef71ba8339fcdd7b715619af51bfa65e \
+                    sha1    d80002ddea3260b0f3315072f23b4bb3cce3a10a \
+                    rmd160  47891ac06c2e9b789c9581901c1e410e932beecd
+
+wxWidgets.use   wxWidgets-3.0
+
+patchfiles      patch-src_main.cpp.diff \
+                patch-src_Config.cpp.diff \
+                patch-src_wxMaxima.cpp.diff
+
+depends_lib     port:libiconv \
+                port:libsdl \
+                port:libxml2 \
+                port:${wxWidgets.port} \
+                port:zlib
+depends_run     port:maxima
+
+require_active_variants gnuplot wxwidgets
+
+post-patch {
+    reinplace "s|@@PREFIX@@|${prefix}|" ${worksrcpath}/src/main.cpp
+}
+
+depends_skip_archcheck  maxima
+configure.args  --enable-dnd --enable-printing --enable-unicode-glyphs --with-wxdir=${wxWidgets.wxdir}
+build.target-append wxMaxima.app
+
+destroot {
+    xinstall -m 755 -d ${destroot}${applications_dir}
+    file copy ${worksrcpath}/wxMaxima.app ${destroot}${applications_dir}
+
+    set docPath ${prefix}/share/doc/${name}
+    xinstall -m 755 -d ${destroot}${docPath}
+    foreach f { AUTHORS COPYING README } {
+        xinstall -m 644 ${worksrcpath}/${f} ${destroot}${docPath}
+    }
+}
+
+

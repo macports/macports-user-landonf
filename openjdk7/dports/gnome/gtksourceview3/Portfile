@@ -1,0 +1,67 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           active_variants 1.1
+
+name                gtksourceview3
+set gname           gtksourceview
+version             3.10.1
+license             LGPL-2.1+
+set branch          [join [lrange [split ${version} .] 0 1] .]
+maintainers         devans openmaintainer
+categories          gnome
+platforms           darwin
+description         GtkSourceView-3.0 is a text widget for GTK+ 3
+
+long_description    GtkSourceView is a text widget that extends the standard \
+                    GTK+ 3.x text widget GtkTextView. It improves GtkTextView \
+                    by implementing syntax highlighting and other features \
+                    typical of a source editor. This port contains version 3 of the \
+                    GtkSourceView widget. Port GtkSourceView2 contains version 2 of the \
+                    widget and port GtkSourceview contains version 1.
+
+homepage            https://projects.gnome.org/gtksourceview/
+master_sites        gnome:sources/${gname}/${branch}/
+distname            ${gname}-${version}
+use_xz              yes
+
+checksums           rmd160  6a48604c9122f224cae5c19bcd6393cd3fbdb047 \
+                    sha256  38de44f832b4110a3442af2fce58fce0a54f4b22a763c490bcdc1b1db2fb0b01
+
+depends_build       port:intltool \
+                    port:pkgconfig \
+                    port:gtk-doc
+
+depends_lib         path:lib/pkgconfig/glib-2.0.pc:glib2 \
+                    port:gettext \
+                    port:gtk3 \
+                    port:gobject-introspection \
+                    port:libxml2
+
+configure.cflags-append -Wno-format-nonliteral
+configure.args      --enable-introspection=yes
+
+test.run            yes
+test.target         check
+
+variant quartz {
+    depends_lib-append  port:gtk-osx-application
+}
+
+if {[variant_isset quartz]} {
+    require_active_variants gtk3 quartz
+    require_active_variants gtk-osx-application gtk3
+} else {
+    require_active_variants gtk3 x11
+}
+
+post-destroot {
+    set docdir ${prefix}/share/doc/${name}
+    xinstall -d ${destroot}${docdir}
+    xinstall -m 644 -W ${worksrcpath} AUTHORS COPYING COPYING.lib MAINTAINERS \
+        NEWS README ${destroot}${docdir}
+}
+
+livecheck.type      gnome
+livecheck.name      ${gname}

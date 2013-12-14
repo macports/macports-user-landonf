@@ -1,0 +1,38 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                kmix
+version             4.11.4
+categories          kde kde4
+maintainers         nicos openmaintainer
+license             LGPL-2+
+description         KMix is an application to allow you to change the volume \
+                    of your sound card.
+long_description    ${description} Though small, it is full-featured, and it \
+                    supports several platforms and sound drivers.
+homepage            http://www.kde.org
+platforms           darwin
+master_sites        kde:stable/${version}/src/
+use_xz              yes
+checksums           rmd160  ac201320e3f278cd8cd053530965e7e5df03fd4f \
+                    sha256  a09b1ec50cb353c82fba3e5a4c46dafdb43594c69915cbabb7d1c3e0f6c31173
+
+depends_lib-append  port:kdelibs4 \
+                    port:libcanberra
+
+platform darwin {
+    if { ${os.major} >= 13 } {
+        #Ensure that proper headers are used
+        patchfiles-append   patch-C11-headers.diff
+    }
+}
+
+if {![variant_isset docs]} {
+    patchfiles-append   patch-CMakeLists.txt.diff
+}
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

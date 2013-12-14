@@ -1,0 +1,33 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+PortGroup           github 1.0
+
+github.setup        MongoEngine mongoengine 0.8.6 v
+name                py-mongoengine
+checksums           rmd160  148dfa6dda1ef1759c3a8f2f69802bf4799bdc8b \
+                    sha256  54634e96f0150c9307cc0533c876974d1a52478509b4b504e688a0a520fee563
+
+license             MIT
+maintainers         cal openmaintainer
+platforms           darwin
+supported_archs     noarch
+description         \
+    MongoEngine is a Document-Object Mapper (think ORM, but for document \
+    databases) for working with MongoDB from Python.
+long_description    \
+    ${description} It uses a simple declarative API, similar to the Django ORM.
+
+homepage        http://mongoengine.org/
+
+python.versions     25 26 27
+python.default_version 27
+
+if {${name} ne ${subport}} {
+    depends_build-append    port:py${python.version}-setuptools
+    depends_lib-append      port:py${python.version}-pymongo
+
+    livecheck.type          none
+}

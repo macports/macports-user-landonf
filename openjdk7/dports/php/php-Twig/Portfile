@@ -1,0 +1,27 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           github 1.0
+PortGroup           php 1.1
+
+github.setup        fabpot Twig 1.13.1 v
+name                php-Twig
+categories-append   devel
+platforms           darwin
+maintainers         robsonpeixoto.com:robinho openmaintainer
+license             BSD
+
+php.branches        5.3 5.4 5.5
+php.build_dirs      ${worksrcpath}/ext/twig/
+
+description         Enhances the performance of the Twig runtime engine.
+
+long_description    Enhances the performance of the Twig runtime engine.
+
+homepage            http://twig.sensiolabs.org/
+
+checksums           rmd160  d6ba7938f82ff9591131a68dd5f561249c830233 \
+                    sha256  5a482d9b12a7f18e1455c2a79470e648be4977578893e91cdc02526757930479
+
+use_parallel_build  yes

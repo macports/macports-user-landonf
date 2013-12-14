@@ -1,0 +1,27 @@
+# $Id$
+
+PortSystem          1.0
+
+name                rgb
+version             1.0.5
+categories          x11 sysutils
+license             X11
+maintainers         jeremyhu openmaintainer
+description         Display a color name database
+long_description    ${description}
+
+platforms           darwin
+
+homepage            http://www.x.org/
+master_sites        xorg:individual/app/
+use_bzip2           yes
+
+checksums           md5     bcd820d967eaa51bd25b86c0ee682d4e \
+                    sha1    c3e62229ca6ee8f4ca96d6f4997fe3e4381f3cc7 \
+                    rmd160  cbecedda1e011b8fcbc7c093edcf0009b3206389
+
+depends_build       port:pkgconfig port:xorg-xproto
+
+livecheck.type      regex
+livecheck.regex     ${name}-(\[\\d.\]+)${extract.suffix}
+livecheck.url       http://xorg.freedesktop.org/archive/individual/app/?C=M&O=D

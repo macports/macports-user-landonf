@@ -1,0 +1,45 @@
+# $Id$
+
+PortSystem 1.0
+name             epic5
+version          1.1.6
+categories       irc
+maintainers      toby
+description      (E)nhanced (P)rogrammable (I)RC-II (C)lient 5
+homepage         http://www.epicsol.org/
+platforms        darwin
+long_description \
+	EPIC5 is the new development branch of EPIC, which is a \
+	new direction in ircII development. No longer is EPIC 100% \
+	backwards compatable with ircII, but instead we have chosen \
+	to find those things where compatability is undesirable, \
+	and fix them. No gratuitous incompatabilities have been \
+	added, but lots of new code has been added to make EPIC the \
+	best ircII client we could make.
+license          BSD
+
+master_sites     ftp://ftp.epicsol.org/pub/epic/EPIC5-PRODUCTION/
+use_bzip2        yes
+
+checksums        md5 41f76192d6d2d7a5cdceebbed72745a1 \
+                 sha1 b39cfbcbe74af0b887308ff16f526e989c86fdfa \
+                 rmd160 cf7a1dd6bc3d4cd2d63e9e0211baf0a7032a8641
+
+patchfiles       patch-configure
+
+configure.cflags-append  -I${prefix}/include
+configure.args   --mandir=${prefix}/share/man \
+                 --with-iconv \
+                 --without-socks \
+                 --without-socks5 \
+                 --without-perl \
+                 --without-tcl \
+                 --without-ruby
+
+destroot.destdir IP=${destroot}
+
+depends_lib      port:libarchive port:ncurses port:openssl port:libiconv
+
+livecheck.type   regex
+livecheck.url    ${master_sites}
+livecheck.regex  ${name}-(\[0-9\\.\]+)\\.tar

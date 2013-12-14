@@ -1,0 +1,51 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+name                py-astropy
+version             0.3
+maintainers         robitaille
+
+categories-append   science
+description         A Community Python Library for Astronomy
+long_description    The Astropy project is a common effort to develop \
+                    a single core package for Astronomy.
+                    
+platforms           darwin
+license             BSD
+
+homepage            http://www.astropy.org
+master_sites        http://pypi.python.org/packages/source/a/astropy/
+distname            astropy-${version}
+checksums           md5     d9aee73db94d86da1c67607d854c72b7 \
+                    sha1    c7a1a57367dc948ee04cf687794dc20635867aeb \
+                    rmd160  f9f62cebd42055447fb80b09479ef0a679ffebf1
+
+python.versions     26 27 32 33
+
+build.args-append   --use-system-cfitsio \
+                    --use-system-expat \
+                    --use-system-wcslib
+
+if {${name} ne ${subport}} {
+
+    depends_lib-append  port:cfitsio \
+                        port:expat \
+                        port:wcslib \
+                        port:py${python.version}-numpy
+
+    depends_build-append \
+                        port:pkgconfig \
+                        port:py${python.version}-setuptools
+
+    pre-build {
+        file rename ${worksrcpath}/scripts/fitscheck \
+                    ${worksrcpath}/scripts/fitscheck-ap
+        file rename ${worksrcpath}/scripts/fitsdiff \
+                    ${worksrcpath}/scripts/fitsdiff-ap
+        file rename ${worksrcpath}/scripts/volint \
+                    ${worksrcpath}/scripts/volint-ap
+    }
+
+}

@@ -1,0 +1,35 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem 1.0
+
+name             mpc
+version          0.23
+set branch      [join [lrange [split ${version} .] 0 0] .]
+categories       audio
+maintainers      rmstonecipher openmaintainer
+license          GPL-2+
+description      a command line tool for MPD
+long_description \
+	mpc is a simple command line client for MPD.\
+	Music Player Daemon (MPD) allows remote access for playing music (MP3, Ogg\
+	Vorbis, FLAC, AAC, Mod, and wave files) and managing playlists. MPD is\
+	designed for integrating a computer into a stereo system that provides\
+	control for music playback over a local network. It also makes a great\
+	desktop music player, especially if you are a console junkie, like\
+	frontend options, or restart X often.
+homepage            http://www.musicpd.org/clients/${name}/ 
+master_sites        http://www.musicpd.org/download/${name}/${branch}/
+platforms        darwin
+depends_build    port:pkgconfig port:libiconv
+depends_lib      port:libmpdclient
+
+use_bzip2        yes
+
+checksums           rmd160  34dd1f78e417b5ef6dbbda9f1458836d0c701456 \
+                    sha256  29bab8f3018507c761eabcd9bb86856b3c3436f3ee1ba0456b0e17fc1c3729c7
+
+configure.args	 --mandir=${prefix}/share/man
+
+livecheck.url       http://www.musicpd.org/download/${name}/${branch}/
+livecheck.regex     "${name}-(\\d+(?:\\.\\d+)*)"

@@ -1,0 +1,38 @@
+# $Id$
+
+PortSystem          1.0
+
+name                check
+version             0.9.10
+categories          devel
+license             LGPL-2.1+
+maintainers         landonf openmaintainer
+homepage            http://check.sf.net/
+description         C unit testing framework
+long_description    Check is a unit test framework for C. It \
+                    features a simple interface for defining unit \
+                    tests, putting little in the way of the \
+                    developer. Tests are run in a separate address \
+                    space, so Check can catch both assertion \
+                    failures and code errors that cause \
+                    segmentation faults or other signals. The \
+                    output from unit tests can be used within \
+                    source code editors and IDEs.
+platforms           darwin
+
+master_sites        sourceforge:check
+
+depends_build       port:autoconf \
+                    port:automake \
+                    port:libtool \
+                    port:pkgconfig
+
+checksums           md5     6d10a8efb9a683467b92b3bce97aeb30 \
+                    sha1    56da5197bcff07d42da18f9ed1d55bff638a6896 \
+                    rmd160  0e81979e59072c8b507a8754be61d18a1281d9c1 
+
+configure.args      --infodir=${prefix}/share/info \
+                    --mandir=${prefix}/share/info
+
+test.run            yes
+test.target         check

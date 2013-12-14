@@ -1,0 +1,62 @@
+# $Id$
+
+PortSystem    1.0
+PortGroup     active_variants 1.1
+
+name          lalframe
+version       1.1.0
+revision      2
+categories    science
+platforms     darwin
+maintainers   ram
+license       GPL
+
+description   LSC Algorithm Library - Frame
+long_description \
+  LIGO Scientific Collaboration Algorithm Library - Frame, containing \
+  routines for reading and writing frame files.
+
+homepage      https://www.lsc-group.phys.uwm.edu/daswg/projects/lalsuite.html
+master_sites  http://www.lsc-group.phys.uwm.edu/daswg/download/software/source/lalsuite
+
+checksums     rmd160 fe6986e46e4edb38ccfb9ddcae89b3e3ce2f2b2e \
+              sha256 73e74cf040efdba52ba27a2f9d68d0532fac28a6f506bae771692afb4e2453c5
+
+# upstream fix for swig bindings
+patchfiles    patch-swig-bindings-fix.diff
+patch.pre_args -p1
+use_autoreconf yes
+
+depends_build-append port:pkgconfig
+
+depends_lib   port:python27 \
+              port:lal \
+              port:libframe
+
+configure.python ${prefix}/bin/python2.7
+configure.args --mandir=${prefix}/share/man \
+               --disable-silent-rules \
+               --disable-gcc-flags \
+               --disable-debug
+
+use_parallel_build yes
+
+set pythondir "${frameworks_dir}/Python.framework/Versions/2.7/lib/python2.7/site-packages"
+destroot.args-append \
+              pythondir="${pythondir}" \
+              pyexecdir="${pythondir}" \
+              pkgpythondir="${pythondir}/${name}" \
+              pkgpyexecdir="${pythondir}/${name}"
+
+variant swig_python description {Build python SWIG bindings} {
+  require_active_variants lal swig_python
+  depends_build-append  port:swig-python
+  depends_lib-append    port:py27-numpy
+  configure.args-append --enable-swig-python
+}
+
+default_variants +swig_python
+
+livecheck.type   regex
+livecheck.url    ${master_sites}
+livecheck.regex  {lalframe-(\d+(?:\.\d+)*).tar.gz}

@@ -1,0 +1,26 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                kscd
+version             4.11.4
+categories          kde kde4
+maintainers         nicos openmaintainer
+license             GPL-2+
+description         KsCD is a small, fast, CDDB enabled audio CD player \
+                    which supports multiple platforms.
+long_description    ${description}
+homepage            http://www.kde.org
+platforms           darwin
+master_sites        kde:stable/${version}/src/
+use_xz              yes
+checksums           rmd160  95da00ec26af39f52d12702064cd45e0eb8a4c92 \
+                    sha256  ca6bed8ad2da19badffbf75358f3ec701f4d92be53508e3447162e50050231ab
+
+depends_lib-append  port:kdelibs4 \
+                    port:libmusicbrainz3
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

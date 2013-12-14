@@ -1,0 +1,7 @@
+bin/mpicc
+bin/mpichversion
+bin/mpicxx
+bin/mpiexec
+bin/mpif77
+bin/mpif90
+bin/parkill

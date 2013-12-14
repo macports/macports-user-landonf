@@ -1,0 +1,42 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                httping
+version             2.0
+revision            1
+categories          net www
+license             {GPL-2 OpenSSLException}
+maintainers         nomaintainer
+platforms           darwin
+
+description         Ping-like tool for http-requests
+
+long_description    Give it an url, and it'll show you how long it takes to \
+                    connect, send a request and retrieve the reply (only the headers).
+
+homepage            http://www.vanheusden.com/httping/
+master_sites        ${homepage}
+
+checksums           rmd160  42e5d3a6e8348759fa90495edbbfe3b5ad43541e \
+                    sha256  9fcb1fef706d12149ce88dec5a3e03888d1386a80017324104453130eaeffbe0
+
+depends_lib         port:openssl
+
+extract.suffix      .tgz
+
+patchfiles          patch-strndup.diff
+
+use_configure       no
+
+variant universal {}
+
+build.env           CFLAGS="${configure.cppflags} [get_canonical_archflags cc]"
+build.args          CC="${configure.cc}" \
+                    LDFLAGS="${configure.ldflags} [get_canonical_archflags ld] -lssl -lcrypto"
+
+destroot.args       PREFIX=${prefix}
+
+livecheck.type      regex
+livecheck.regex     ${name}-(\[0-9.\]+)${extract.suffix}

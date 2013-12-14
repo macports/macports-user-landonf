@@ -1,0 +1,184 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                openssh
+version             6.4p1
+revision            1
+
+categories          net
+platforms           darwin
+maintainers         nomaintainer
+license             BSD
+installs_libs       no
+
+description         OpenSSH secure login server
+
+long_description    OpenSSH is a FREE version of the SSH protocol suite of \
+                    network connectivity tools that increasing numbers of people on the \
+                    Internet are coming to rely on. Many users of telnet, rlogin, ftp, \
+                    and other such programs might not realize that their password is \
+                    transmitted across the Internet unencrypted, but it is. OpenSSH \
+                    encrypts all traffic (including passwords) to effectively eliminate \
+                    eavesdropping, connection hijacking, and other network-level \
+                    attacks. Additionally, OpenSSH provides a myriad of secure \
+                    tunneling capabilities, as well as a variety of authentication \
+                    methods.
+
+homepage            http://www.openbsd.org/openssh/
+
+checksums           ${distfiles} \
+                    rmd160  d0e757c90350351bb92ebd4fa9f045586fb54f97 \
+                    sha256  5530f616513b14aea3662c4c373bafd6a97a269938674c006377e381f68975d2
+
+master_sites        openbsd:OpenSSH/portable \
+                    http://mirror.mcs.anl.gov/openssh/portable/ \
+                    ftp://ftp.cise.ufl.edu/pub/mirrors/openssh/portable/ \
+                    ftp://reflection.ncsa.uiuc.edu/pub/OpenBSD/OpenSSH/portable/ \
+                    ftp://mirror.mcs.anl.gov/pub/openssh/portable/ \
+                    ftp://ftp.cse.buffalo.edu/pub/OpenBSD/OpenSSH/portable/ \
+                    ftp://openbsd.mirrors.pair.com/ftp/OpenSSH/portable \
+                    ftp://openbsd.secsup.org/pub/openbsd/OpenSSH/portable/
+
+depends_lib         port:openssl \
+                    port:zlib
+
+# the HPN patch needs this, so rewrite all other patches to support it, too
+patch.args          -p1
+patchfiles          launchd.patch
+
+# Specified -fno-builtin because GCC 3.3 has log() as a builtin
+# (from math.h) while OpenSSH has its own log() function
+# -- from fink.
+configure.cppflags-append -fno-builtin
+configure.args      --with-ssl-dir=${prefix} \
+                    --sysconfdir=${prefix}/etc/ssh \
+                    --with-privsep-path=${prefix}/var/empty \
+                    --with-md5-passwords \
+                    --with-pid-dir=${prefix}/var/run \
+                    --with-tcp-wrappers \
+                    --with-pam \
+                    --mandir=${prefix}/share/man \
+                    --with-zlib=${prefix} \
+                    --without-kerberos5 \
+                    --with-libedit \
+                    --without-xauth
+
+use_parallel_build  yes
+
+destroot.target     install-nokeys
+
+if {${os.major} >= 12} {
+    depends_lib-append  port:tcp_wrappers
+}
+
+post-destroot {
+    destroot.keepdirs ${destroot}${prefix}/var/run ${destroot}${prefix}/var/empty
+    reinplace "s|#Port 22|Port 2222|g" ${destroot}${prefix}/etc/ssh/sshd_config
+    xinstall -m 755 ${worksrcpath}/contrib/ssh-copy-id ${destroot}${prefix}/bin
+    xinstall -m 644 ${worksrcpath}/contrib/ssh-copy-id.1 ${destroot}${prefix}/share/man/man1
+    file rename "${destroot}${prefix}/etc/ssh/sshd_config" "${destroot}${prefix}/etc/ssh/sshd_config.example"
+    file rename "${destroot}${prefix}/etc/ssh/ssh_config" "${destroot}${prefix}/etc/ssh/ssh_config.example"
+}
+
+post-activate {
+    if {![file exists "${prefix}/etc/ssh/sshd_config"]} {
+        file copy "${prefix}/etc/ssh/sshd_config.example" "${prefix}/etc/ssh/sshd_config"
+    }
+    if {![file exists "${prefix}/etc/ssh/ssh_config"]} {
+        file copy "${prefix}/etc/ssh/ssh_config.example" "${prefix}/etc/ssh/ssh_config"
+    }
+}
+
+variant xauth description {Build with support for xauth} {
+    configure.args-delete   --without-xauth
+    configure.args-append   --with-xauth=${prefix}/bin/xauth
+    depends_run-append      port:xauth
+}
+
+variant no_x11 conflicts xauth description {Legacy compatibility variant} {}
+
+variant hpn conflicts gsskex description {Apply high performance patch} {
+    # http://www.psc.edu/index.php/hpn-ssh
+    # http://www.freshports.org/security/openssh-portable/ is usually quick in
+    # updating the HPN patch for new versions, take a look there, too.
+    patch_sites-append      sourceforge:hpnssh
+    set hpn_patchfile       ${name}-6.3p1-hpnssh14v2.diff.gz
+    patchfiles-append       ${hpn_patchfile}
+    checksums-append        ${hpn_patchfile} \
+                            rmd160  8af79c3f63609da96d04b8e162f2b53cf7543be9 \
+                            sha256  23ae9307b58629ccf76a8ed5d9cf7215a45d6b7533d6b17eef17279fb9c48dca
+}
+
+variant gsskex conflicts hpn requires kerberos5 description "Add OpenSSH GSSAPI key exchange patch" {
+    set extra_cppflags [concat \
+                            "-F/System/Library/Frameworks/DirectoryService.framework" \
+                            "-F/System/Library/Frameworks/CoreFoundation.framework" \
+                            "-D_UTMPX_COMPAT -D__APPLE_LAUNCHD__ -D__APPLE_MEMBERSHIP__" \
+                            "-D__APPLE_XSAN__"]
+    use_autoreconf          yes
+    patchfiles-append       0002-Apple-keychain-integration-other-changes.patch \
+                            openssh-6.3p1-gsskex-all-20130920.patch
+    configure.args-append   --with-4in6 \
+                            --with-audit=bsm \
+                            --with-keychain=apple \
+                            --disable-utmp \
+                            --disable-wtmp \
+                            --with-privsep-user=_sshd \
+                            CFLAGS="-fPIE -O2" \
+                            CPPFLAGS="$extra_cppflags" \
+                            LDFLAGS="-Wl,-pie -framework CoreFoundation -framework DirectoryService"
+}
+
+variant kerberos5 description "Add Kerberos5 support" {
+    depends_lib-append      port:kerberos5
+    configure.args-delete   --without-kerberos5
+    configure.args-append   --with-kerberos5=${prefix}
+}
+
+variant ldns description "Use ldns for DNSSEC support" {
+    configure.args-append   --with-ldns
+    depends_lib-append      port:ldns
+}
+
+if {![variant_isset no_x11]} {
+    default_variants        +xauth
+}
+default_variants-append     +kerberos5
+
+platform darwin {
+    # create link to /usr/include/pam because 'security' was renamed to 'pam'
+    # in OS X.
+    pre-configure {
+        xinstall -d ${workpath}/include
+        file delete ${workpath}/include/security
+        ln -s /usr/include/pam ${workpath}/include/security
+    }
+}
+
+startupitem.create  yes
+startupitem.name    OpenSSH
+startupitem.start   \
+    "if \[ -x ${prefix}/sbin/sshd ]; then
+        if \[ ! -f ${prefix}/etc/ssh/ssh_host_key \]; then
+            ${prefix}/bin/ssh-keygen -t rsa1 -f \\
+            ${prefix}/etc/ssh/ssh_host_key -N \"\" -C `hostname`
+        fi
+        if \[ ! -f ${prefix}/etc/ssh/ssh_host_dsa_key \]; then
+            ${prefix}/bin/ssh-keygen -t dsa -f \\
+            ${prefix}/etc/ssh/ssh_host_dsa_key -N \"\" -C `hostname`
+        fi
+        if \[ ! -f ${prefix}/etc/ssh/ssh_host_rsa_key \]; then
+            ${prefix}/bin/ssh-keygen -t rsa -f \\
+            ${prefix}/etc/ssh/ssh_host_rsa_key -N \"\" -C `hostname`
+        fi
+        ${prefix}/sbin/sshd
+    fi"
+startupitem.stop    \
+    "if \[ -r ${prefix}/var/run/sshd.pid \]; then
+        kill `cat ${prefix}/var/run/sshd.pid`
+    fi"
+
+livecheck.type      regex
+livecheck.regex     OpenSSH ((\[5-9\].\[0-9\])(p\[0-9\]))

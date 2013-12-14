@@ -1,0 +1,34 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                kmines
+version             4.11.4
+categories          kde kde4 games
+license             GPL-2+
+maintainers         nicos openmaintainer
+description         KMines is the classic Minesweeper game. 
+long_description    ${description} The idea is to uncover all the squares without \
+                    blowing up any mines. When a mine is blown up, the game is over.
+platforms           darwin
+homepage            http://games.kde.org/game.php?game=kmines
+master_sites        kde:stable/${version}/src
+use_xz              yes
+distname            ${name}-${version}
+checksums           rmd160  33c7314d9e8993ae91f57be24c5f0e522283be5e \
+                    sha256  9c0589a8b5757f7268626cf592278196c46d55c20cc1c14c762ca820ad76dc11
+
+#Binaries do not link to openssl, nor use the ssl backend of kdelibs4
+license_noconflict  openssl
+
+depends_lib-append  port:kdelibs4 \
+                    port:libkdegames
+
+if {![variant_isset docs]} {
+    patchfiles      patch-CMakeLists.diff
+}
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

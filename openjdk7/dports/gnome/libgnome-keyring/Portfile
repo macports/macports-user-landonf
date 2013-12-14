@@ -1,0 +1,41 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            libgnome-keyring
+version         3.10.1
+set branch      [join [lrange [split ${version} .] 0 1] .]
+maintainers     devans openmaintainer
+categories      gnome
+platforms       darwin
+license         GPL-2+ LGPL-2+
+description     GNOME compatibility library for accessing secrets
+
+long_description \
+    gnome-keyring is a program that stores passwords and other secrets \
+    for users. It is run as a daemon in the session. This library \
+    provides an interface to the daemon for client applications.
+
+homepage        http://live.gnome.org/GnomeKeyring/
+master_sites    gnome:sources/${name}/${branch}/
+
+use_xz          yes
+
+checksums       rmd160  e95d1179772a62dfa5338d20b43daf4676726182 \
+                sha256  052cf1121ba823359afe534c425f7e216c6a2b1a2b316dee279dcf9032423772
+
+depends_build   port:pkgconfig \
+                port:intltool
+
+depends_lib     path:lib/pkgconfig/glib-2.0.pc:glib2 \
+                port:gobject-introspection \
+                port:vala \
+                port:dbus \
+                port:libgcrypt
+
+configure.args  --enable-introspection=yes \
+                --enable-vala=yes \
+                --disable-silent-rules
+
+livecheck.type  gnome

@@ -1,0 +1,56 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           github 1.0
+
+github.setup        marc-lorber oregano 0.73 v
+revision            1
+categories          gnome science
+maintainers         nomaintainer
+license             GPL-2+
+
+description         A graphical software application for schematic capture and simulation of electrical circuits.
+long_description    ${description}
+
+platforms           darwin
+
+checksums           rmd160  ff758dea4a5c5e37c594d474a5af263c6c172949 \
+                    sha256  7d7a6da253bf5e19de553c6e113fd444a5e8eb3aad3055c83d7df08736362d19
+
+depends_build       port:autoconf \
+                    port:automake \
+                    port:intltool \
+                    port:libtool \
+                    port:pkgconfig
+
+depends_lib         port:gtksourceview2 \
+                    port:libgnomecanvas \
+                    port:libgnomeui \
+                    port:rarian \
+                    port:desktop-file-utils \
+                    port:shared-mime-info
+
+depends_run         port:yelp
+
+post-extract {
+    move ${worksrcpath}/configure.in ${worksrcpath}/configure.ac
+    file mkdir ${worksrcpath}/m4
+}
+
+patchfiles          patch-autogen.sh.diff \
+                    patch-configure.ac.diff \
+                    patch-glib-2.32.diff
+
+use_autoreconf      yes
+autoreconf.cmd      ./autogen.sh
+
+configure.args      --disable-silent-rules \
+                    --disable-update-mimedb \
+                    --disable-update-mime
+
+post-activate {
+    system "${prefix}/bin/scrollkeeper-update"
+    system "${prefix}/bin/update-desktop-database ${prefix}/share/applications"
+    system "${prefix}/bin/update-mime-database ${prefix}/share/mime"
+}

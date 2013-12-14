@@ -1,0 +1,35 @@
+# $Id$
+
+PortSystem          1.0
+PortGroup           ocaml 1.0
+PortGroup           github 1.0
+
+github.setup        janestreet async_extra 109.53.00
+
+name                ocaml-async-extra
+categories          devel ml
+platforms           darwin
+license             LGPL-2.1
+maintainers         mww openmaintainer
+description         Jane Street Capital's asynchronous execution library (extra)
+long_description    ${description}
+homepage            https://ocaml.janestreet.com/code
+checksums           rmd160  c0219795ba12585a1601f555dfd33aa4a31af723 \
+                    sha256  dbcc1e679638d863c8892af0acb53c55e568b6864faaba5a96f632656c109789
+
+depends_lib         port:ocaml \
+                    port:ocaml-findlib \
+                    port:ocaml-async-core \
+                    port:ocaml-async-unix \
+                    port:ocaml-bin-prot \
+                    port:ocaml-core \
+                    port:ocaml-fieldslib \
+                    port:ocaml-pa-ounit \
+                    port:ocaml-pipebang \
+                    port:ocaml-sexplib
+
+use_oasis           yes
+use_oasis_doc       yes
+
+configure.args-append "--destdir ${destroot}"
+

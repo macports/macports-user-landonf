@@ -1,0 +1,38 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem 1.0
+PortGroup  cmake  1.0
+
+name             taglib
+version          1.8
+categories       audio
+license          {LGPL-2 MPL-1.1}
+maintainers      rmstonecipher openmaintainer
+description      TagLib Audio Meta-Data Library
+long_description \
+    TagLib is a library for reading and editing the meta-data of \
+    several popular audio formats. Currently it supports both ID3v1 \
+    and ID3v2 for MP3 files, Ogg Vorbis comments and ID3 tags and \
+    Vorbis comments in FLAC files.
+homepage         http://developer.kde.org/~wheeler/taglib.html
+platforms        darwin
+master_sites     https://github.com/downloads/${name}/${name}/
+checksums           rmd160  1009fe5b59043ff2096087ea167b358a175e5a92 \
+                    sha256  66d33481703c90236a0a9d1c38fd81b584ca7109ded049225f5463dcaffc209a
+
+depends_lib-append  port:zlib
+
+platform darwin 8 {
+    configure.ldflags-append -lz
+}
+
+configure.args-append  ../${distname} \
+                       -DWITH_ASF=On -DWITH_MP4=On
+# asf and mp4 are necessary for Amarok. 
+# Change to make them optional was reportedly political
+# http://lists.kde.org/?l=amarok&m=125338541922769&w=2
+
+livecheck.type		regex
+livecheck.url		${homepage}
+livecheck.regex		"${name}-(\\d+(?:\\.\\d+)*)${extract.suffix}"

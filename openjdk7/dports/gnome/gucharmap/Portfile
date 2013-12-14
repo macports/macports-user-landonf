@@ -1,0 +1,64 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            gucharmap
+version         3.10.1
+set branch      [join [lrange [split ${version} .] 0 1] .]
+description     gucharmap is a featureful unicode character map.
+long_description ${description}
+maintainers     devans openmaintainer
+categories      gnome
+license         GPL-2+
+platforms       darwin
+homepage        http://www.gnome.org/
+master_sites    gnome:sources/${name}/${branch}/
+
+use_xz          yes
+
+checksums       rmd160  d9f1fa3846baea19fd05fbe469407acddf1b374c \
+                sha256  04e8606c65adb14d267b50b1cf9eb4fee92bd9c5ab512a346bd4c9c686403f78
+
+depends_build   port:pkgconfig \
+                port:intltool \
+                port:itstool \
+                port:gtk-doc
+
+depends_lib     port:desktop-file-utils \
+                port:gtk3 \
+                port:gobject-introspection \
+                port:vala
+
+depends_run     port:gnome-settings-daemon \
+                port:yelp
+
+use_parallel_build no
+
+configure.args  --with-gtk=3.0 \
+                --enable-introspection=yes \
+                --enable-vala=yes \
+                --disable-Bsymbolic \
+                --disable-schemas-compile \
+                --disable-silent-rules
+
+platform darwin {
+    if {${os.major} > 9} {
+        depends_lib-delete      port:gobject-introspection \
+                                port:vala
+        configure.args-delete   --enable-introspection=yes \
+                                --enable-vala=yes
+        configure.args-append   --enable-introspection=no \
+                                --enable-vala=no
+    }
+}
+
+# gobject-introspection uses g-ir-scanner, which uses $CC from env
+build.args-append   CC="${configure.cc} ${configure.cc_archflags}"
+
+post-activate   {
+    system "${prefix}/bin/update-desktop-database ${prefix}/share/applications"
+    system "${prefix}/bin/glib-compile-schemas ${prefix}/share/glib-2.0/schemas"
+}
+
+livecheck.type  gnome

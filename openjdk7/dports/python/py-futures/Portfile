@@ -1,0 +1,46 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+
+name                py-futures
+version             2.1.4
+revision            0
+categories-append   devel
+platforms           darwin
+license             BSD
+supported_archs     noarch
+
+python.versions     26 27 31 32
+
+maintainers         phw openmaintainer
+
+description         A Java-style futures package for Python
+long_description    ${description}
+
+homepage            http://code.google.com/p/pythonfutures/
+master_sites        https://pypi.python.org/packages/source/f/futures/
+
+checksums           rmd160  db65a07358d39b99ea8e4a6fcec89f9e95e8cf5a \
+                    sha256  8c4f2691b294d7bd1c3d60ecdbac2d436bb1be61884f321c04684252e0d5ec2d
+
+distname            futures-${version}
+
+if {${name} ne ${subport}} {
+    post-extract {
+        fs-traverse item ${worksrcpath} {
+            if {[file isdirectory ${item}]} {
+                file attributes ${item} -permissions a+rx
+            } elseif {[file isfile ${item}]} {
+                file attributes ${item} -permissions a+r
+            }
+        }
+    }
+
+    livecheck.type      none
+} else {
+    livecheck.type      regex
+    livecheck.url       ${master_sites}
+    livecheck.regex     "futures-(\\d+(?:\\.\\d+)*)${extract.suffix}"
+}

@@ -1,0 +1,44 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+PortGroup           select 1.0
+PortGroup           github 1.0
+
+github.setup        Kozea CairoSVG 1.0.3
+name                py-cairosvg
+
+categories-append   graphics
+license             LGPL-3+
+platforms           darwin
+supported_archs     noarch
+maintainers         sean openmaintainer
+
+description         SVG converter based on Cairo
+
+long_description    CairoSVG is a SVG converter based on Cairo. It can export SVG \
+                    files to PDF, PostScript and PNG files.
+
+checksums           rmd160  251ef92cfedfc7d091ff5207182a940ffcd4f638 \
+                    sha256  20155d0997ca392071bfcc56076b933f1346fc0d27d7159fcbd07c8ec4c0432c
+
+python.versions     26 27 32 33
+
+if {${name} ne ${subport}} {
+    depends_lib-append  port:py${python.version}-cairo
+
+    depends_run         port:py-cairosvg_select
+
+    select.group        py-cairosvg
+    select.file         ${filespath}/py${python.version}-cairosvg
+
+    livecheck.type      none
+
+    notes "
+To make the Python ${python.branch} version of py-cairosvg the one that is run\
+when you execute the commands without a version suffix, e.g. 'cairosvg', run:
+
+port select --set ${select.group} [file tail ${select.file}]
+"
+}

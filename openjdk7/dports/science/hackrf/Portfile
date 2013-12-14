@@ -1,0 +1,56 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           cmake 1.0
+PortGroup           github 1.0
+
+github.setup        mossmann hackrf 3ed0112672f9c8917867798afc86e268070cb172
+version             20131105
+revision            1
+maintainers         michaelld openmaintainer
+
+description         ${name} is a project to build a low cost software radio (SDR) platform.
+
+categories          science comms
+license             GPL-3
+platforms           darwin macosx
+
+long_description    ${description}
+
+checksums           rmd160  2da561b789951cce5c8a42aebf620543a98017d7 \
+                    sha256  b9c338f49ffba90a89ed60ab8de04e88b2ca31ab4113d471a4262c1edd04376c
+
+depends_build-append port:pkgconfig
+depends_lib-append   port:libusb
+
+# Many compilers do not recognize "-std=gnu90", so remove it.
+# Temporary patch.
+
+patchfiles-append   patch-no-gnu90.diff
+
+# do VPATH build
+
+set vpath           ${workpath}/build
+pre-configure       { file mkdir ${vpath} }
+configure.dir       ${vpath}
+build.dir           ${vpath}
+
+# set last configure argument to the reletive path
+# to the top-level cmake source
+
+configure.post_args ../${worksrcdir}/host
+
+# remove top-level include path, such that internal headers are used
+# instead of any already-installed ones.
+
+configure.cppflags-delete -I${prefix}/include
+
+# remove top-level library path, such that internal libraries are used
+# instead of any already-installed ones.
+
+configure.ldflags-delete -L${prefix}/lib
+
+# be verbose when building, for debugging purposes
+
+build.post_args     VERBOSE=1

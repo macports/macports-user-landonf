@@ -1,0 +1,28 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=portfile:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           github 1.0
+PortGroup           python 1.0
+
+github.setup        rubik radon 0.4.3 v
+python.default_version 27
+maintainers         g5pw openmaintainer
+
+categories          devel python
+description         Radon is a tool for Python that computes various metrics \
+                    from the source code.
+long_description    ${description}
+
+license             MIT
+platforms           darwin
+
+depends_build       port:py${python.version}-setuptools
+
+depends_lib-append	port:py${python.version}-colorama \
+                    port:py${python.version}-baker
+
+checksums           rmd160  f4f4911c5fb438cfc28d092f6ee23b6b4c1477fd \
+                    sha256  94ecebe55b84b5462488c8db871d54f12abd70b954cde35dd03d8fa6885d5405
+
+python.link_binaries_suffix

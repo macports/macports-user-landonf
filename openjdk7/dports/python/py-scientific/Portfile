@@ -1,0 +1,83 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+PortGroup       python 1.0
+
+name            py-scientific
+version         2.9.2
+revision        1
+categories-append     science
+license         CeCILL-C
+platforms       darwin
+maintainers     nomaintainer
+description     Scientific Python
+
+python.versions 26 27
+
+long_description \
+    ScientificPython is a collection of Python modules that \
+    are useful for scientific computing.
+
+homepage        http://dirac.cnrs-orleans.fr/ScientificPython/
+master_sites    https://sourcesup.renater.fr/frs/download.php/4153/
+fetch.ignore_sslcert    yes
+distname        ScientificPython-${version}
+
+checksums           md5     5fb53f29126316ae2628e74e629312d5 \
+                    sha1    387b0ed5600b0f08301412745aab2da72e1459d7 \
+                    rmd160  aa9aa06a09645e422ed6174d745bacd4c6404885
+
+if {${name} ne ${subport}} {
+    depends_lib     port:netcdf \
+                    port:py${python.version}-numpy
+    build.env    	CPPFLAGS="-I${python.include} \
+    	            -I${worksrcpath}/Include" \
+                    NETCDF_PREFIX=${prefix}
+
+platform macosx {
+    post-extract {
+        copy -force ${filespath}/customize.py-macosx ${worksrcpath}/customize.py
+    }
+}
+
+platform puredarwin {
+    post-extract {
+        copy -force ${filespath}/customize.py-puredarwin ${worksrcpath}/customize.py
+    }
+}
+
+variant openmpi description {Enable openmpi support} conflicts mpi {
+    depends_lib-append  port:openmpi
+
+    post-patch {
+        reinplace "s|mpicompiler = 'mpicc'|mpicompiler = 'openmpicc'|g" \
+           ${worksrcpath}/Src/MPI/compile.py
+        reinplace "s|\\(-I%s\\)|\\1 -I${worksrcpath}/Include|g" \
+           ${worksrcpath}/Src/MPI/compile.py
+
+        system "cd ${worksrcpath}/Src/MPI && ${python.bin} compile.py"
+    }
+
+    post-destroot {
+        xinstall ${worksrcpath}/Src/MPI/mpipython ${destroot}${prefix}/bin
+    }
+}
+
+variant mpi description {Enable lammpi support} conflicts openmpi {
+    depends_lib-append  port:lammpi
+    patchfiles-append patch-Src-MPI-compile.py.diff
+    post-build {
+        reinplace "s|@prefix@|${prefix}|g" ${worksrcpath}/Src/MPI/compile.py
+        reinplace "s|@worksrcpath@|${worksrcpath}|g" ${worksrcpath}/Src/MPI/compile.py
+        system "cd ${worksrcpath}/Src/MPI && ${prefix}/bin/python${python.branch} compile.py"
+    }
+    post-destroot {
+        xinstall ${worksrcpath}/Src/MPI/mpipython ${destroot}${python.prefix}/bin
+    }
+}
+}
+
+livecheck.type  regexm
+livecheck.url   http://sourcesup.renater.fr/projects/scientific-py/
+livecheck.regex {<strong>Development Releases</strong>\s*</td>\s*<td>(\d+(?:\.\d+)*)}

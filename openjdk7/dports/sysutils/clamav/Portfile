@@ -1,0 +1,68 @@
+# $Id$
+
+PortSystem 1.0
+PortGroup muniversal 1.0
+
+name			clamav
+version		 	0.98
+revision		1
+categories	  	sysutils
+maintainers	 	geeklair.net:dluke
+description	 	clamav antivirus software
+license			GPL-2+
+
+long_description	Clam AntiVirus is a GPL anti-virus toolkit for UNIX. The \
+			main purpose of this software is the integration with mail \
+			servers (attachment scanning).
+
+license			GPL
+homepage		http://www.clamav.net
+master_sites		sourceforge
+checksums	md5	ca0b8c930efcb8be1d47592d268006c5 \
+		sha1	1e6a7284721387646c713a8d32fa8b5a897985db \
+		rmd160	e45ca4b549e0e2ea157ae74ad9cd6220e60839e3
+
+platforms	   	darwin
+configure.args  	--mandir=${prefix}/share/man \
+			--with-zlib=${prefix}
+
+			# https://bugzilla.clamav.net/show_bug.cgi?id=9018 
+			# https://bugzilla.clamav.net/show_bug.cgi?id=8959
+patchfiles		patch-libclamav-7z-typedef.diff \
+			patch-configure.diff
+
+use_parallel_build	yes
+
+depends_lib		port:libiconv port:zlib port:bzip2 port:ncurses
+
+test.run		yes
+test.target		check
+
+set merger_dont_diff	${prefix}/bin/clamav-config
+
+platform darwin 8 {
+			configure.cflags {-O0}
+		}
+
+post-destroot {
+			#muniversal should allow this to be hooked in some way that's less gross
+			#this code copied from nspr's portfile
+			if {[variant_isset universal]} {
+				copy ${destroot}${prefix}/bin/${build_arch}-clamav-config ${destroot}${prefix}/bin/bak-config
+				foreach file [glob ${destroot}${prefix}/bin/*clamav-config] {
+					delete $file
+					}
+				move ${destroot}${prefix}/bin/bak-config ${destroot}${prefix}/bin/clamav-config
+				reinplace "s|-arch ${build_arch}||g" ${destroot}${prefix}/bin/clamav-config
+				reinplace "s|-L\$\{exec_prefix\}/lib/${build_arch}||g" ${destroot}${prefix}/bin/clamav-config
+				}
+			}
+
+variant clamav_milter description {build with libmilter support} {
+			depends_lib-append port:libmilter
+			configure.args-append --enable-milter
+			}
+
+livecheck.type		regex
+livecheck.url		http://sourceforge.net/projects/clamav/files
+livecheck.regex		${name}-(\\d+.\\d+.\\d+)${extract.suffix}

@@ -1,0 +1,329 @@
+# $Id$
+
+PortSystem          1.0
+
+name                vim-app
+set realname        vim
+set vim_version     7.4
+set vim_patchlevel  052
+version             ${vim_version}.${vim_patchlevel}
+categories          editors
+platforms           darwin
+license             Vim GPL-2+
+maintainers         raimue
+description         Vim.app is a GUI version of the famous editor vim.
+long_description    This port provides Vim.app, a GUI version of the famous editor vim. \
+                        Vim is a highly configurable text editor built to enable efficient text editing.
+
+homepage            http://www.vim.org/
+
+master_sites        http://ftp.vim.org/pub/vim/unix/:vim \
+                    http://www.douglas.stebila.ca/files/code/vim/app/:app_aqua \
+                    http://www.douglas.stebila.ca/files/code/vim/doc/:doc_aqua
+patch_sites         http://ftp.vim.org/pub/vim/patches/${vim_version}
+use_bzip2           yes
+distfiles           vim-${vim_version}${extract.suffix}:vim \
+                    app-bm.tar.gz:app_aqua \
+                    doc.tar.gz:doc_aqua
+dist_subdir         vim/${vim_version}
+worksrcdir          vim[strsed ${vim_version} {g/\.//}]
+extract.only        vim-${vim_version}${extract.suffix}
+
+# Generate patchfiles
+set low 1
+set patchlevel [string trimleft $vim_patchlevel 0]
+while {$low <= $patchlevel} {
+    patchfiles-append [format "%s.%03d" $vim_version $low]
+    incr low 1
+}
+
+# Use MacPorts' default compilers
+# http://trac.macports.org/wiki/UsingTheRightCompiler
+patchfiles-append   patch-src-Makefile.diff
+post-patch {
+    reinplace "s|@@CC@@|${configure.cc}|g" ${worksrcpath}/src/Makefile
+}
+
+checksums \
+  vim-${vim_version}${extract.suffix} \
+    md5     607e135c559be642f210094ad023dc65 \
+    sha1    601abf7cc2b5ab186f40d8790e542f86afca86b7 \
+    rmd160  f23f62dccdbf84cbf907a0cd38c7077a87e764ee \
+    sha256  d0f5a6d2c439f02d97fa21bd9121f4c5abb1f6cd8b5a79d3ca82867495734ade \
+  app-bm.tar.gz \
+    md5 418b9e615a34ae5aad918f5c5a694a44 \
+  doc.tar.gz \
+    md5 692f7874fc617162d0fe110daf39a98a
+
+checksums-append \
+    7.4.001 md5 f234692c9ab5265ba6ba6f55c0f81764 \
+    7.4.002 md5 a03e1a5ad3722f2011751dda977641af \
+    7.4.003 md5 e6d070f592bb6da4d8cf2f7f134425e5 \
+    7.4.004 md5 77566c96ea0feb3effd5624e02126b11 \
+    7.4.005 md5 c71f2af8c787f6b7f57be9937f925a20 \
+    7.4.006 md5 88f99b8f2e2a5eab0b054b839edc3856 \
+    7.4.007 md5 59f1c6e00ae3309a3f998e795b998be1 \
+    7.4.008 md5 6d17c2f54ed124b03d60121e9a7aa150 \
+    7.4.009 md5 e53775eb1a632e68e14d2002b8c220b4 \
+    7.4.010 md5 ed08869476205e90af14e0be02cc5cfd \
+    7.4.011 md5 b87237dfa835d07a005d3d3a8476fb34 \
+    7.4.012 md5 d058bb40d1c670529c19c3c3d3c76421 \
+    7.4.013 md5 c5d0ae4f982c57467bc330f03f1f176d \
+    7.4.014 md5 914eb6390a5a6b677c2f0ef0edefb60c \
+    7.4.015 md5 56c2924732fc886e46569a399864a5cc \
+    7.4.016 md5 35a4cf5f64dcb948bb13a2db592c168f \
+    7.4.017 md5 67f6ab40bdd3107c0731766278cfdc73 \
+    7.4.018 md5 4c8b21a64040356066c5bcc4d056bec5 \
+    7.4.019 md5 fbf7aef0eab753fcf4c4d575c76fd4bf \
+    7.4.020 md5 c6a5bc4865a5e5e8c16333d5095fd571 \
+    7.4.021 md5 a983fabe523f0c91cbeec43a16b599c9 \
+    7.4.022 md5 612b6401b7ad5a8859439dc1e257ad05 \
+    7.4.023 md5 cdd8466563a0fd4fb538dbc1606d4a42 \
+    7.4.024 md5 7720495cecc60252198c1c5056de010a \
+    7.4.025 md5 161173463dc95145c48f7691aee73f13 \
+    7.4.026 md5 8e0181a33d4cf99f3ff8f359c99af7b5 \
+    7.4.027 md5 97f5e46883edf23f873522db86e721a6 \
+    7.4.028 md5 163291f22218e69281f8b0a136252bd5 \
+    7.4.029 md5 93b6179890ea3f33da2916ef0ae3160e \
+    7.4.030 md5 8c1d1829bfce977bbe91df885673b05a \
+    7.4.031 md5 83673b79f3e04ea837aeb4f3acdf0350 \
+    7.4.032 md5 b98fc58c605dba8d14d566af3da42d15 \
+    7.4.033 md5 92a277e660a6968448d9d941df55a308 \
+    7.4.034 md5 3510a4181c7719b6c948cde1a9591a5a \
+    7.4.035 md5 83476f1ca3fd83ca39681c6315a633bf \
+    7.4.036 md5 c52b130beb86f26623fca7b5051ad3e3 \
+    7.4.037 md5 469ab2d656828dd1a2c1859ff4498ac7 \
+    7.4.038 md5 5d37bfced730ed51b2aa5e77759ddcce \
+    7.4.039 md5 0e0d62af9d594237b518bd0795d49103 \
+    7.4.040 md5 84dd9c9058de4463c5326dde032f3860 \
+    7.4.041 md5 b1c570c620c30879b5bf0b2093696a52 \
+    7.4.042 md5 f71fd77d501107cc22d7129d6f7444a4 \
+    7.4.043 md5 d86c84c860cc47a1f7dd76f8ac1ecd83 \
+    7.4.044 md5 a206223e7ae7e95e948a628e59ad82ce \
+    7.4.045 md5 72bf2ace92f8a11a535798e987f444d2 \
+    7.4.046 md5 4573290a76d7541bcfb0e051a4fc42f7 \
+    7.4.047 md5 7ff734a7afdee370c98e02b966844adb \
+    7.4.048 md5 ea675c709cd6011adc30fcf0def31ee4 \
+    7.4.049 md5 9664c92bd4c17065a4df9dc24c63ac76 \
+    7.4.050 md5 b15ffb4672e82d67cf3ea5d3fdc77ed8 \
+    7.4.051 md5 6b2af52b734806187f9e7effc2e43d64 \
+    7.4.052 md5 d32a541d7f5224c9fdacb6a81a73d695
+
+depends_build       bin:grep:grep
+depends_lib         port:ncurses \
+                    port:gettext \
+                    port:libiconv
+
+pre-fetch {
+    if {${os.platform} eq "darwin" && ${os.major} >= 10} {
+        ui_error "${name} does not run on Mac OS X 10.6 or greater. Please use MacVim instead."
+        return -code error "incompatible Mac OS X version"
+    }
+}
+
+autoconf.cmd make autoconf
+autoconf.pre_args
+autoconf.args
+autoconf.dir ${worksrcpath}/src
+
+post-patch {
+    set features [open ${worksrcpath}/src/feature.h a+]
+    puts $features "#define SYS_VIMRC_FILE \"${prefix}/etc/vimrc\""
+    close $features
+
+    # Ensure that auto/config.mk is never older than auto/configure.
+    # If the latter was modified by a patch, it would trigger a rebuild of
+    # auto/config.mk with the wrong environment resulting in the use of the
+    # wrong compiler.
+    file mtime ${worksrcpath}/src/auto/config.mk [clock seconds]
+}
+
+configure.pre_args  --prefix=${applications_dir}
+configure.args      --enable-gui=carbon \
+                    --without-x \
+                    --disable-gpm \
+                    --mandir=${prefix}/share/man \
+                    --with-tlib=ncurses \
+                    --enable-multibyte \
+                    --with-developer-dir=${developer_dir} \
+                    --enable-fail-if-missing
+
+post-extract {
+    system "tar xvfz ${distpath}/app-bm.tar.gz -C ${workpath}"
+    system "tar xvfz ${distpath}/doc.tar.gz -C ${workpath}"
+}
+
+test.run            yes
+
+pre-destroot {
+    xinstall -d ${destroot}${applications_dir}
+}
+
+destroot {
+    # copy Vim.app
+    file copy ${worksrcpath}/src/Vim.app ${destroot}${applications_dir}
+    xinstall -m 644 ${filespath}/vimrc ${filespath}/gvimrc \
+      ${destroot}${applications_dir}/Vim.app
+    xinstall -m 644 ${workpath}/doc-txt.icns \
+      ${destroot}${applications_dir}/Vim.app/Contents/Resources
+    xinstall -m 644 ${workpath}/app.icns \
+      ${destroot}${applications_dir}/Vim.app/Contents/Resources/gui_mac.icns
+    # remove the broken link to 'runtime', copy the folder instead
+    set runtimePath \
+      "${destroot}${applications_dir}/Vim.app/Contents/Resources/vim/runtime"
+    file delete ${runtimePath}
+    file copy ${worksrcpath}/runtime ${runtimePath}
+    # fix permissions
+    foreach f [glob ${runtimePath}/autoload/*.vim] {
+            file attributes ${f} -permissions 0644
+    }
+    # install launchscript
+    xinstall -m 755 ${filespath}/gvim.sh ${destroot}${prefix}/bin/gvim
+    reinplace "s|@APPPATH@|${applications_dir}|g" ${destroot}${prefix}/bin/gvim
+
+    # allow for Vim.App to open .nfo, .vim, .latex, .tex, .diff files
+    system "patch -d ${destroot}${applications_dir}/Vim.app/Contents/ -p0 < ${filespath}/patch-Info.plist.diff"
+}
+
+if {![variant_isset big] && ![variant_isset huge]} {
+    default_variants +huge
+}
+
+variant big description {Build big feature set} conflicts huge {
+    configure.args-append --with-features=big
+}
+variant huge description {Build huge feature set} conflicts big {
+    configure.args-append --with-features=huge
+}
+variant xim description {Build with support for X Input Method} {
+    configure.args-append --enable-xim
+}
+
+# FIXME: Does not work with vim 7.3 yet
+# variant shell description {Enables shell windows} {
+    # # Patch taken from http://www.wana.at/vimshell/
+    # patchfiles-append       patch-vimshell.diff
+# }
+
+variant breakindent description {Apply the breakindent patch} {
+    # Upstream: https://retracile.net/wiki/VimBreakIndent
+    master_sites-append https://retracile.net/raw-attachment/blog/2013/09/12/23.00/:breakindent
+    distfiles-append    vim-7.4.16-fc19-breakindent.patch:breakindent
+    checksums-append    vim-7.4.16-fc19-breakindent.patch \
+                        rmd160  a03d102166b7fa4d699b621c6a9c54dae05017c6 \
+                        sha256  8374b1fa505797761fd4480adb1f636d5cdebc1c943c9af70db8f7431b761548
+
+    post-patch {
+        system -W ${worksrcpath} "patch -p1 < ${distpath}/vim-7.4.16-fc19-breakindent.patch"
+    }
+}
+
+variant perl description {Enable Perl scripting} {
+    configure.args-append   --enable-perlinterp
+    depends_lib-append      path:bin/perl:perl5
+}
+variant python requires python25 description {Compatibility variant, requires +python25} {}
+variant python25 conflicts python26 python27 description {Enable Python scripting} {
+    configure.args-append   --enable-pythoninterp --with-python=${prefix}/bin/python2.5
+    patchfiles-append       patch-python.diff
+    depends_lib-append      port:python25
+
+    use_autoconf yes
+    # Overwriting autoconf.cmd above removes dependency, add it again
+    depends_build-append port:autoconf
+}
+variant python26 conflicts python25 python27 description {Enable Python scripting} {
+    configure.args-append   --enable-pythoninterp --with-python=${prefix}/bin/python2.6
+    patchfiles-append       patch-python.diff
+    depends_lib-append      port:python26
+
+    use_autoconf yes
+    # Overwriting autoconf.cmd above removes dependency, add it again
+    depends_build-append port:autoconf
+}
+variant python27 conflicts python25 python26 description {Enable Python scripting} {
+    configure.args-append   --enable-pythoninterp --with-python=${prefix}/bin/python2.7
+    patchfiles-append       patch-python.diff
+    depends_lib-append      port:python27
+
+    use_autoconf yes
+    # Overwriting autoconf.cmd above removes dependency, add it again
+    depends_build-append port:autoconf
+}
+variant python31 conflicts python32 python33 description {Enable Python scripting} {
+    configure.args-append   --enable-python3interp --with-python3=${prefix}/bin/python3.1
+    patchfiles-append       patch-python3.diff
+    depends_lib-append      port:python31
+
+    use_autoconf yes
+    # Overwriting autoconf.cmd above removes dependency, add it again
+    depends_build-append port:autoconf
+}
+variant python32 conflicts python31 python33 description {Enable Python scripting} {
+    configure.args-append   --enable-python3interp --with-python3=${prefix}/bin/python3.2
+    patchfiles-append       patch-python3.diff
+    depends_lib-append      port:python32
+
+    use_autoconf yes
+    # Overwriting autoconf.cmd above removes dependency, add it again
+    depends_build-append port:autoconf
+}
+variant python33 conflicts python31 python32 description {Enable Python scripting} {
+    configure.args-append   --enable-python3interp --with-python3=${prefix}/bin/python3.3
+    patchfiles-append       patch-python3.diff
+    depends_lib-append      port:python33
+
+    use_autoconf yes
+    # Overwriting autoconf.cmd above removes dependency, add it again
+    depends_build-append port:autoconf
+}
+variant ruby requires ruby18 description {Compatibility variant, requires +ruby18} {}
+variant ruby18 conflicts ruby19 ruby20 description {Enable Ruby scripting} {
+    configure.args-append   --enable-rubyinterp
+    configure.args-append   --with-ruby-command=${prefix}/bin/ruby1.8
+    depends_lib-append      port:ruby
+}
+variant ruby19 conflicts ruby18 ruby20 description {Enable Ruby scripting} {
+    configure.args-append   --enable-rubyinterp
+    configure.args-append   --with-ruby-command=${prefix}/bin/ruby1.9
+    depends_lib-append      port:ruby19
+}
+variant ruby20 conflicts ruby18 ruby19 description {Enable Ruby scripting} {
+    configure.args-append   --enable-rubyinterp
+    configure.args-append   --with-ruby-command=${prefix}/bin/ruby2.0
+    depends_lib-append      port:ruby20
+}
+variant tcl description {Enable Tcl scripting} {
+    configure.args-append   --enable-tclinterp \
+                            --with-tclsh=${prefix}/bin/tclsh
+    patchfiles-append       patch-tcl.diff
+    depends_lib-append      port:tcl
+
+    use_autoconf yes
+    # Overwriting autoconf.cmd above removes dependency, add it again
+    depends_build-append port:autoconf
+}
+variant lua description {Enable Lua scripting} {
+    configure.args-append   --enable-luainterp \
+                            --with-lua-prefix=${prefix}
+    depends_lib-append      port:lua
+}
+
+variant cscope description {Enable source code browsing with cscope} {
+    configure.args-append   --enable-cscope
+}
+
+platform darwin powerpc {
+    post-destroot {
+        xinstall -m 644 ${workpath}/app.icns ${destroot}${applications_dir}/Vim.app/Contents/Resources/appIcon.icns
+    }
+}
+
+platform darwin 13 {
+    patchfiles-append patch-compat-darwin13.diff
+}
+
+livecheck.type  regex
+livecheck.url   http://ftp.vim.org/pub/${realname}/patches/${vim_version}/?O=D
+livecheck.version [format "%s.%03d" $vim_version $vim_patchlevel]
+livecheck.regex (${vim_version}\.\\d+)

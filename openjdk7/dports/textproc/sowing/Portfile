@@ -1,0 +1,29 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                sowing
+version             1.1.16e
+categories          textproc
+platforms           darwin
+license             GPL-2+
+maintainers         sean openmaintainer
+description         A parser for fortran interfaces
+long_description    ${description}
+
+homepage            http://mcs.anl.gov
+master_sites        http://ftp.mcs.anl.gov/pub/petsc/externalpackages
+
+checksums           rmd160  4644509548177f7a76cb86cb38ac1ff652ab4fe2 \
+                    sha256  81626de149b4cf0ff8f13b9497e12106de5f4455f2f694b9453caae54c170f36
+
+patchfiles          patch-destdir.diff
+
+configure.args      --datarootdir='$\{prefix\}/share/${name}'
+
+build.target
+
+livecheck.type      regex
+livecheck.url       ${master_sites}
+livecheck.regex     ${name}-(\[0-9.\]+\[a-z\])${extract.suffix}

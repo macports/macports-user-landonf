@@ -1,0 +1,54 @@
+# $Id$
+
+PortSystem 1.0
+
+name                gnutar
+version             1.27.1
+categories          archivers
+maintainers         mww
+license             GPL-3
+description         tar version of the GNU project
+long_description \
+    the gnutar program creates, adds files to, or extracts files from   \
+    an archive file in gnutar format, called a tarfile. A tarfile is    \
+    often a magnetic tape, but can be a floppy diskette or any regular  \
+    disk file.
+
+homepage            http://www.gnu.org/software/tar/
+master_sites        gnu:tar
+checksums           md5     490e074dd7e71f553df8357a7ef9bdcf \
+                    sha1    67aa31d0d497849c05ba5ea6eb41cff130407751 \
+                    rmd160  a99ccfd874ac72c1e0feec2d86423c3e5bcd19fb
+distname            tar-${version}
+use_bzip2           yes
+platforms           darwin
+
+depends_lib         port:gettext port:libiconv
+depends_build       port:help2man
+
+configure.env-append FORCE_UNSAFE_CONFIGURE=1
+configure.args      --program-prefix=gnu \
+                    --infodir=${prefix}/share/info
+
+test.run            yes
+test.target         check
+
+post-destroot {
+    xinstall -v -m 755 -d ${destroot}${prefix}/share/doc/${name}
+    xinstall -v -W ${worksrcpath} ABOUT-NLS AUTHORS COPYING ChangeLog \
+        ChangeLog.1 INSTALL NEWS README THANKS TODO \
+        ${destroot}${prefix}/share/doc/${name}
+    file rename ${destroot}${prefix}/share/info/tar.info ${destroot}${prefix}/share/info/gnutar.info
+    file rename ${destroot}${prefix}/share/info/tar.info-1 ${destroot}${prefix}/share/info/gnutar.info-1
+    file rename ${destroot}${prefix}/share/info/tar.info-2 ${destroot}${prefix}/share/info/gnutar.info-2
+
+    xinstall -m 755 -d ${destroot}${prefix}/libexec/gnubin
+    ln -sf ${prefix}/bin/gnutar ${destroot}${prefix}/libexec/gnubin/tar
+    xinstall -m 755 -d ${destroot}${prefix}/libexec/gnubin/man/man1
+    system "help2man ${worksrcpath}/src/tar | gzip -9 > ${destroot}${prefix}/libexec/gnubin/man/man1/tar.1.gz"
+}
+
+livecheck.type      regex
+livecheck.url       http://ftp.gnu.org/gnu/tar/?C=M&O=D
+livecheck.regex     tar-(\[0-9\.\]+\[0-9\])\\.
+

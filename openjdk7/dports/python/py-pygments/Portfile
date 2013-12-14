@@ -1,0 +1,61 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+
+name                py-pygments
+version             1.6
+revision            0
+categories-append   devel
+platforms           darwin
+license             BSD
+supported_archs     noarch
+
+python.versions     24 25 26 27 31 32 33
+
+maintainers         erickt openmaintainer
+
+description         Python syntax highlighter
+
+long_description \
+    Pygments is a fast syntax highlighter written in Python with a \
+    special focus on details. Can highlight source code in many supported \
+    languages: Python, Ruby, PHP, HTML etc. Outputs arbitrarily-styled \
+    HTML or LaTeX, comes with many builtin styles.
+
+homepage            http://pygments.org/
+master_sites        http://pypi.python.org/packages/source/P/Pygments/
+
+distname            Pygments-${version}
+
+checksums           rmd160  81dbd690f646efe0cc9d1efb505eb83be4d2b1bf \
+                    sha256  799ed4caf77516e54440806d8d9cd82a7607dfdf4e4fb643815171a4b5c921c0
+
+if {${name} ne ${subport}} {
+    depends_lib     port:py${python.version}-setuptools
+
+    post-destroot {
+        set docdir ${prefix}/share/doc/${subport}
+        xinstall -d ${destroot}${docdir}
+        xinstall -m 644 -W ${worksrcpath} AUTHORS CHANGES LICENSE TODO \
+            ${destroot}${docdir}
+        copy ${worksrcpath}/docs/build ${destroot}${docdir}/html
+
+        if {${python.version} >= 26} {
+            set man1 ${python.prefix}/share/man/man1
+            xinstall -d ${destroot}${man1}
+            xinstall -m 644 ${worksrcpath}/docs/pygmentize.1 ${destroot}${man1}
+            ln -sf ${man1}/pygmentize.1 \
+                ${destroot}${prefix}/share/man/man1/pygmentize-${python.branch}.1
+        } else {
+            xinstall -m 644 ${worksrcpath}/docs/pygmentize.1 \
+                ${destroot}${prefix}/share/man/man1/pygmentize-${python.branch}.1
+        }
+    }
+    livecheck.type  none
+} else {
+    livecheck.type  regex
+    livecheck.url   ${master_sites}
+    livecheck.regex {Pygments-(\d+(?:\.\d+)*)}
+}

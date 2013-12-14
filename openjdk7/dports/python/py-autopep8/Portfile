@@ -1,0 +1,44 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+PortGroup           select 1.0
+
+name                py-autopep8
+set realname        autopep8
+version             0.9.3
+categories-append   devel
+platforms           darwin
+supported_archs     noarch
+license             MIT
+maintainers         gmail.com:patrik.hartlen openmaintainer
+
+description         A tool that automatically formats Python code to \
+                    conform to the PEP 8 style guide
+long_description    autopep8 formats Python code based on the output \
+                    of the pep8_ utility.
+
+homepage            http://pypi.python.org/pypi/${realname}
+
+master_sites        http://pypi.python.org/packages/source/a/${realname}
+distname            ${realname}-${version}
+checksums           rmd160  7f85283b64dc013bf8bf1cb7626d0ce9809c0ca7 \
+                    sha256  54bee10a8c1627284b1a4d828e162a92a6167d987ea369b0afc7caa6cbefcad2
+
+python.versions     26 27 31 32 33
+
+if {${name} ne ${subport}} {
+    depends_build           port:py${python.version}-setuptools
+    depends_run-append      port:${realname}_select \
+                            port:py${python.version}-pep8
+    select.group            ${realname}
+    select.file             ${filespath}/${realname}${python.version}
+    notes "
+To make the Python ${python.branch} version of autopep8 the one that is run\
+when you execute the commands without a version suffix, e.g. 'autopep8', run:
+
+    port select --set ${select.group} [file tail ${select.file}]
+"
+
+}

@@ -1,0 +1,51 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                libzookeeper
+version             3.4.5
+categories          devel
+maintainers         hum openmaintainer
+
+description         C bindings for ZooKeeper, the high-performance coordination service
+
+long_description    ZooKeeper is a distributed, open-source coordination service for \
+                    distributed applications. It exposes a simple set of primitives \
+                    that distributed applications can build upon to implement higher \
+                    level services for synchronization, configuration maintenance, \
+                    and groups and naming. It is designed to be easy to program to, \
+                    and uses a data model styled after the familiar directory tree \
+                    structure of file systems. This port contains the C bindings for \
+                    interacting with it.
+
+homepage            http://zookeeper.apache.org/
+platforms           darwin
+license             Apache-2
+
+distname            zookeeper-${version}
+dist_subdir         zookeeper
+master_sites        apache:zookeeper/stable
+checksums           rmd160  3ee0066330eed4843f39d5244def5f9fef37df00 \
+                    sha256  e92b634e99db0414c6642f6014506cc22eefbea42cc912b57d7d0527fb7db132
+
+worksrcdir          ${distname}/src/c
+
+pre-configure {
+    system -W "${worksrcpath}/../.." "ant compile_jute"
+}
+
+variant universal   {}
+
+build.args          CFLAGS="${configure.cflags} [get_canonical_archflags]"
+
+post-destroot {
+    file mkdir ${destroot}${prefix}/share/doc/${name}
+    xinstall -m 644 -W ${worksrcpath} \
+        ChangeLog LICENSE README \
+        ${destroot}${prefix}/share/doc/${name}
+}
+
+livecheck.type      regex
+livecheck.url       http://www.apache.org/dist/zookeeper/stable/
+livecheck.regex     zookeeper-(\[0-9.\]+)\\.tar

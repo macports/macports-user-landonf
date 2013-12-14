@@ -1,0 +1,37 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                kdesdk-strigi-analyzers
+version             4.11.4
+categories          kde kde4
+license             GPL-2+ LGPL-2+
+maintainers         nicos openmaintainer
+description         KDE developer utilities
+long_description    ${description}
+platforms           darwin
+homepage            http://www.kde.org/
+master_sites        kde:stable/${version}/src/
+use_xz              yes
+
+checksums           rmd160  90d9807849020a61a973cb5abf8d1704aad520e1 \
+                    sha256  8d382682e41db1eed147651e8431df0f85ca65346da2a10ad6bf115c4de5da08
+
+#Binaries do not link to openssl, nor use the ssl backend of kdelibs4
+license_noconflict  openssl
+
+depends_lib-append  port:kdelibs4
+
+pre-activate {
+    #Deactivate hack for when kdesdk4 port has been fragmented into small ports
+    if {[file exists ${prefix}/bin/kdedoc]
+        && ![catch {set vers [lindex [registry_active kdesdk4] 0]}] 
+        && [rpm-vercomp [lindex $vers 1] 4.11.0] < 0} {
+            registry_deactivate_composite kdesdk4 "" [list ports_nodepcheck 1] 
+    } 
+}
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

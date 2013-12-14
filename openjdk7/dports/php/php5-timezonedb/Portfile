@@ -1,0 +1,22 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           php5extension 1.0
+
+php5extension.setup timezonedb 2013.8 pecl
+categories          php devel
+platforms           darwin
+maintainers         ryandesign openmaintainer
+
+description         A PECL Timezone Database.
+
+long_description    Timezone Database to be used with PHP's date and time \
+                    functions.
+
+checksums           rmd160  704e4ba0275f03f8a0c319672b697c020bb7db88 \
+                    sha256  0de027e2bae55778bcb3b6480e8bcaf477a34e1dcbc396b54a881b9e581d8421
+
+configure.args-append --enable-timezonedb
+
+use_parallel_build  yes

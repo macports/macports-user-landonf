@@ -1,0 +1,89 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           muniversal 1.0
+PortGroup           wxWidgets 1.0
+
+name                mkvtoolnix
+version             6.3.0
+revision            2
+categories          multimedia
+maintainers         nomaintainer
+license             GPL-2+ LGPL-2.1+
+
+description         Matroska media files manipulation tools.
+long_description    mkvtoolnix will evolve to a set of tools to create, \
+                    alter and inspect Matroska files under Linux and other \
+                    Unices, just what the OGMtools do for the OGM format.
+homepage            http://www.bunkus.org/videotools/mkvtoolnix/
+platforms           darwin
+master_sites        ${homepage}sources/ \
+                    http://svn.mandriva.com/svn/packages/cooker/mkvtoolnix/releases/${version}/1/SOURCES/
+use_xz              yes
+
+checksums           rmd160  7147271b54cf7ccb1ea9683428f6d9ccd47ae3fb \
+                    sha256  bc05f07d92190d018e901091a07ed5139f4eec833203af04672e4d3a0c619ba1
+
+wxWidgets.use       wxWidgets-3.0
+
+depends_build       port:pkgconfig \
+                    port:libebml \
+                    port:libmatroska
+
+depends_lib         port:boost \
+                    port:bzip2 \
+                    port:curl \
+                    port:expat \
+                    port:file \
+                    port:flac \
+                    port:gettext \
+                    port:libogg \
+                    port:libvorbis \
+                    port:lzo2 \
+                    port:pcre \
+                    port:ruby \
+                    port:zlib
+
+patch.pre_args      -p1
+patchfiles          patch-clang_errors.diff
+# Remove when version > 6.3.0 is released
+patchfiles-append   patch-df750c2.diff
+
+
+platform darwin {
+    if {${os.major} < 13} {
+        # TODO: Need to link against static versions of boost and icu for this to work right
+        #       See: https://trac.macports.org/ticket/40231
+
+        # configure complains about gcc < 4.6 and clang
+        compiler.whitelist macports-gcc-4.7 macports-gcc-4.8 macports-gcc-4.9
+    }
+}
+
+build.cmd           ./drake
+build.target        default
+build.args          -j${build.jobs}
+
+configure.args      --mandir=${prefix}/share/man \
+                    --with-boost=${prefix} \
+                    --with-extra-libs=${prefix}/lib \
+                    --with-extra-includes=${prefix}/include \
+                    --disable-gui \
+                    --disable-wxwidgets
+
+variant wxwidgets description {Build with the wxWidgets GUI} {
+    # TODO: make the GUI application respond by creating an app bundle
+    #       and using http://wiki.wxwidgets.org/WxMac-specific_topics#My_app_can.27t_be_brought_to_the_front.21
+    #
+    # see:  https://trac.macports.org/ticket/17366
+    depends_lib-append port:${wxWidgets.port}
+
+    configure.args-delete \
+        --disable-gui \
+        --disable-wxwidgets
+    configure.args-append \
+        --enable-gui \
+        --enable-wxwidgets \
+        --with-wx-config=${wxWidgets.wxconfig}
+}

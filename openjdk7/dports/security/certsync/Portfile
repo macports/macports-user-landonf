@@ -1,0 +1,67 @@
+# $Id$
+
+PortSystem		1.0
+
+name			certsync
+version			1.0.5
+revision		1
+categories		security
+conflicts		curl-ca-bundle
+maintainers		landonf openmaintainer
+description		Export x509 CAs from the Mac OS X Keychain.
+long_description	The package implements exporting of x509 CAs from \
+			the Mac OS X keychain, for use by OpenSSL and gnutls.
+homepage		http://www.macports.org
+license			MIT
+platforms		darwin
+
+installs_libs		no
+
+distfiles
+
+extract.mkdir		yes
+post-extract {
+	xinstall -m 644 -W ${filespath} certsync.m update-ca-certificates ${worksrcpath}
+}
+
+post-patch {
+	reinplace "s|@PREFIX@|${prefix}|g" ${worksrcpath}/update-ca-certificates
+}
+
+use_configure		no
+
+variant universal {}
+
+startupitem.create	yes
+startupitem.executable	${prefix}/bin/certsync -s -o ${prefix}/etc/openssl/cert.pem
+# trunk forward compatibility
+if {[info exists startupitem.autostart]} {
+	startupitem.autostart	yes
+}
+
+build {
+	system -W ${worksrcpath} "${configure.objc} \
+		${configure.objcflags} \
+		-mmacosx-version-min=10.5 \
+		-Wall \
+		certsync.m -o certsync \
+		${configure.ldflags} \
+		[get_canonical_archflags ld] \
+		-framework Foundation -framework Security -framework CoreServices"
+}
+
+destroot {
+	xinstall -m 755 -W ${worksrcpath} certsync update-ca-certificates ${destroot}${prefix}/bin
+
+	# Provide backwards compatibility with curl-ca-bundle
+	xinstall -d "${destroot}${prefix}/share/curl"
+	ln -s ${prefix}/etc/openssl/cert.pem ${destroot}${prefix}/share/curl/curl-ca-bundle.crt
+}
+
+post-activate {
+	system "${prefix}/bin/update-ca-certificates"
+}
+
+pre-deactivate {
+	delete "${prefix}/etc/openssl/cert.pem"
+}

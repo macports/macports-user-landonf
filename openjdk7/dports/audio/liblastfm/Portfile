@@ -1,0 +1,43 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           github 1.0
+PortGroup           qt4 1.0
+PortGroup           cmake 1.0
+
+github.setup        lastfm liblastfm 1.0.7
+categories          audio
+license             GPL-3
+maintainers         michaelld openmaintainer
+
+description         A set of libraries allowing use of the Last.fm site services.
+long_description    liblastfm is a collection of libraries to help you \
+integrate Last.fm services into your rich desktop software. It is \
+officially supported software developed by Last.fm staff.
+
+platforms           darwin
+
+checksums           md5     568fce70605c0c87ffa810ae0c15e8aa \
+                    sha1    b679bf76272b05373efcc2a8f3ee809599607853 \
+                    rmd160  9cdd6f6ea2908a372c40dcf9efa6911c60341475
+
+depends_lib-append  port:libsamplerate port:fftw-3-single
+
+universal_variant   yes
+
+# do VPATH build
+
+set vpath           ${workpath}/build
+pre-configure       { file mkdir ${vpath} }
+configure.dir       ${vpath}
+build.dir           ${vpath}
+
+# set last configure argument to the reletive path
+# to the top-level cmake source
+
+configure.post_args ../${worksrcdir}
+
+# be verbose when building, for debugging purposes
+
+build.post_args VERBOSE=1

@@ -1,0 +1,58 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           github 1.0
+
+set uname           yao
+github.setup        frigaut ${uname} 5.1.9 v
+revision            1
+license             GPL-2+
+name                yorick-${uname}
+categories          science yorick
+platforms           darwin
+maintainers         thibaut openmaintainer
+description         A Yorick-based adaptive optics system simulator
+long_description    Yao is a monte-carlo simulation package for adaptive \
+                    optics. It can be used stand-alone through a GTK-based \
+                    integrated graphical user interface or as a Yorick \
+                    language extension.
+homepage            http://maumae.net/yorick/doc/plugins.php
+
+checksums           rmd160  2994befc8115dac10661e2f9d2d1a8be09c836a2 \
+                    sha256  f51895e6763b296422926f4a76d5d99cac4d810bb381baede694307b4257f3aa
+
+depends_lib-append  path:bin/yorick:yorick \
+                    port:yorick-imutil \
+                    port:fftw-3-single
+
+depends_run         port:yorick-yutils \
+                    port:yorick-soy \
+                    port:yorick-svipc \
+                    port:py27-pygtk
+
+universal_variant   no
+
+post-patch {
+    reinplace "s|#!/usr/bin/env python|#!${prefix}/bin/python2.7|" \
+        ${worksrcpath}/${uname}.py
+}
+
+configure.cmd       ${prefix}/bin/yorick
+configure.pre_args
+configure.args      -batch make.i
+
+build.args          PKG_CFLAGS="${configure.cppflags}" \
+                    PKG_DEPLIBS="-L${prefix}/lib/yorick/lib -limutil -lfftw3f"
+
+post-destroot {
+    xinstall -d ${destroot}${prefix}/lib/yorick/packages/installed/
+    xinstall -m 644 ${worksrcpath}/${uname}.info \
+        ${destroot}${prefix}/lib/yorick/packages/installed/
+    xinstall -m 644 ${worksrcpath}/doc/${uname}.1 \
+        ${destroot}${prefix}/share/man/man1/
+    ln -s ${prefix}/lib/yorick/bin/${uname} ${destroot}${prefix}/bin/
+    fs-traverse x ${destroot}${prefix}/lib/yorick/share/${uname}/doc {
+        file attributes ${x} -permissions a+r
+    }
+}

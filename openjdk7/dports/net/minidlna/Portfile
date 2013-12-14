@@ -1,0 +1,40 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                minidlna
+version             1.1.0_20121106
+revision            3
+categories          net multimedia
+platforms           darwin
+maintainers         gmail.com:ranauei
+license             GPL-2
+
+description         a UPnP (TM) A/V & DLNA Media Server
+
+long_description    MiniDLNA (aka ReadyDLNA) is server software with the aim \
+                    of being fully compliant with DLNA/UPnP-AV clients.
+
+homepage            http://minidlna.sourceforge.net/
+master_sites        https://github.com/downloads/ranauei/melabot/
+worksrcdir          ${name}
+
+checksums           rmd160  73bc4d692786e65772c583abaa66f0446820d5ab \
+                    sha256  d94ce554d198d77f1c8d42db2b7a1b1fa4d3b5d0e7c6fae099cde97f2c8b9c10
+
+depends_lib         path:lib/libavcodec.dylib:ffmpeg \
+                    port:flac \
+                    port:jpeg \
+                    port:libid3tag \
+                    port:libexif \
+                    port:sqlite3
+
+use_autoreconf      yes
+
+# Non-conforming inline usage
+configure.cflags-append -std=gnu89
+
+post-destroot {
+    xinstall -m 644 ${worksrcpath}/${name}.conf ${destroot}${prefix}/etc/${name}.conf.sample
+}

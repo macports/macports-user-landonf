@@ -1,0 +1,29 @@
+# $Id$
+
+PortSystem          1.0
+
+name                xman
+version             1.1.3
+categories          x11
+license             X11
+maintainers         jeremyhu openmaintainer
+description         Manual page display program for the X11 Window System
+long_description    ${description}
+
+platforms           darwin
+
+homepage            http://www.x.org/
+master_sites        xorg:individual/app/
+use_bzip2           yes
+
+checksums           md5     77d6489d46ed4a0729f3bdc9a0bfc50f \
+                    sha1    9d83b14869ffadfda3407a2ab3b5fee13f667366 \
+                    rmd160  5d91362017c52d73b3c8ec594e25e9265264f796
+
+depends_build       port:pkgconfig
+
+depends_lib         port:xorg-libXaw
+
+livecheck.type      regex
+livecheck.regex     ${name}-(\[\\d.\]+)${extract.suffix}
+livecheck.url       http://xorg.freedesktop.org/archive/individual/app/?C=M&O=D

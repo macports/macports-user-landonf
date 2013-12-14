@@ -1,0 +1,36 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                ksnakeduel
+version             4.11.4
+categories          kde kde4 games
+license             GPL-2+
+maintainers         nicos openmaintainer
+description         KSnakeDuel is a simple Tron-Clone You can play KSnakeDuel against \
+                    the computer or a friend. 
+long_description    ${description} The aim of the game is to live longer than \
+                    your opponent. To do that, avoid running into a wall, your own \
+                    tail and that of your opponent.
+platforms           darwin
+homepage            http://www.kde.org/applications/games/ksnakeduel/
+master_sites        kde:stable/${version}/src
+use_xz              yes
+distname            ${name}-${version}
+checksums           rmd160  545c51fc91c50d9e904721e7ce9b7f64f3d60595 \
+                    sha256  86f5f428567e56b6c945924dbf6e7f6944d755d877b73e10a1751df7feeeca2e
+
+#Binaries do not link to openssl, nor use the ssl backend of kdelibs4
+license_noconflict  openssl
+
+depends_lib-append  port:kdelibs4 \
+                    port:libkdegames
+
+if {![variant_isset docs]} {
+    patchfiles      patch-CMakeLists.diff
+}
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

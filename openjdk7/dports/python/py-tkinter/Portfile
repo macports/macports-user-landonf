@@ -1,0 +1,137 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem 1.0
+PortGroup python 1.0
+
+name            py-tkinter
+version         2.4.6
+revision        2
+categories-append     graphics
+license         PSF
+platforms       darwin
+maintainers     nomaintainer
+description     Python bindings to the Tk widget set
+long_description \
+    ${description}
+
+homepage        http://docs.python.org/library/tkinter.html
+
+python.versions 24 25 26 27 31 32 33 34
+
+set extract_files "Modules/_tkinter.c Modules/tkappinit.c"
+set module_name Tkinter
+subport py24-tkinter {
+    maintainers fourdigits.nl:roel openmaintainer
+    homepage    http://docs.python.org/release/2.4.4/lib/module-Tkinter.html
+    checksums   md5 76083277f6c7e4d78992f36d7ad9018d \
+                sha1 cb1972a554a458f6a26d3e047b359251865d7c96 \
+                rmd160 0687989193dec2ac108142759281be7ddcf7f31e
+    use_bzip2   yes
+}
+subport py25-tkinter {
+    maintainers nomaintainer
+    version     2.5.6
+    homepage    http://docs.python.org/release/2.5.4/lib/module-Tkinter.html
+    checksums   md5 5d45979c5f30fb2dd5f067c6b06b88e4 \
+                sha1 29f6dd41bf09c5e04311b367cbb7604fa016e699 \
+                rmd160 92f0a955971f187a7d50c6422168202ec551bf22
+    use_bzip2   yes
+}
+subport py26-tkinter {
+    maintainers mcalhoun openmaintainer
+    version     2.6.9
+    revision    0
+    homepage    http://docs.python.org/release/${version}/library/tkinter.html
+    checksums   md5 933a811f11e3db3d73ae492f6c3a7a76 \
+                rmd160 42edf7c9f2f64b77ab173de30ea453257c2c06b3 \
+                sha256 cae7bb995006ea5b703d9d28446f694894c441fe4bfb95d561c0ac908cd06e41
+    use_xz      yes
+}
+subport py27-tkinter {
+    maintainers jwa openmaintainer
+    version     2.7.6
+    revision    0
+    homepage    http://docs.python.org/release/${version}/library/tkinter.html
+    use_xz      yes
+    checksums   rmd160  8efc73a01a466d8fa16c5c1734c89be79c2c538a \
+                sha256  1fd68e81f8bf7386ff239b7faee9ba387129d2cf34eab13350bd8503a0bff6a1
+    append extract_files " Modules/tkinter.h"
+}
+subport py31-tkinter {
+    maintainers erickt openmaintainer
+    version     3.1.5
+    homepage    http://docs.python.org/release/${version}/library/tkinter.html
+    checksums   md5 20dd2b7f801dc97db948dd168df4dd52 \
+                rmd160 021362658310f9ea5f6825bf0919f160304f4833 \
+                sha256 035c4370354d901924ce0fd8df65c5452839f590ec1b9c17fae2ada3e5f3b4d7
+    use_xz      yes
+    append extract_files " Modules/tkinter.h"
+    set module_name tkinter
+}
+subport py32-tkinter {
+    maintainers nomaintainer
+    version     3.2.5
+    revision    0
+    homepage    http://docs.python.org/release/${version}/library/tkinter.html
+    checksums   md5 03c5843638c576d29b3321947facd22d \
+                rmd160 ee9a13e6744406c6b99078da38a6cbf290f64256 \
+                sha256 8ccb9645b9779fc4550055b2ebb21a724ab7a63dee45643286eb4f79b2f84116
+    use_xz        yes
+    append extract_files " Modules/tkinter.h"
+    set module_name tkinter
+}
+subport py33-tkinter {
+    maintainers jwa openmaintainer
+    version     3.3.3
+    epoch       20131119
+    homepage    http://docs.python.org/release/${version}/library/tkinter.html
+    use_xz      yes
+    checksums   rmd160  62e262879f871fc2e9c5b3e85debd51c2691ca32 \
+                sha256  339275b30a1a3fef1589016bf6302c14e870f7a6fd2522bf87a6c2c6d383c685
+    append extract_files " Modules/tkinter.h"
+    set module_name tkinter
+}
+subport py34-tkinter {
+    maintainers jwa openmaintainer
+    version     3.4.0b1
+    epoch       20131124
+# homepage is a placeholder until the release
+#    homepage    http://docs.python.org/release/${version}/library/tkinter.html
+    use_xz      yes
+    checksums   rmd160  bef39d01fa6b67e53b61cf65baff317474e7ffd3 \
+                sha256  98d6f43bd6b31d334c094d968c4e2ae1eb60f398b93fae81e606c0ea17ee0241
+    append extract_files " Modules/tkinter.h"
+    set module_name tkinter
+}
+
+master_sites    http://www.python.org/ftp/python/${version}/
+distname        Python-${version}
+
+if {${name} ne ${subport}} {
+    depends_lib-append port:tk
+
+    dist_subdir python${python.version}
+
+    worksrcdir  ${worksrcdir}/Modules
+
+    foreach f $extract_files {
+        lappend extract_files_full "${distname}/$f"
+    }
+    extract.post_args   "| tar -xf - $extract_files_full"
+    post-extract {
+        file copy ${filespath}/setup.py ${worksrcpath}
+    }
+
+    configure {
+        reinplace "s|__PREFIX__|${prefix}|g" ${worksrcpath}/setup.py
+        reinplace "s|__TK-VERSION__|8.6|g" ${worksrcpath}/setup.py
+        reinplace "s|__MODULE_NAME__|${module_name}|g" ${worksrcpath}/setup.py
+    }
+
+    livecheck.type  regex
+    livecheck.url   http://www.python.org/download/releases/
+    livecheck.regex Python (${python.branch}\\.\[0-9\]+)
+} else {
+    livecheck.type  none
+}

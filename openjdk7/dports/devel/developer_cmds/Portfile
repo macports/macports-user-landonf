@@ -1,0 +1,43 @@
+# $Id$
+
+PortSystem              1.0
+PortGroup               xcode 1.0
+
+name                    developer_cmds
+version                 60
+categories              devel
+maintainers             mfeiri openmaintainer
+
+# We install BSD ctags, conflicting with Exuberant Ctags.
+conflicts               ctags
+
+homepage                http://opensource.apple.com/source/${name}/
+master_sites            http://opensource.apple.com/tarballs/${name}/
+license                 BSD
+description             A set of general BSD commands for developers
+long_description        Apple's BSD general commands for developers including \
+                        the asa utility, ctags, indent, lorder, mkdep, \
+                        rpcgen, unifdef, vgrind, and what.
+
+checksums               rmd160  27db075a0cbdf7a780d062afc971614986be4501 \
+                        sha256  6e86d1250025eaea0bdcfc5e102b88f07015d8ec7f6eeab18be75301863dc573
+
+# some old versions of sys/cdefs.h dont have __FBSDID
+xcode.build.settings    GCC_PREPROCESSOR_DEFINITIONS='__FBSDID\(s\)= '
+xcode.destroot.settings GCC_PREPROCESSOR_DEFINITIONS='__FBSDID\(s\)= '
+xcode.destroot.path     ${prefix}/bin
+
+post-extract {
+    reinplace "s|\$(DT_TOOLCHAIN_DIR)/usr|${prefix}|g" \
+            ${worksrcpath}/${name}.xcodeproj/project.pbxproj
+    foreach f [glob ${worksrcpath}/xcodescripts/*.sh] {
+        reinplace "s|\"\$DSTROOT\"/\"\$DT_TOOLCHAIN_DIR\"/usr|${destroot}${prefix}|g" $f
+    }
+}
+
+post-destroot {
+    file rename ${destroot}${prefix}/bin/vfontedpr ${destroot}${prefix}/libexec/vfontedpr
+}
+
+livecheck.type          regex
+livecheck.regex         "${name}-(\[\\d.\]+)"

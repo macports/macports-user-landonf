@@ -1,0 +1,42 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           github 1.0
+
+github.setup        jonas tig 1.2.1 tig-
+checksums           rmd160  1762620602b047db2d7d206e527dc6a759f4f951 \
+                    sha256  3629265bf514aa41e12536c083c29af554f11964e16bb649c53d9aa819945301
+
+categories          devel
+maintainers         cal openmaintainer
+description         A text interface to git repositories
+long_description    ${description}
+
+homepage            http://jonas.nitro.dk/tig/
+license             GPL-2+
+platforms           darwin
+
+depends_build       port:automake \
+                    port:autoconf \
+                    port:asciidoc \
+                    port:xmlto
+
+depends_lib         port:git-core \
+                    port:libiconv \
+                    port:ncurses
+
+# We need to create the configure file,
+# the github version does not contain it.
+pre-configure {
+    system -W ${worksrcpath} "make configure"
+}
+
+build.target-append doc-man doc-html
+# for some reason, the XML tools fail to find and use $prefix/etc/catalog,
+# where these paths are configured
+build.target-append XMLTO=\"${prefix}/bin/xmlto \
+                    --searchpath ${prefix}/share/xml/docbook/4.5/ \
+                    --searchpath ${prefix}/share/xsl/docbook-xsl/manpages\"
+destroot.target-append \
+                    install-doc-man install-doc-html

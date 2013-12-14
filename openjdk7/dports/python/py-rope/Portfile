@@ -1,0 +1,35 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+
+name                py-rope
+version             0.9.4
+platforms           darwin
+supported_archs     noarch
+license             GPL-2+
+maintainers         nomaintainer
+description         python refactoring library
+long_description    Rope is a Python refactoring library that can be used \
+                    with several editors and IDEs. It provides many \
+                    refactoring operations as well as forms of code \
+                    assistance like auto-completion and access to \
+                    documentation.
+
+homepage            http://rope.sourceforge.net/
+master_sites        https://pypi.python.org/packages/source/r/rope/
+distname            rope-${version}
+
+checksums           rmd160  f73891b3d512f975172419e327adfb99ad10eaea \
+                    sha256  2dc0342604851d8fbdafa198172eab5da7ed422759016669056181e21c54a6ba
+
+python.versions     25 26 27
+
+if {${name} ne ${subport}} {
+    livecheck.type      none
+} else {
+    livecheck.type      regex
+    livecheck.url       ${master_sites}
+    livecheck.regex     rope-(\[\\d+.\]+)${extract.suffix}
+}

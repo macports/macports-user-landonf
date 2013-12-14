@@ -1,0 +1,22 @@
+# $Id$
+
+PortSystem		1.0
+PortGroup		ruby 1.0
+
+ruby.setup		runt 0.7.0 setup.rb {README doc} rubyforge:39215
+maintainers		nomaintainer
+description		Ruby API for scheduling recurring/occuring events
+long_description	Runt provides a simple API for scheduling \
+					recurring/occuring events through a hackneyed \
+					implementation of otherwise excellent temporal \
+					patterns created by Martin Fowler. It is a Ruby \
+					version of ChronicJ (http://chronicj.org).
+license         Apache-1.1
+checksums		md5 51bbf39848701f05565141dd79f209a5
+platforms		darwin
+supported_archs	noarch
+extract.suffix  .tgz
+
+test.run		yes
+test.dir		${worksrcpath}/test
+test.cmd		${ruby.bin} alltests.rb

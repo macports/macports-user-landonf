@@ -1,0 +1,39 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                kcalc
+version             4.11.4
+categories          kde kde4
+license             GPL-2+
+maintainers         nicos openmaintainer
+description         Do scientific calculations.
+long_description    KCalc is a calculator which offers many more \
+                    mathematical functions than meet the eye on a \
+                    first glance.
+platforms           darwin
+homepage            http://utils.kde.org/projects/kcalc/
+master_sites        kde:stable/${version}/src
+use_xz              yes
+distname            ${name}-${version}
+checksums           rmd160  decdc66b3f91e38b83c3edb5d170c6c135cd79bb \
+                    sha256  484a0f436b4ca04c5a6cf924b78cf913c9a96ae58f7cd8ea22eb13c97a1e4352
+
+#Binaries do not link to openssl, nor use the ssl backend of kdelibs4
+license_noconflict  openssl
+
+depends_lib-append  port:kdelibs4 \
+                    port:oxygen-icons \
+                    port:mpfr
+
+#Ensure use of std namespace for certain symbols, and use mpfr as standard build fails.
+patchfiles-append   patch-AddMpfr.diff
+
+if {![variant_isset docs]} {
+    patchfiles-append   patch-CMakeLists.txt.diff
+}
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

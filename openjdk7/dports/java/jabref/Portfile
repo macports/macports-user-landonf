@@ -1,0 +1,56 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                jabref
+version             2.9.2
+categories          java
+platforms           darwin
+license             GPL-2+
+maintainers         nicos openmaintainer
+
+description         JabRef is an java-based bibliography reference manager. 
+long_description    JabRef is an open source bibliography reference manager. \
+                    The native file format used by JabRef is BibTeX, the standard \
+                    LaTeX bibliography format.\
+
+homepage            http://jabref.sourceforge.net/index.php
+distname            JabRef-${version}-src
+master_sites        sourceforge:project/jabref/jabref/${version}
+
+checksums           rmd160  ee1e399936ea6a315edb85c992eca8c0f31b8a71 \
+                    sha256  12bc7e489709bc6f57327bf8e15c6bc9ceaa600369dca6452b7c13d792215e83
+
+worksrcdir          ${name}-${version}
+
+use_bzip2           yes
+
+depends_build       port:apache-ant \
+                    port:jarbundler
+
+patchfiles          OSXAdapter.java.diff \
+                    JabRefFrame.java.diff
+
+use_configure       no
+
+build.cmd           ant
+build.target        build osx
+
+destroot.cmd        ant
+destroot.target     jars osxjar
+destroot.destdir    
+
+pre-configure {
+    #Using macports jarbundler
+    reinplace "s|classpath=\"\${lib.dir}/jarbundler-2.2.0.jar\"|classpath=\"${prefix}/share/java/jarbundler.jar\"|g" \
+        ${worksrcpath}/build.xml
+    #Putting destination to destroot
+    reinplace "s|<jarbundler dir=\"\${build.lib}\"|<jarbundler \
+        dir=\"${destroot}${applications_dir}\"|g" ${worksrcpath}/build.xml
+    reinplace "s|<replace file=\"\${build.lib}|<replace \
+        file=\"${destroot}${applications_dir}|g" ${worksrcpath}/build.xml
+}
+
+livecheck.type      sourceforge
+livecheck.url       http://sourceforge.net/projects/jabref/files/jabref/

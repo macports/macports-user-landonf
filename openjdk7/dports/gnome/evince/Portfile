@@ -1,0 +1,81 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            evince
+version         3.10.3
+license         GPL-2+
+set branch      [join [lrange [split ${version} .] 0 1] .]
+description     Evince is a document viewer for multiple document formats like pdf, and many others.
+long_description \
+                ${description}
+maintainers     devans openmaintainer
+categories      gnome print
+platforms       darwin
+homepage        http://projects.gnome.org/evince/
+master_sites    gnome:sources/${name}/${branch}/
+
+use_xz          yes
+
+checksums       rmd160  4f53cfe7df43e4775b9d932b9a35db799a65669d \
+                sha256  b30dcc3a93dd3c682325e685061c48ccd800835af49578f4db813bbaf5f5e9af
+
+depends_skip_archcheck gnome-settings-daemon
+
+depends_build   port:pkgconfig \
+                port:intltool \
+                port:itstool
+
+depends_lib     port:desktop-file-utils \
+                port:gnome-icon-theme \
+                port:gnome-icon-theme-symbolic \
+                port:gdk-pixbuf2 \
+                port:gtk3 \
+                port:libxml2 \
+                port:xorg-libsm \
+                port:xorg-libice \
+                port:libsecret \
+                port:gsettings-desktop-schemas \
+                port:gobject-introspection \
+                port:poppler \
+                port:libspectre \
+                port:tiff \
+                port:texlive-bin \
+                port:t1lib
+
+depends_run     port:gnome-settings-daemon
+
+configure.cflags-append -Wno-format-nonliteral
+
+configure.args  --disable-schemas-compile \
+                --disable-silent-rules \
+                --disable-djvu \
+                --disable-xps \
+                --disable-nautilus \
+                --enable-introspection=yes \
+                --enable-debug \
+                --enable-ps \
+                --enable-pdf \
+                --enable-tiff \
+                --enable-dvi \
+                --enable-comics \
+                --enable-t1lib
+
+variant djvu description {Support for djvu documents using djvulibre} {
+    configure.args-replace --disable-djvu --enable-djvu
+    depends_lib-append port:djvulibre
+}
+
+variant nautilus description {Build optional nautilus extensions} {
+    configure.args-replace  --disable-nautilus --enable-nautilus
+    depends_lib-append      port:nautilus
+}
+
+post-activate    {
+    system "${prefix}/bin/gtk-update-icon-cache-3.0 -f -t ${prefix}/share/icons/hicolor"
+    system "${prefix}/bin/update-desktop-database ${prefix}/share/applications"
+    system "${prefix}/bin/glib-compile-schemas ${prefix}/share/glib-2.0/schemas"
+}
+
+livecheck.type  gnome

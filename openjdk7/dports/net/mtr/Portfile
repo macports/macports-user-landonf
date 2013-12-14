@@ -1,0 +1,43 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                mtr
+version             0.85
+checksums           rmd160  98874ac87e921db23d4ce63d037fa6bab627dd64 \
+                    sha256  6d6372e15dd3763d6beaee8a21f01e6e9186faf6ed20f6b052990e1a2bfa19cb
+
+master_sites        ftp://ftp.bitwizard.nl/mtr/
+homepage            http://www.bitwizard.nl/mtr/
+
+categories          net
+platforms           darwin
+license             GPL-2
+maintainers         mr_bond
+
+description         traceroute and ping in a single tool
+long_description    \
+    As mtr starts, it investigates the network connection between the host mtr \
+    runs on and a user-specified destination host.  After it determines the \
+    address of each network hop between the machines, it sends a sequence ICMP \
+    ECHO requests to each one to determine the quality of the link to each \
+    machine.  As it does this, it prints running statistics about each machine.
+
+depends_build       port:pkgconfig
+depends_lib         port:ncurses \
+                    path:lib/pkgconfig/glib-2.0.pc:glib2
+
+patch.pre_args      -p1
+patchfiles          2a08115f2c026232e2172db7f894d12306594d1d.patch
+
+configure.args-append \
+                    --without-gtk
+
+if {${os.platform} eq "darwin" && ${os.major} >= 10} {
+    configure.env-append    LIBS=-lresolv
+}
+
+livecheck.type      regex
+livecheck.url       ${master_sites}
+livecheck.regex     "[quotemeta ${name}]-(\\d(\\.\\d+)*)[quotemeta ${extract.suffix}]"

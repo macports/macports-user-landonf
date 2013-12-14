@@ -1,0 +1,70 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+PortGroup       archcheck 1.0
+
+name            libsoup
+version         2.44.2
+set branch      [join [lrange [split ${version} .] 0 1] .]
+categories      gnome net
+platforms       darwin
+license         LGPL-2+
+maintainers     devans openmaintainer
+description     Soup is an HTTP library implementation in C.
+
+long_description \
+    Soup provides a queued asynchronous callback-based \
+    mechanism for sending and servicing SOAP requests \
+    and a WSDL (Web Service Definition Language) for C \
+    compilers which generates client stubs and server \
+    skeletons for easily calling and implementing SOAP \
+    methods.
+
+homepage        http://www.gnome.org/
+master_sites    gnome:sources/${name}/${branch}/
+use_xz          yes
+
+checksums       rmd160  7c4da8251a72a4d687a1af74b5656433f980f35e \
+                sha256  e7e4b5ab74a6c00fc267c9f5963852d28759ad3154dab6388e2d6e1962d598f3
+
+depends_build   port:pkgconfig \
+                port:intltool
+
+depends_lib     port:libxml2 \
+                port:glib-networking \
+                port:gobject-introspection
+
+archcheck.files \
+    lib/gio/modules/libgiognutls.so \
+    lib/gio/modules/libgiolibproxy.so \
+    lib/libxml2.dylib
+
+# Introspection requires gvfs (and others), but gvfs requires libsoup...
+configure.args \
+    --disable-more-warnings \
+    --disable-silent-rules \
+    --enable-introspection
+
+# Don't do intltool's INTLTOOL_PERL dance
+use_autoreconf  yes
+autoreconf.args -fvi
+
+# gobject-introspection uses g-ir-scanner, which uses $CC from env
+build.args-append       CC="${configure.cc} ${configure.cc_archflags}"
+
+test.run        yes
+test.target     check
+
+variant no_gnome description "Disable GNOME support" {
+    configure.args-append \
+        --without-gnome
+}
+
+platform darwin 8 {
+    # The rules enabled by gobject-introspection require GNU make 3.81+
+    depends_run-append      port:gmake
+    build.cmd               ${prefix}/bin/gmake
+}
+
+livecheck.type  gnome

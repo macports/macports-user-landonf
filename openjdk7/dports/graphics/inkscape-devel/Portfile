@@ -1,0 +1,153 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            inkscape-devel
+conflicts       inkscape
+set bzr_rev     12845
+version         0.48.99.${bzr_rev}
+epoch           1
+license         GPL-2 LGPL-2.1
+maintainers     devans
+categories      graphics gnome
+platforms       darwin
+homepage        http://www.inkscape.org/
+
+description     Unstable development version of Inkscape from \
+                recent BZR trunk leading up to release of version 0.49.
+
+long_description \
+                Inkscape is an open source SVG editor with \
+                capabilities similar to Illustrator, CorelDraw, \
+                Visio, etc. Supported SVG features include basic \
+                shapes, paths, text, alpha blending, transforms, \
+                gradients, node editing, svg-to-png export, \
+                grouping, and more.
+
+fetch.type      bzr
+bzr.url         lp:inkscape
+bzr.revision    ${bzr_rev}
+
+depends_build   port:pkgconfig \
+                port:autoconf \
+                port:automake \
+                port:libtool \
+                port:intltool \
+                path:bin/perl:perl5
+
+depends_lib     port:desktop-file-utils \
+                port:popt \
+                path:lib/libgc.dylib:boehmgc \
+                port:gsl \
+                port:gtkmm \
+                port:dbus-glib \
+                port:lcms \
+                port:poppler \
+                port:boost \
+                port:ImageMagick \
+                port:libcdr \
+                port:libexif \
+                port:libvisio \
+                port:libwpg \
+                port:gtkspell2
+
+pre-fetch {
+    ui_msg "--->  Fetching source from bzr repository: this may take a while"
+}
+
+patchfiles      patch-src-Makefile.am.diff
+
+variant python26 conflicts python27 description {Configure to use Python version 2.6} {
+    depends_lib-append \
+        port:py26-lxml \
+        port:py26-numpy
+
+    post-patch {
+        reinplace "s|\"python-interpreter\", \"python\"|\"python-interpreter\", \"python2.6\"|g" ${worksrcpath}/src/extension/implementation/script.cpp
+        reinplace "s|^#include \"Object.h\"|#include \"${prefix}/include/poppler/Object.h\"|" ${worksrcpath}/src/extension/internal/pdfinput/pdf-parser.h
+        reinplace "s|^#include \"Object.h\"|#include \"${prefix}/include/poppler/Object.h\"|" ${worksrcpath}/src/extension/internal/pdfinput/pdf-parser.cpp
+    }
+
+    configure.python \
+        ${prefix}/bin/python2.6
+}
+
+variant python27 conflicts python26 description {Configure to use Python version 2.7} {
+    depends_lib-append \
+        port:py27-lxml \
+        port:py27-numpy
+
+    post-patch {
+        reinplace "s|\"python-interpreter\", \"python\"|\"python-interpreter\", \"python2.7\"|g" ${worksrcpath}/src/extension/implementation/script.cpp
+        reinplace "s|^#include \"Object.h\"|#include \"${prefix}/include/poppler/Object.h\"|" ${worksrcpath}/src/extension/internal/pdfinput/pdf-parser.h
+        reinplace "s|^#include \"Object.h\"|#include \"${prefix}/include/poppler/Object.h\"|" ${worksrcpath}/src/extension/internal/pdfinput/pdf-parser.cpp
+    }
+
+    configure.python \
+        ${prefix}/bin/python2.7
+}
+
+variant gtk3 description {Enable experimental GTK+ 3 build} {
+    depends_lib-delete  port:gtkspell2 \
+                        port:gtk2 \
+                        port:gtkmm
+    depends_lib-append  port:gtkspell3 \
+                        port:gtk3 \
+                        port:gtkmm3 \
+                        port:gdl3
+
+    configure.args-append --enable-gtk3-experimental
+}
+
+variant svg2 description {Enable experimental SVG level 2 proposed features} {
+    configure.cppflags-append \
+                        "-DWITH_MESH -DWITH_CSSBLEND -DWITH_CSSCOMPOSITE"
+}
+
+configure.cmd   ./autogen.sh && ./configure
+
+configure.args  --without-gnome-vfs \
+                --enable-lcms \
+                --enable-poppler-cairo \
+                --enable-dbusapi \
+                --disable-silent-rules \
+                --disable-strict-build
+
+configure.cppflags-append \
+    -I${worksrcpath}/src/extension/script
+
+if {[string match "*clang*" ${configure.compiler}]} {
+    configure.cxxflags-append -std=c++11
+}
+
+if {![variant_isset python26] && ![variant_isset python27]} {
+    default_variants +python27
+}
+
+#
+# the following dummy variants are used
+# to identify this port's binary dependencies
+# based on which variant of gtkmm is used for the build
+#
+
+variant x11 conflicts quartz {}
+variant quartz conflicts x11 {}
+
+if {![variant_isset quartz]} {
+    default_variants +x11
+}
+
+if {[variant_isset gtk3]} {
+    post-activate {
+        system "${prefix}/bin/gtk-update-icon-cache-3.0 -f -t ${prefix}/share/icons/hicolor"
+        system "${prefix}/bin/update-desktop-database ${prefix}/share/applications"
+    }
+} else {
+    post-activate {
+        system "${prefix}/bin/gtk-update-icon-cache -f -t ${prefix}/share/icons/hicolor"
+        system "${prefix}/bin/update-desktop-database ${prefix}/share/applications"
+    }
+}
+
+livecheck.type  none

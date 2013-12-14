@@ -1,0 +1,7 @@
+bin/mpicc-mp
+bin/mpichversion-mp
+bin/mpicxx-mp
+bin/mpiexec-mp
+-
+-
+bin/parkill-mp

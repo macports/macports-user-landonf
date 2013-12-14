@@ -1,0 +1,41 @@
+# $Id$
+
+PortSystem 1.0
+
+name		links
+version		2.7
+description	Lynx-like WWW browser that supports tables, menus, etc
+
+long_description \
+		Lynx-like WWW browser with text and graphics modes with many \
+		features like displaying tables, menus, etc.
+
+platforms	darwin freebsd sunos
+categories	www
+license		GPL-2+
+homepage	http://links.twibright.com/
+master_sites	http://links.twibright.com/download/
+checksums       sha1    1e362a7e27078d630edf5868145a46247cda8cc3 \
+                rmd160  cd53596ba35a937e5d6a422a45a032e785d96ef2
+
+maintainers	landonf openmaintainer
+use_bzip2	yes
+
+depends_lib	port:openssl port:bzip2 port:zlib port:libpng port:jpeg
+
+configure.args	--enable-javascript --without-svgalib \
+		--mandir=${prefix}/share/man --with-ssl
+
+post-patch {
+	reinplace s|/etc/|${prefix}/etc/| ${workpath}/${worksrcdir}/default.c
+}
+
+variant x11 {
+	depends_lib-append	port:jpeg \
+				port:xorg-libXt
+	configure.args-append	--enable-graphics --with-x
+}
+
+livecheck.type	regex
+livecheck.url	[lindex ${master_sites} 0]
+livecheck.regex	{links-([0-9.]+)\.tar\.bz2}

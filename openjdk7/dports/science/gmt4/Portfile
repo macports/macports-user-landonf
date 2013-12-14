@@ -1,0 +1,101 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                gmt4
+version             4.5.11
+categories          science
+platforms           darwin
+maintainers         eprofs.de:florian \
+                    takeshi
+license             GPL-2
+description         The Generic Mapping Tools
+long_description GMT is an open source collection of ~65 tools  \
+    for manipulating geographic and Cartesian data sets and     \
+    producing PostScript illustrations ranging from simple x-y  \
+    plots via contour maps to artificially illuminated surfaces \
+    and 3D perspective views.
+conflicts           gmt
+homepage            http://gmt.soest.hawaii.edu/
+master_sites        ftp://ftp.soest.hawaii.edu/gmt          \
+                    ftp://ibis.grdl.noaa.gov/pub/gmt        \
+                    ftp://ftp.iris.washington.edu/pub/gmt   \
+                    ftp://ftp.iag.usp.br/pub/gmt            \
+                    ftp://ftp.geologi.uio.no/pub/gmt        \
+                    ftp://gd.tuwien.ac.at/pub/gmt           \
+                    ftp://ftp.scc.u-tokai.ac.jp/pub/gmt     \
+                    ftp://gmt.mirror.ac.za/pub/gmt
+use_bzip2           yes
+distname            gmt-${version}
+set dfile_gmt_gpl   ${distname}-src${extract.suffix}
+set dfile_gmt_nogpl ${distname}-non-gpl-src${extract.suffix}
+distfiles           ${dfile_gmt_gpl} \
+                    ${dfile_gmt_nogpl}
+
+checksums           ${dfile_gmt_gpl} \
+                    md5     e51a8827d9b0ce3f36cfe6be01f24931 \
+                    sha1    9f226fdb498a6868da98a6014517aa9537542f03 \
+                    rmd160  1665f13e0a877282a57a93989f9ba8fbf49b2645 \
+                    ${dfile_gmt_nogpl} \
+                    md5     fd4abdbbc5cb48087a12a4c762b87123 \
+                    sha1    67c2dd5ccde9ed661e9e9930785d305f73d3315a \
+                    rmd160  6154cc49792ded6103a907da6fe00d7b9c042541
+
+patchfiles          patch-ps2raster.diff \
+                    patch-grdvector.diff
+
+depends_lib         port:netcdf \
+                    port:gshhg-gmt-nc4
+
+destroot.target     install-all
+use_parallel_build  no
+universal_variant   no
+default_variants    +gdal +triangle
+
+configure.pre_args          --prefix=${prefix}/lib/${name}
+configure.args              --datarootdir=${prefix}/share/${name} \
+                            --docdir=${prefix}/share/doc/${name} \
+                            --mandir=${prefix}/share/doc/${name}/man \
+                            --includedir=${prefix}/share/${name}/include \
+                            --with-gshhg-dir=${prefix}/share/gshhg-gmt-nc4 \
+                            --with-nc-config=${prefix}/bin/nc-config \
+                            --enable-shared \
+                            --enable-flock \
+                            --disable-xgrid \
+                            --disable-mex
+configure.ldflags-delete    -L${prefix}/lib
+
+post-destroot {
+    ln -s ../lib/${name}/bin/GMT ${destroot}${prefix}/bin/${name}
+    ln -s ../doc/${name} ${destroot}${prefix}/share/${name}/doc
+    ln -s ../../share/doc/${name}/man ${destroot}${prefix}/lib/${name}/man
+    ln -s ../../share/${name}/include ${destroot}${prefix}/lib/${name}/include
+    ln -s ../../share/${name} ${destroot}${prefix}/lib/${name}/share
+}
+
+variant octave description {compiles Octave interface} {
+    depends_lib-append      path:bin/octave:octave
+    configure.args-append   --enable-octave
+}
+
+variant gdal description {Experimental GDAL import support} {
+    depends_lib-append      port:gdal
+    configure.args-append   --enable-gdal
+}
+
+variant triangle description {use J. Shewchuk's fast, non-GPL triangulation routine} {
+    license-delete          GPL-2
+    license-append          Restrictive
+    configure.args-append   --enable-triangle
+}
+
+variant xgrid description {enable xGridEdit} {
+    depends_lib-append      lib:libXaw:xorg-libXaw
+    configure.args-delete   --disable-xgrid
+    configure.args-append   --enable-xgrid
+}
+
+livecheck.type      regex
+livecheck.url       ${homepage}
+livecheck.regex     {(?i)gmt-(4\.[0-9]+\.[0-9]+)<\/a>}

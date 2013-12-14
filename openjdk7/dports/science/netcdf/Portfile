@@ -1,0 +1,101 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem                  1.0
+PortGroup                   active_variants 1.1
+
+name                        netcdf
+epoch                       2
+version                     4.3.0
+revision                    1
+maintainers                 takeshi openmaintainer
+platforms                   darwin
+categories                  science
+license                     Permissive
+# Stealth update on 21 Nov 2013
+dist_subdir                 ${name}/${version}_1
+
+description                 libraries for array-oriented scientific data
+long_description \
+    NetCDF (network Common Data Form) is a set of software libraries \
+    and machine-independent data formats that support the creation,  \
+    access, and sharing of array-oriented scientific data.
+
+homepage                    http://www.unidata.ucar.edu/software/netcdf/
+
+master_sites                ftp://ftp.unidata.ucar.edu/pub/netcdf/ \
+                            http://www.gfd-dennou.org/arch/netcdf/unidata-mirror/
+checksums           md5     40c0e53433fc5dc59296ee257ff4a813 \
+                    sha1    246e4963e66e1c175563cc9a714e9da0a19b8b07 \
+                    rmd160  3e3522be3000c94ca58b7a31788f9165201e6cfd
+
+patchfiles          patch-configure.diff \
+                    patch-ncgen3-genlib.h.diff \
+                    patch-daputil.c.diff
+
+if {![catch {set result [active_variants hdf5-18 openmpi ""]}]} {
+    if {$result} {
+        default_variants +openmpi
+    } elseif {[variant_isset openmpi]} {
+        ui_error "Install hdf5-18 +openmpi"
+        return -code error "hdf5-18 +openmpi not installed"
+    }
+}
+
+configure.cppflags-append   -DNDEBUG
+configure.cflags-append     -fno-common
+configure.args              --disable-doxygen \
+                            --disable-netcdf-4 \
+                            --disable-dap
+
+test.run                    yes
+test.target                 check
+
+destroot.destdir            prefix=${destroot}${prefix} \
+                            MANDIR=\\\${prefix}/share/man
+
+post-destroot {
+    file delete -force ${destroot}${prefix}/share/man/whatis.db
+}
+
+default_variants +netcdf4 +dap
+
+variant openmpi conflicts mpich description {compile with openmpi} {
+    depends_lib-append      port:openmpi
+    configure.cc            openmpicc
+}
+
+variant mpich conflicts openmpi description {compile with mpich} {
+    depends_lib-append      path:bin/mpicc-mp:mpich-default
+    configure.cc            mpicc-mp
+    configure.cc_archflags  ""
+    configure.ld_archflags  ""
+}
+
+variant netcdf4 description {enable support for netcdf-4 API} {
+    depends_lib-append      port:hdf5-18
+    configure.args-delete   --disable-netcdf-4
+    configure.args-append   --enable-netcdf-4
+}
+
+variant hdf4 description {enable support for hdf4} {
+    depends_lib-append    port:hdf4
+    configure.args-append --enable-hdf4 \
+                          --disable-hdf4-file-tests
+}
+ 
+variant dap description {enable dap} {
+    depends_lib-append      port:curl
+    configure.args-delete   --disable-dap
+}
+
+notes "
+As of version 4.2 c++ and fortran interfaces are separate ports,\
+netcdf-cxx and netcdf-fortran, respectively.
+"
+
+livecheck.type      regex
+livecheck.url       http://www.unidata.ucar.edu/downloads/${name}/
+livecheck.regex     {The netCDF C library and utilities, version ([0-9]+\.[0-9]+\.[0-9]+[\.]*[0-9]*)}
+
+variant mpich2 requires mpich description {Legacy compatibility variant} {}

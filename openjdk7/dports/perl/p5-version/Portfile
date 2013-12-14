@@ -1,0 +1,19 @@
+# $Id$
+
+PortSystem          1.0
+PortGroup           perl5 1.0
+
+epoch               2
+perl5.branches      5.8 5.10 5.12 5.14 5.16
+perl5.setup         version 0.9904
+license             {Artistic GPL}
+maintainers         nomaintainer
+description         Perl extension for Version Objects
+long_description    Overloaded version objects for all versions of Perl. \
+                    This module implements all of the features of \
+                    version objects which will be part of Perl 5.10.0.
+
+platforms           darwin
+
+checksums           rmd160  5372d8ad9b2f0da5722dc033702ce7f99b7c2218 \
+                    sha256  96dc1f2f86444693ae880c2af6a0a0b83070501519a69fd6ae8517dfa893a541

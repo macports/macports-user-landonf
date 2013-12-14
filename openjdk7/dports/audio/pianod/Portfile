@@ -1,0 +1,40 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                pianod
+version             151
+categories          audio
+platforms           darwin
+license             MIT
+maintainers         deviousfish.com:perette
+description         Pandora daemon
+long_description    Client/server Pandora daemon with a socket interface.  \
+                    Includes a shell script for command-line control.  \
+                    Supports multiple listeners with adjustable privileges, \
+                    automatic station selection, script to run \
+                    programmed station sequences.  Use with wsgw websocket \
+                    gateway to support web clients (port install wsgw +pianod).
+
+homepage            http://deviousfish.com/Pianod
+master_sites        http://deviousfish.com/Downloads/pianod
+
+# openssl sha256 pianod-latest.tar.gz or openssl rmd160 pianod-latest.tar.gz
+checksums           rmd160  2f295480ea78975ae87d581dbd8d75f7433b6b98 \
+                    sha256  9913f2f2d4950c7b156de3f5c09b3e8d97c8b97f210e25b54dc878191eebc6b1
+
+depends_lib         port:libao \
+                    port:libgcrypt \
+                    port:gnutls \
+                    port:json-c \
+                    port:faad2 \
+                    port:libmad
+
+startupitem.create      yes
+startupitem.logfile     ${prefix}/var/log/pianod.log
+startupitem.executable  "${prefix}/bin/pianod"
+
+livecheck.type      regex
+livecheck.url       [lindex ${master_sites} 0]
+livecheck.regex     ${name}-(\[0-9\]+)${extract.suffix}

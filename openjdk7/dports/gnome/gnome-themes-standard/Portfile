@@ -1,0 +1,49 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            gnome-themes-standard
+conflicts       gnome-themes
+version         3.10.0
+set branch      [join [lrange [split ${version} .] 0 1] .]
+categories      gnome
+maintainers     devans openmaintainer
+license         LGPL-2.1+ GPL-2+
+platforms       darwin
+description     Default GNOME 3 theme
+
+long_description \
+                gnome-themes-standard contains various components of the \
+                default GNOME 3 themes for GTK+ 2 and GTK+ 3 applications \
+                (Adwaita, HighContrast, LowContrast).
+
+homepage        http://www.gnome.org/
+master_sites    gnome:sources/$name/$branch/
+
+use_xz          yes
+
+checksums       rmd160  2b82891d7ab85581f3ae1a8abe25bde00900e071 \
+                sha256  812c6cfc534fced921dc327b436e70020d8979529284bb59d72d6f37af1f4b38
+
+depends_build   port:intltool \
+                port:pkgconfig
+
+depends_lib     port:gtk3 \
+                port:gtk2 \
+                port:librsvg
+
+notes "
+You can make Adwaita the default theme with:
+------------------------------------------------------
+mkdir -p ~/.config/gtk-3.0 &&
+cat > ~/.config/gtk-3.0/settings.ini << \"EOF\"
+\[Settings\]
+gtk-theme-name = Adwaita
+gtk-fallback-icon-theme = gnome
+EOF
+------------------------------------------------------
+"
+
+livecheck.type  gnome
+livecheck.name  ${name}

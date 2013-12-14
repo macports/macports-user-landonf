@@ -1,0 +1,26 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+PortGroup       php5extension 1.0
+
+php5extension.setup mongo 1.4.5 pecl
+categories      php databases devel
+license         Apache-2
+platforms       darwin
+maintainers     ryandesign openmaintainer
+
+description     Mongo Database Driver
+
+long_description \
+    This package provides an interface for communicating with the Mongo \
+    database in PHP.
+
+checksums       rmd160  9b3a4dd356efab5dab0a9bf6500891a9ef60453f \
+                sha256  45b20d4fc37e2ce1bc85dfb79418993ecfe61c519d6ad24e7d28cb4e1b380a55
+
+patchfiles-append \
+    patch-config.m4.diff
+
+depends_build-append \
+    port:mongodb

@@ -1,0 +1,39 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            libass
+version         0.10.1
+categories      multimedia
+license         ISC
+maintainers     tds.net:coax openmaintainer
+platforms       darwin
+description     subtitle renderer for the ASS/SSA subtitle format
+
+long_description \
+    libass is a portable subtitle renderer for the \
+    ASS/SSA (Advanced Substation Alpha/Substation Alpha) \
+    subtitle format. It is mostly compatible with VSFilter.
+
+depends_build   port:pkgconfig
+depends_lib     port:fribidi \
+                port:fontconfig \
+                port:enca
+
+configure.args  --enable-enca \
+                --enable-fontconfig \
+                --disable-harfbuzz \
+                --disable-silent-rules
+
+homepage        http://code.google.com/p/libass/
+master_sites    googlecode
+
+checksums       rmd160  4b97e62fab872c0c19c141518f9aadab5a56476e \
+                sha256  629a7e81fff92dea8d0399b818a41fd1b61e381c67a5961b1eaec2efadb14c6c
+
+post-destroot {
+    set docdir ${prefix}/share/doc/${name}
+    xinstall -d ${destroot}${docdir}
+    xinstall -m 0644 -W ${worksrcpath} COPYING Changelog ${destroot}${docdir}
+}

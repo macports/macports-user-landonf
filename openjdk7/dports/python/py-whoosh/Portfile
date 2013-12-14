@@ -1,0 +1,30 @@
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+
+name                py-whoosh
+set real_name       Whoosh
+version             2.5.1
+python.versions     25 26 27
+platforms           darwin
+supported_archs     noarch
+license             BSD
+maintainers         nomaintainer
+homepage            https://bitbucket.org/mchaput/whoosh/wiki/Home
+description         Fast pure-Python indexing and search library
+long_description    \
+    Whoosh is a fast, featureful full-text indexing and searching library \
+    implemented in pure Python. Programmers can use it to easily add search \
+    functionality to their applications and websites. Every part of how Whoosh \
+    works can be extended or replaced to meet your needs exactly.
+
+master_sites        https://pypi.python.org/packages/source/W/${real_name}
+distname            ${real_name}-${version}
+checksums           md5    cf272479dfd4927ee3818b32cad7c33a \
+                    rmd160 dffd8a1dd9cb777c4eb52582d18253febdadf8dd \
+                    sha256 4dd66349e19845a1c80db243b4eeabf4273676dc8aec414c597dae138513b8bb
+
+if {${name} ne ${subport}} {
+    depends_build   port:py${python.version}-setuptools
+}

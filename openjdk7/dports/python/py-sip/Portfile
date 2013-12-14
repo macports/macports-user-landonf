@@ -1,0 +1,126 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+
+name                py-sip
+version             4.15.3
+python.versions     24 25 26 27 31 32 33
+python.default_version 27
+categories-append   devel
+maintainers         phw michaelld openmaintainer
+license             {GPL-2 GPL-3 PSF}
+platforms           macosx
+
+description         create Python bindings for C and C++ libraries
+long_description \
+    SIP is a tool that makes it very easy to create \
+    Python bindings for C and C++ libraries. \
+    It was originally developed to create PyQt, \
+    the Python bindings for the Qt toolkit, \
+    but can be used to create bindings for any \
+    C or C++ library.
+
+homepage            http://www.riverbankcomputing.co.uk/software/sip/intro
+
+if {${name} ne ${subport}} {
+
+    master_sites        sourceforge:pyqt
+
+    distname            sip-${version}
+
+    checksums           rmd160 b7b8e2467f938547ebfaff9826b0fe6f6185bcf8 \
+                        sha256 46f245252866dbdb7fb5aca194bda991cc84ba8090d5e864765ee7e511a053d4
+
+    patchfiles          patch-siputils.py.diff \
+                        patch-specs_macx-g++.diff \
+                        patch-configure.py.diff
+
+    use_configure       yes
+    pre-configure {
+        # Ensure correct compilers are used
+        reinplace "s|@CC@|${configure.cc}|" \
+            ${worksrcpath}/specs/macx-g++
+        reinplace "s|@CXX@|${configure.cxx}|" \
+            ${worksrcpath}/specs/macx-g++
+    }
+
+    post-configure {
+        # fix sip bin name
+        reinplace "s|bin/sip|bin/sip-${python.branch}|g" \
+            ${worksrcpath}/sipconfig.py
+    }
+
+    configure.cmd       ${python.bin} configure.py
+    configure.pre_args  -d ${python.bin} \
+                        -e ${python.include} \
+                        -v ${prefix}/share/sip \
+                        -p macx-g++ \
+                        --bindir=${prefix}/bin \
+                        --destdir=${python.pkgd} \
+                        --incdir=${python.include} \
+                        --sipdir=${prefix}/share/${subport}
+
+    configure.post_args LFLAGS="-F${prefix}/Library/Frameworks -L${prefix}/lib"
+
+    python.add_archflags    no
+    if {[variant_isset universal]} {
+        foreach arch ${configure.universal_archs} {
+            configure.args-append   "--arch=${arch}"
+        }
+        configure.universal_args
+        configure.post_args LFLAGS="-F${frameworks_dir} -L${prefix}/lib \
+                                    ${configure.universal_ldflags}"
+        configure.post_args-append  CFLAGS="${configure.universal_cflags}"
+        configure.post_args-append  CXXFLAGS="${configure.universal_cxxflags}"
+    }
+
+    if {[vercmp ${xcodeversion} 4.3] < 0} {
+        set sdk_dir ${developer_dir}/SDKs
+    } else {
+        set sdk_dir ${developer_dir}/Platforms/MacOSX.platform/Developer/SDKs
+    }
+
+    switch ${os.major} {
+        8   { configure.args-append   "--sdk=${sdk_dir}/MacOSX10.4u.sdk" }
+        9   { configure.args-append   "--sdk=${sdk_dir}/MacOSX10.5.sdk" }
+        10  { configure.args-append   "--sdk=${sdk_dir}/MacOSX10.6.sdk" }
+        11  { configure.args-append   "--sdk=${sdk_dir}/MacOSX10.7.sdk" }
+        12  { configure.args-append   "--sdk=${sdk_dir}/MacOSX10.8.sdk" }
+    }
+
+    build.cmd           make
+    build.target        all
+
+    test.run    yes
+    test.cmd    cd siplib && ${python.bin} -c 'import sip'
+
+    destroot.cmd        make
+    destroot.destdir    DESTDIR=${destroot}
+
+    # Move ${prefix}/bin/sip to ${prefix}/bin/sip-${python.branch} for
+    # all Python versions.
+    python.move_binaries yes
+
+    post-destroot {
+        xinstall -m 755 -d ${destroot}${prefix}/share/doc
+        file copy ${worksrcpath}/doc ${destroot}${prefix}/share/doc/${subport}
+        xinstall -m 644 -W ${worksrcpath} LICENSE LICENSE-GPL2 LICENSE-GPL3 NEWS README \
+            ${destroot}${prefix}/share/doc/${subport}
+        system "${python.bin} ${python.libdir}/compileall.py ${destroot}${prefix}"
+        system "${python.bin} -O ${python.libdir}/compileall.py ${destroot}${prefix}"
+    }
+
+    notes "${subport} is available under a PSF license with one addition: \n
+    4. Licensee may not use SIP to generate Python bindings for any C or
+       C++ library for which bindings are already provided by Riverbank. \n
+GPL-2 or GPL-3 licenses are also available. For details see
+${prefix}/share/doc/${subport}/LICENSE \[-GPL2 -GPL3\]\n\n"
+
+    livecheck.type      none
+} else {
+    livecheck.url       http://www.riverbankcomputing.co.uk/software/sip/download
+    livecheck.regex     sip-(\\d+(\\.\\d+)+)${extract.suffix}
+}
+

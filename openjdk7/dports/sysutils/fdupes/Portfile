@@ -1,0 +1,30 @@
+# $Id$
+
+PortSystem          1.0
+
+name                fdupes
+version             1.51
+categories          sysutils
+maintainers         nomaintainer
+license             MIT
+
+description         identify and/or delete duplicate files
+long_description    ${name} identifies and/or deletes duplicate files in specified directories.
+homepage            https://code.google.com/p/fdupes/
+master_sites        googlecode:${name}
+platforms           darwin
+
+checksums           sha1   8276b39026f57a2f9503d7af18efca0a7d42b8ec \
+                    sha256 87dbc85b7b9cdb9626e713dd8078bd7487bceb58d47ceaff5404a9e6fd062881
+
+use_configure       no
+
+variant universal {}
+
+build.target        ${name}
+build.args          PREFIX=${prefix} \
+                    CC=${configure.cc} \
+                    COMPILER_OPTIONS="${configure.cflags} [get_canonical_archflags cc]"
+
+destroot.args       PREFIX=${destroot}${prefix} \
+                    MAN_BASE_DIR=${destroot}${prefix}/share/man

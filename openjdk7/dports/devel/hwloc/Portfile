@@ -1,0 +1,31 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:et:fenc=utf-8::et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                hwloc
+set branch          1.8
+version             ${branch}
+categories          devel
+platforms           darwin
+maintainers         sean openmaintainer
+description         Portable Hardware Locality
+license             BSD
+
+long_description \
+    The Portable Hardware Locality (hwloc) software package provides a \
+    portable abstraction (across OS, versions, architectures, ...) of \
+    the hierarchical topology of modern architectures, including NUMA \
+    memory nodes, sockets, shared caches, cores and simultaneous \
+    multithreading.
+
+homepage            http://www.open-mpi.org/projects/hwloc/
+master_sites        http://www.open-mpi.org/software/hwloc/v${branch}/downloads/
+
+checksums           rmd160  ee7b0f2c525d570f71ededc8310783fa4171d05a \
+                    sha256  678634714a021355319cfe884fdbbbba818cdb466a8875e308ae1f0d0aa0a0a2
+
+configure.args      --without-x
+
+livecheck.type      regex
+livecheck.regex     ${name} v(\[0-9.\]+) released

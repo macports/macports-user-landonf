@@ -1,0 +1,41 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           cmake 1.0
+PortGroup           github 1.0
+
+github.setup        apfeiffer1 iAIDA 1.1.2 iAIDA-
+
+name                iAIDA
+categories          science
+maintainers         mojca gmail.com:apfeiffer1 openmaintainer
+license             LGPL-3
+description         An implementation in C++ of the AIDA Abstract Interfaces for Data Analysis
+long_description    iAIDA is an implementation in C++ of the AIDA Abstract Interfaces for Data Analysis, a set of interfaces designed for data analysis.
+homepage            http://iaida.dynalias.net/
+platforms           darwin
+# alternative download sites
+# extract.suffix      .tgz
+# master_sites        sourceforge:iaida
+# master_sites        http://iaida.dynalias.net/downloads/
+
+checksums           rmd160  9df31ae94cfa5578ee5887b233f8e27787677a16 \
+                    sha256  f816823de3d663ad509c84c1a89297bbc344eadaf049dd62b41ab6fa446b5432
+
+depends_lib         port:aida \
+                    port:grace \
+                    port:boost \
+                    port:root \
+                    port:openssl \
+                    port:expat \
+                    port:zlib
+
+configure.dir       ${workpath}/build
+build.dir           ${configure.dir}
+
+post-extract {
+    file mkdir ${configure.dir}
+}
+
+configure.post_args ${worksrcpath}/${name}

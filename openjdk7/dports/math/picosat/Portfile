@@ -1,0 +1,39 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                picosat
+version             957
+categories          math science
+platforms           darwin
+maintainers         mww openmaintainer
+license             MIT
+description         picosat is a SAT solver
+long_description    ${description}
+homepage            http://fmv.jku.at/picosat/
+master_sites        ${homepage}
+
+checksums           rmd160  0f0c5cb7960b3f0d1719fd5194349dc96ac72f99 \
+                    sha256  7efa0149f297971328324b90cee349223e3c9c9aab6f6e306caae2553a169822
+
+installs_libs       yes
+
+configure.pre_args
+configure.universal_args
+# --shared does NOT work on OS X
+configure.args      --static
+
+destroot {
+    xinstall -d ${destroot}${prefix}/share/doc/${name}
+    xinstall -m 644 ${worksrcpath}/picosat.h ${destroot}${prefix}/include
+    xinstall -m 644 ${worksrcpath}/libpicosat.a ${destroot}${prefix}/lib
+    xinstall -m 755 -W ${worksrcpath} picosat picomcs picomus picogcnf \
+        ${destroot}${prefix}/bin
+    xinstall -m 644 -W ${worksrcpath} LICENSE NEWS README VERSION \
+        ${destroot}${prefix}/share/doc/${name}
+}
+
+livecheck.type      regex
+livecheck.url       ${homepage}
+livecheck.regex     picosat-(\[0-9\.\]+).tar.gz

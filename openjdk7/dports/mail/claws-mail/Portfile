@@ -1,0 +1,81 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+PortGroup       active_variants 1.1
+
+name            claws-mail
+version         3.9.2
+revision        1
+categories      mail news
+platforms       darwin
+license         GPL-3+
+maintainers     piermont.com:perry openmaintainer
+
+description     A lightweight and very featureful GTK+ based e-mail and news client
+
+long_description Currently, many features are supported in Claws Mail \
+                including POP3, IMAP, NNTP, multiple accounts, \
+                threading, filtering, MIME attachments, APOP, SMTP \
+                AUTH, SSL, IPv6, GnuPG, internalization, plugins, \
+                a filtering/processing mechanism, extra folder \
+                properties and much more.
+
+homepage        http://www.claws-mail.org/
+master_sites    sourceforge:project/sylpheed-claws/Claws%20Mail/${version}
+
+checksums       rmd160  7a8d201913a078708761ae492e7e362848a36df1 \
+                sha256  e396cb67e8ecdae926dfcd59da4b3f26a633aabc0f4f00b1f24cb207f3ff2330
+
+use_bzip2       yes
+
+depends_build   port:pkgconfig
+depends_lib     port:gtk2 \
+                port:libetpan \
+                port:gpgme \
+                port:compface \
+                port:gtkspell2 \
+                port:aspell \
+                port:gnutls \
+                port:libgcrypt \
+                port:enchant \
+                path:lib/pkgconfig/webkit-1.0.pc:webkit-gtk
+
+# claws uses gdk/gdkx.h, which is not installed by gtk2 +quartz.
+require_active_variants \
+                gtk2 x11
+
+platform darwin {
+    set cxx_stdlib {}
+
+    if {[info exists configure.cxx_stdlib] &&
+        ${configure.cxx_stdlib} ne {} &&
+        [string match *clang* ${configure.cxx}]} {
+        set cxx_stdlib ${configure.cxx_stdlib}
+    } elseif {[string match *clang* ${configure.cxx}] &&
+              ${os.major} >= 13} {
+        set cxx_stdlib libc++
+    } else {
+        set cxx_stdlib libstdc++
+    }
+
+    if {${cxx_stdlib} == "libstdc++"} {
+       depends_lib-delete path:lib/pkgconfig/webkit-1.0.pc:webkit-gtk
+       depends_lib-append path:lib/pkgconfig/webkit-1.0.pc:webkit-gtk-2.0
+    }
+}
+
+configure.args  --disable-jpilot \
+                --disable-acpi_notifier-plugin \
+                --disable-archive-plugin \
+                --disable-bogofilter-plugin \
+                --disable-bsfilter-plugin \
+                --disable-clamd-plugin \
+                --disable-spamassassin-plugin \
+                --disable-spam_report-plugin \
+                --disable-tnef_parse-plugin \
+                --enable-manual \
+                --enable-ipv6 \
+                --enable-crash-dialog
+
+livecheck.regex /${name}-(\[0-9.\]+)${extract.suffix}

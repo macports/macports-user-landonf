@@ -1,0 +1,31 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            gssdp
+version         0.14.6
+license         LGPL
+set branch      [join [lrange [split ${version} .] 0 1] .]
+description     A GObject-based API for handling resource discovery and announcement over SSDP.
+long_description \
+                ${description}
+maintainers     devans openmaintainer
+categories      net gnome
+platforms       darwin
+homepage        https://live.gnome.org/GUPnP/
+master_sites    gnome:sources/${name}/${branch}/
+
+use_xz          yes
+
+checksums       rmd160  1a38d1c01893f747e12138984fe004bcdef8a2f3 \
+                sha256  9acfdeb99080b165c34ea7c65fb909ea356b4550937972a73df5b69b419eeacd
+
+depends_build   port:pkgconfig \
+                port:vala
+
+depends_lib     port:gtk3 \
+                port:libsoup \
+                port:gobject-introspection
+
+livecheck.type  gnome

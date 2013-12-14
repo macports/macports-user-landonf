@@ -1,0 +1,32 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=portfile:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           github 1.0
+PortGroup           python 1.0
+
+github.setup        nojhan colout 0.3 v
+revision            1
+maintainers         g5pw opwnmaintainer
+
+categories          textproc python
+description         Color Up Arbitrary Command Ouput.
+long_description    ${name} read lines of text stream on the standard input and \
+                    output characters matching a given regular expression \
+                    PATTERN in given and STYLE.
+
+platforms           darwin
+
+checksums           rmd160  66a96d8d25f5011c272ee96f9210f6a7397e2d55 \
+                    sha256  e32b0ad107237ad4720b5cf752a70371797eb2599ce7f238fe98b1e3e3bff1ba
+
+python.default_version 33
+
+patch {
+    reinplace s/python3/python3.3/ bin/colout \
+                                        colout/colout.py \
+                                        setup.py \
+                                        README.md
+}
+
+python.link_binaries_suffix

@@ -1,0 +1,36 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python26 1.0
+
+name                py26-pyphant-tools
+version             1.0b2
+categories-append   science
+description         tools toolbox for py26-pyphant
+maintainers         fmf.uni-freiburg.de:servicegruppe.wissinfo \
+                    fmf.uni-freiburg.de:alexander.held rowue
+long_description    This toolbox currently provides two workers for the \
+                    py26-pyphant framework. These workers can be integrated \
+                    in a data flow model and simply serve as data sources for \
+                    data that is managed by a py26-pyphant core module called \
+                    KnowledgeManager (KM). The KM accumulates metadata in a \
+                    sqlite3 database and the above mentioned workers present \
+                    parameters to perform a metadata search and finally \
+                    load and provide the data that matched the search.
+homepage            http://www.fmf.uni-freiburg.de/service/servicegruppen/sg_wissinfo/projekte/Pyphant
+
+platforms           darwin
+depends_build       port:py26-setuptools
+# depends_lib         port:py26-pil
+
+master_sites        sourceforge:pyphant
+# master_sites        http://pyphant.sourceforge.net/nightly-builds/
+distname            pyphant.tools-${version}
+# use_bzip2           yes
+
+checksums           md5     a9c51e9e042631def8791c785deb24cc \
+                    sha1    8560c5c8d7f7f9df9fdfca1f5696374fa5190863 \
+                    rmd160  fc07b4f5ce32e3429bc3e82f856685815e307e35
+
+use_configure       no

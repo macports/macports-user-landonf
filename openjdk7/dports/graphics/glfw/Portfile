@@ -1,0 +1,83 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           cmake 1.0
+PortGroup           github 1.0
+
+name                glfw
+categories          graphics
+maintainers         michaelld openmaintainer
+description         GLFW is a free, open-source, portable library for OpenGL and OpenGL ES application development
+license             zlib
+platforms           darwin macosx
+
+long_description ${description}: \
+    This port follows the GIT master version of GLFW, which is typically updated every few days to weeks.
+
+github.setup    glfw glfw 0c0bb28d39b2f4a0b48ab447a37564e23d651d55
+version         3.0.3_20131204
+checksums       rmd160 df3f9a823855dd6645db2bea6afc0c401174d295 \
+                sha256 317007e9332720c400db107f8dfbf0ce37fa6d72e769f1f8901e387f9795bf7a
+
+# use the real home page, not github's
+
+homepage            http://www.glfw.org/
+
+# do VPATH build
+
+set vpath           ${workpath}/build
+pre-configure       { file mkdir ${vpath} }
+configure.dir       ${vpath}
+build.dir           ${vpath}
+
+# configuration arguments for MacPorts build
+
+configure.args      -DBUILD_SHARED_LIBS=on \
+                    -DGLFW_BUILD_EXAMPLES=off \
+                    -DGLFW_BUILD_TESTS=off
+
+# remove top-level include path, such that internal headers are used
+# instead of any already-installed ones.
+
+configure.cppflags-delete -I${prefix}/include
+
+# remove top-level library path, such that internal libraries are used
+# instead of any already-installed ones.
+
+configure.ldflags-delete -L${prefix}/lib
+
+# set last configure argument to the reletive path
+# to the top-level cmake source
+
+configure.post_args ../${worksrcdir}
+
+# be verbose when building, for debugging purposes
+
+build.post_args     VERBOSE=1
+
+variant docs description {build documentation} {}
+
+default_variants    +docs
+
+if {[variant_isset docs]} {
+    depends_build-append  port:doxygen
+    configure.args-append -DDOXYGEN_EXECUTABLE=${prefix}/bin/doxygen
+} else {
+    configure.args-append -DDOXYGEN_EXECUTABLE=
+}
+
+post-destroot {
+
+    # move cmake Modules to an appropriate location
+
+    xinstall -m 755 -d ${destroot}${prefix}/share/cmake
+    move ${destroot}${prefix}/lib/cmake/glfw ${destroot}${prefix}/share/cmake
+
+    # copy html docs if requested
+
+    if {[variant_isset docs]} {
+        xinstall -m 755 -d ${destroot}${prefix}/share/doc/${name}
+        copy ${vpath}/docs/html ${destroot}${prefix}/share/doc/${name}
+    }
+}

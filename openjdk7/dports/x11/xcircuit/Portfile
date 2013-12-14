@@ -1,0 +1,49 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                xcircuit
+conflicts           xcircuit-devel
+version             3.7.50
+set branch          [join [lrange [split ${version} .] 0 1] .]
+revision            1
+categories          x11 cad
+platforms           darwin
+maintainers         nomaintainer
+# asg subdir licensed for noncommercial use only, linked to GPL code, conflicts.
+license             GPL-2+ Noncommercial Restrictive
+
+description         circuit-drawing program
+
+long_description    XCircuit is a program for drawing publishable-quality \
+                    electrical circuit schematic diagrams and related figures, \
+                    and produce circuit netlists through schematic capture. \
+                    XCircuit regards circuits as inherently hierarchical, and \
+                    writes both hierarchical PostScript output and \
+                    hierarchical SPICE netlists. Circuit components are saved \
+                    in and retrieved from libraries which are fully editable. \
+                    XCircuit does not separate artistic expression from \
+                    circuit drawing\; it maintains flexiblity in style without \
+                    compromising the power of schematic capture.
+
+homepage            http://opencircuitdesign.com/xcircuit/
+master_sites        ${homepage}archive/
+extract.suffix      .tgz
+
+checksums           rmd160  2c416e939810a3e0fd82fa7411e89c3f12bc890e \
+                    sha256  2dbc1bd4a16b9a2df1ba18dd2010c963231170b4d46844eef7b2fe18020eeb0f
+
+depends_lib         port:ghostscript \
+                    port:tk \
+                    port:xpm
+
+configure.args      --with-tcl=${prefix}/lib \
+                    --with-tk=${prefix}/lib \
+                    --with-gs=${prefix}/bin/gs \
+                    --x-includes=${prefix}/include \
+                    --x-libraries=${prefix}/lib
+
+livecheck.type      regex
+livecheck.url       [lindex ${master_sites} 0]
+livecheck.regex     xcircuit-(${branch}\\.\[0-9.\]+)${extract.suffix}

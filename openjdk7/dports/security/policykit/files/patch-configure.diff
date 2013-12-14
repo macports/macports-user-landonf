@@ -1,0 +1,13 @@
+--- configure.ac.orig	2013-07-03 15:53:53.000000000 -0700
++++ configure.ac	2013-07-03 15:54:05.000000000 -0700
+@@ -143,10 +143,6 @@ AC_SUBST(EXPAT_LIBS)
+ 
+ AC_CHECK_FUNCS(clearenv)
+ 
+-if test "x$GCC" = "xyes"; then
+-  LDFLAGS="-Wl,--as-needed $LDFLAGS"
+-fi
+-
+ dnl ---------------------------------------------------------------------------
+ dnl - Select wether to use systemd or ConsoleKit for session tracking
+ dnl ---------------------------------------------------------------------------

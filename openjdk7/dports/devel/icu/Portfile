@@ -1,0 +1,228 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+PortGroup       muniversal 1.0
+
+name            icu
+set my_name     icu4c
+# Don't forget to increase the revision number of the dependents (e.g. boost)
+# whenever the library version number changes. Thanks.
+version         51.2
+revision        1
+categories      devel textproc
+platforms       darwin freebsd
+license         MIT
+maintainers     nomaintainer
+description     International Components for Unicode
+
+long_description \
+    The International Components for Unicode (ICU) libraries provide robust \
+    and full-featured Unicode services on a wide variety of platforms. ICU \
+    supports the most current version of the Unicode standard, and they provide \
+    support for supplementary Unicode characters (needed for GB 18030 repertoire support).
+
+homepage        http://www.icu-project.org/
+master_sites    http://download.icu-project.org/files/${my_name}/${version}/
+
+distname        ${my_name}-[join [split ${version} .] _]
+extract.suffix  .tgz
+distfiles       ${distname}-src${extract.suffix}
+patchfiles      patch-configure.diff \
+                patch-config-mh-darwin.diff \
+                inline.patch
+
+checksums       ${distname}-src.tgz \
+                rmd160  ef1256bb87b3dcec1cf40b32b11c5c3f1bd48af6 \
+                sha256  deb027a05f1b3bec03298b96fb93b28c84e9683c22e6f94effa67fdc7bd704cc
+
+worksrcdir      ${name}/source
+set docdir      ${prefix}/share/doc/${name}
+
+if {[variant_isset universal]} {
+    patchfiles-append   patch-universal.diff
+
+    # weirdly, icu needs a separate source dir built for the build
+    # machine in order to cross-compile
+    pre-configure {
+        global merger_configure_args
+        set cross 0
+        set 32bit 0
+        set crosspath ${worksrcpath}-cross
+        if {${os.major} < 9 || [sysctl hw.cpu64bit_capable] == 0} {
+            set 32bit 1
+        }
+        foreach a $universal_archs_to_use {
+            if {($32bit && ($a eq "x86_64" || $a eq "ppc64")) 
+                || (${os.arch} eq "powerpc" && ($a eq "x86_64" || $a eq "i386"))
+                || (${os.arch} eq "i386" && ($a eq "ppc" || $a eq "ppc64"))} {
+                set cross 1
+                set merger_configure_args($a) --with-cross-build=${crosspath}
+            }
+        }
+        if {$cross} {
+            copy ${worksrcpath} ${crosspath}
+            set configure_dir_save  ${configure.dir}
+            configure.dir ${crosspath}
+            portconfigure::configure_main
+            configure.dir $configure_dir_save
+            system -W ${crosspath} "${build.cmd}[portbuild::build_getjobsarg]"
+        }
+    }
+}
+
+post-patch {
+    reinplace "s|__PREFIX__|${prefix}|g" ${worksrcpath}/config/mh-darwin
+}
+
+set platform [switch ${os.platform} {darwin {format MacOSX} freebsd {format FreeBSD}}]
+configure.cmd   ./runConfigureICU ${platform}
+
+configure.args  --enable-static \
+                --disable-samples
+
+configure.universal_args-delete --disable-dependency-tracking
+
+# Fix bug #11981 that prevents ICU from building when upgrading.
+# The default configure flags causes utilisation of outdated ICU
+# headers/libs instead of the right ones.
+configure.cppflags
+configure.ldflags
+
+post-configure {
+    if {[variant_isset universal]} {
+        # Ticket #23773
+        foreach a ${universal_archs_to_use} {
+            reinplace "s|__ARCH__|${a}|g" ${worksrcpath}-${a}/Makefile
+        }
+    }
+}
+
+build.type      gnu
+
+use_parallel_build  yes
+
+post-build {
+    if {[variant_isset universal]} {
+        set dirs {}
+        foreach arch ${universal_archs_to_use} {
+            lappend dirs ${worksrcpath}-${arch}
+        }
+    } else {
+        set dirs ${worksrcpath}
+    }
+    foreach dir ${dirs} {
+        foreach f {Makefile.inc icu-config icu-i18n.pc icu-io.pc icu-le.pc icu-lx.pc icu-uc.pc icu.pc pkgdata.inc} {
+            reinplace -E {s|-arch [a-z0-9_]+||g} ${dir}/config/${f}
+        }
+    }
+}
+
+test.run        yes
+test.target     check
+
+post-destroot {
+    xinstall -d ${destroot}${docdir}
+    eval xinstall -m 0644 [glob ${worksrcpath}/../*.{css,html,txt}] ${destroot}${docdir}
+
+    if {[variant_isset universal]} {
+        # Ticket #23773
+        foreach a ${universal_archs_to_use} {
+            reinplace "s|/Makefile.inc|/Makefile-${a}.inc|g" ${destroot}${prefix}/bin/icu-config-${a}
+        }
+        ln -s current/Makefile.inc ${destroot}${prefix}/lib/icu/Makefile.inc
+    }
+}
+
+post-activate {
+    if {[variant_isset universal]} {
+        # Ticket #23773
+        set a ${configure.build_arch}
+        if {$a == "ppc64"} {
+            if {![file exists ${prefix}/bin/icu-config-${a}]} {
+                set a "ppc"
+            }
+        } elseif {$a == "x86_64"} {
+            if {![file exists ${prefix}/bin/icu-config-${a}]} {
+                set a "i386"
+                if {![file exists ${prefix}/bin/icu-config-${a}]} {
+                    set a "ppc"
+                }
+            }
+        } elseif {$a == "i386"} {
+            if {![file exists ${prefix}/bin/icu-config-${a}]} {
+                set a "ppc"
+            }
+        }
+        foreach {p q} [list "${prefix}/bin/icu-config-${a}" "${prefix}/bin/icu-config" \
+                            "${prefix}/lib/icu/${version}/Makefile-${a}.inc" "${prefix}/lib/icu/${version}/Makefile.inc" \
+                            "${prefix}/lib/pkgconfig/icu-i18n-${a}.pc" "${prefix}/lib/pkgconfig/icu-i18n.pc" \
+                            "${prefix}/lib/pkgconfig/icu-io-${a}.pc" "${prefix}/lib/pkgconfig/icu-io.pc" \
+                            "${prefix}/lib/pkgconfig/icu-le-${a}.pc" "${prefix}/lib/pkgconfig/icu-le.pc" \
+                            "${prefix}/lib/pkgconfig/icu-lx-${a}.pc" "${prefix}/lib/pkgconfig/icu-lx.pc" \
+                            "${prefix}/lib/pkgconfig/icu-uc-${a}.pc" "${prefix}/lib/pkgconfig/icu-uc.pc"] {
+            if {[file exists ${p}]} {
+                ln -s ${p} ${q}
+            }
+        }
+    }
+}
+
+# icu @51.2_0 and earlier also installed the following files directly, bypassing destroot:
+#   ${prefix}/lib/icu/${version}/pkgdata.inc
+# These files can be removed from the below deactivation block after August 2014.
+pre-deactivate {
+    if {[variant_isset universal]} {
+        # Ticket #23773
+        foreach f [list "${prefix}/bin/icu-config" \
+                        "${prefix}/lib/icu/${version}/Makefile.inc" \
+                        "${prefix}/lib/icu/${version}/pkgdata.inc" \
+                        "${prefix}/lib/pkgconfig/icu-i18n.pc" \
+                        "${prefix}/lib/pkgconfig/icu-io.pc" \
+                        "${prefix}/lib/pkgconfig/icu-le.pc" \
+                        "${prefix}/lib/pkgconfig/icu-lx.pc" \
+                        "${prefix}/lib/pkgconfig/icu-uc.pc"] {
+            delete ${f}
+        }
+    }
+}
+
+variant doc conflicts doxygen description {Install pre-built API documentation} {
+    depends_extract-append bin:unzip:unzip
+    extract.only        ${distname}-src${extract.suffix}
+    distfiles-append    ${distname}-docs.zip
+    checksums-append    ${distname}-docs.zip \
+                        rmd160  87f332c1c2e4c5322cd110f93e8ccb288d0303a9 \
+                        sha256  c488b3ddbb99a4a368cfc74e725d6a9e491ae6ac0169caba2197c15ffb85b7c5
+
+    post-extract {
+        xinstall -m 0755 -d ${worksrcpath}/doc
+        system "unzip -q ${distpath}/${distname}-docs.zip -d ${worksrcpath}/doc/html"
+    }
+
+    post-destroot {
+        copy ${worksrcpath}/doc/html ${destroot}${docdir}
+    }
+}
+
+variant doxygen conflicts doc universal description {Build and install API documentation} {
+    depends_build port:doxygen
+    post-build {
+        system -W ${worksrcpath} "${build.cmd} doc"
+    }
+    post-destroot {
+        system -W ${worksrcpath} "${build.cmd} install-doc DESTDIR=${destroot}"
+    }
+}
+
+platform freebsd {
+    build.env       MAKE=/usr/local/bin/gmake
+    destroot.env    MAKE=/usr/local/bin/gmake
+}
+
+platform darwin 8 {
+    patchfiles-append patch-common-putil.cpp.diff
+}
+
+livecheck.url   http://site.icu-project.org/download
+livecheck.regex {>ICU4C \((\d+(?:\.\d+)*)\)<}

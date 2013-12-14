@@ -1,0 +1,35 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           texlive 1.0
+
+name                texlive-metapost
+version             30842
+revision            0
+
+categories          tex
+maintainers         dports
+license             Copyleft Permissive
+description         TeX Live: MetaPost and Metafont packages
+long_description    MetaPost and Metafont packages
+
+checksums           texlive-metapost-30842-run.tar.xz \
+                    rmd160  12b4670e5922a6a0a0b9ddc0a30b50800d0ca943 \
+                    sha256  1a3626999ab40c5ca8316893a207531d00cf51974f54ccfc7921a3f46511c3ae \
+                    texlive-metapost-30842-doc.tar.xz \
+                    rmd160  7f37b99f10d99b4c292a024905493fa9f01859d7 \
+                    sha256  0af0bc2558d8017fafc073737327a227b5d0b7390da965f8f3558e6101cf6310 \
+                    texlive-metapost-30842-src.tar.xz \
+                    rmd160  b3809d75c0f5d1a5f0b191837c756d27a25a0a8b \
+                    sha256  508a389f06e6e7dd45bf114bc1f969cf61236afe344e9c46b28de640a11c76a8
+
+depends_lib         port:texlive-basic
+
+texlive.maps      \
+    {Map troff-updmap.map}
+
+texlive.binaries    dvitomp mfplain mpost
+
+
+texlive.texmfport

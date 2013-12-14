@@ -1,0 +1,35 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           texlive 1.0
+
+name                texlive-lang-spanish
+version             30372
+revision            0
+
+categories          tex
+maintainers         dports
+license             Copyleft Permissive
+description         TeX Live: Spanish
+long_description    Support for Spanish.
+
+checksums           texlive-lang-spanish-30372-run.tar.xz \
+                    rmd160  b1009b3c4be240e3b52664cf88cae975309100c9 \
+                    sha256  3d76e1320c93ffb6691ee13610f5b7e2401fb4d0df4f1ed05c710300a0f94ef7 \
+                    texlive-lang-spanish-30372-doc.tar.xz \
+                    rmd160  514f82ecab2f0e594f2d4810e780732d9e94e9f9 \
+                    sha256  7d8ead259ec474c7d7bd07caf27cf43a639cc8f47961705f6fadd5b1001ac773 \
+                    texlive-lang-spanish-30372-src.tar.xz \
+                    rmd160  828fff3120062b0f9dcdea3be1c21dfb46d13cb4 \
+                    sha256  bdff9141c821c269b4692f1328cda118040c73ad7b182631d289037d2ade4690
+
+depends_lib         port:texlive-basic
+
+texlive.languages      \
+    {catalan loadhyph-ca.tex 2 2 {} {hyph-ca.pat.txt} {hyph-ca.hyp.txt} {} } \
+    {galician loadhyph-gl.tex 2 2 {} {hyph-gl.pat.txt} {} {} } \
+    {spanish loadhyph-es.tex 2 2 {espanol} {hyph-es.pat.txt} {} {} }
+
+
+texlive.texmfport

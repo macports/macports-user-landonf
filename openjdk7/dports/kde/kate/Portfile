@@ -1,0 +1,35 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                kate
+version             4.11.4
+categories          kde kde4
+license             LGPL-2+
+maintainers         nicos openmaintainer
+description         Kate provides advanced editor components.
+long_description    The Kate project develops two main products: KatePart, the advanced \
+                    editor component which is used in numerous KDE applications requiring \
+                    a text editing component, and Kate, a MDI text editor application. \
+                    In addition, we provide KWrite, a simple SDI editor shell which allows \
+                    the user to select his/her favourite editor component.
+platforms           darwin
+homepage            http://kate-editor.org/
+master_sites        kde:stable/${version}/src/
+use_xz              yes
+distname            kate-${version}
+checksums           rmd160  24ffe12df0d19fa2fcf303a6325af7fab900c238 \
+                    sha256  d58605e584f65af78e86c1978a1b6cf424d569aa69b2dbf06494e4f7ac16f98c
+
+depends_lib-append  port:kdelibs4 \
+                    port:kactivities \
+                    port:qjson \
+                    port:oxygen-icons
+
+#Blacklist gcc42 and llvm-gcc-42 (does not build with gcc, ticket #37596)
+compiler.blacklist  gcc-4.2 apple-gcc-4.2 llvm-gcc-4.2 macports-llvm-gcc-4.2
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

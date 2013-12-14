@@ -1,0 +1,144 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem 1.0
+
+name                wgrib2
+version             1.9.9
+platforms           darwin
+maintainers         takeshi
+license             public-domain
+categories          science
+description         program to read atmospheric data files in GRIB2
+master_sites        ftp://ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/ \
+                    http://www.ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/
+distname            ${name}_nolib.tgz.v${version}
+extract.suffix     
+set version_iplib   2012
+set version_g2clib  1.4.0
+checksums           md5     0b2a6acfcf4e2abf55b72bbdcc06c575 \
+                    sha1    4dafc4aa7369d69c9d4039a0c6bdb6d56f381b90 \
+                    rmd160  da3351788c3b9ca6b77a3039396435c77079213c
+homepage            http://www.cpc.ncep.noaa.gov/products/wesley/wgrib2/
+long_description   \
+    wgrib2 is a swiss army knife for grib2 files. \
+    GRIB-2 has arrived and has begun replacing the the older standard GRIB-1. \
+    GRIB-2 can reduce the file size by up to 80% (NAM, JPEG2000 compression).
+
+depends_lib         port:jasper \
+                    port:libpng \
+                    port:netcdf \
+                    port:hdf5-18
+
+worksrcdir          grib2
+
+patchfiles          patch-makefile.diff ranlib.patch
+
+configure           {}
+use_parallel_build  no
+
+set ip ${worksrcpath}/iplib.${version_iplib}
+set lipolate ${ip}/libipolate.a
+set g2c ${worksrcpath}/g2clib-${version_g2clib}
+set lg2c ${g2c}/libgrib2c.a
+set gctpc ${worksrcpath}/gctpc
+set lgeo ${gctpc}/source/libgeo.a
+set fsymbol ""
+
+set gcc_versions {4.3 4.4 4.5 4.6 4.7 4.8 4.9}
+set g95_conflicts {}
+
+foreach ver ${gcc_versions} {
+    set ver_no_dot [join [split ${ver} "."] ""]
+
+    set variant_line {variant gcc${ver_no_dot} description "build iplib with gfortran from gcc${ver_no_dot}" conflicts g95}
+
+    foreach over ${gcc_versions} {
+        if {${ver} == ${over}} {
+            continue
+        }
+
+        set over_no_dot [join [split ${over} "."] ""]
+        append variant_line " conflicts gcc${over_no_dot}"
+    }
+    append variant_line { {}}
+
+    eval $variant_line
+
+    append g95_conflicts " conflicts gcc${ver_no_dot}"
+}
+
+eval [concat {variant g95 description {build iplib with g95}} $g95_conflicts {{}}]
+
+foreach ver ${gcc_versions} {
+    set ver_no_dot [join [split ${ver} "."] ""]
+
+    if {[variant_isset gcc${ver_no_dot}]} {
+        depends_lib-append path:lib/libgcc/libgcc_s.1.dylib:libgcc
+        depends_build-append port:gcc${ver_no_dot}
+
+        configure.fc  ${prefix}/bin/gfortran-mp-${ver}
+        set fsymbol -DGFORTRAN
+        set my_ver_no_dot ${ver_no_dot}
+    }
+}
+
+if {[variant_isset g95]} {
+    depends_lib-append path:lib/libgcc/libgcc_s.1.dylib:libgcc
+    depends_build-append port:g95
+
+    configure.fc ${prefix}/bin/g95
+    set fsymbol -DG95
+}
+
+if {[variant_isset universal]} {
+    set cflags "${configure.cflags} ${configure.universal_cflags}"
+    set ldflags "${configure.ldflags} ${configure.universal_ldflags}"
+} else {
+    set cflags "${configure.cflags} ${configure.cc_archflags}"
+    set ldflags "${configure.ldflags} ${configure.cc_archflags}"
+}
+
+if {${fsymbol} != ""} {
+    set iip "-I${ip}"
+    set libs "${lg2c} ${lgeo} ${lipolate}"
+} else {
+    set iip ""
+    set libs "${lg2c} ${lgeo}"
+}
+if {${fsymbol} == "-DGFORTRAN"} {
+    set libs "${libs} -L${prefix}/lib/gcc${my_ver_no_dot} -lgfortran"
+} elseif {${fsymbol} == "-DG95"} {
+    set libs "${libs} -lf95"
+}
+build.env           LDFLAGS=\"${libs} ${configure.ldflags} -lpng -ljasper -lnetcdf\" \
+                    CC=\"${configure.cc}\" \
+                    CPPFLAGS=\"${fsymbol} ${configure.cppflags}\" \
+                    CFLAGS=\"${cflags}\"
+build.args         "-f makefile \
+                    zlib=\"\" plib=\"\" jlib=\"\" h5lib=\"\" n4lib=\"\" \
+                    iip=\"${iip}\" "
+if {${fsymbol} != ""} {
+    build.args-append   USE_IPOLATES=1
+    build.env-append    FC=\"${configure.fc}\" \
+                        F90=\"${configure.fc}\" \
+                        FFLAGS=\"${configure.fflags}\"
+}
+if {${fsymbol} != "-DGFORTRAN"} {
+    build.args-append   USE_OPENMP=1
+}
+
+destroot {
+    xinstall -m 644 ${g2c}/grib2.h ${destroot}${prefix}/include
+    xinstall -m 644 ${lg2c} ${destroot}${prefix}/lib
+    xinstall -m 755 ${worksrcpath}/${name}/${name} ${destroot}${prefix}/bin
+    foreach b {gmerge smallest_4 smallest_grib2} {
+        xinstall -m 755 ${worksrcpath}/aux_progs/${b} ${destroot}${prefix}/bin
+    }
+    if {[file exist ${lipolate}]} {
+        system "ranlib ${ip}/libipolate.a" 
+        xinstall -m 644 ${lipolate} ${destroot}${prefix}/lib
+        xinstall -d -m 755 ${destroot}${prefix}/share/doc/${name}
+        xinstall -m 644 ${worksrcpath}/README.ipolates ${destroot}${prefix}/share/doc/${name}
+    }
+}

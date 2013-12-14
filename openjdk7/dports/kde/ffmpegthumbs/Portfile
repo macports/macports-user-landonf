@@ -1,0 +1,38 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                ffmpegthumbs
+version             4.11.4
+categories          kde kde4
+maintainers         nicos openmaintainer
+license             GPL-2+
+description         Ffmpeg-based thumbnail creator for video files.
+long_description    ${description}
+homepage            http://www.kde.org
+platforms           darwin
+master_sites        kde:stable/${version}/src/
+use_xz              yes
+checksums           rmd160  d2c24e67bb506942e16be4e739b82d8e19512687 \
+                    sha256  d6d0587eaacec8f10a98b7a8cb5e56de993aacf2a115454830fa6a30a509b99c
+
+#Binaries do not link to openssl, nor use the ssl backend of kdelibs4
+license_noconflict  openssl
+
+depends_lib-append  port:kdelibs4 \
+                    path:lib/libavcodec.dylib:ffmpeg
+
+pre-activate {
+    #Deactivate hack for when kdemultimedia4 port has been fragmented into small ports
+    if {[file exists ${prefix}/lib/kde4/ffmpegthumbs.so] 
+        && ![catch {set vers [lindex [registry_active kdemultimedia4] 0]}] 
+        && [rpm-vercomp [lindex $vers 1] 4.9.3] < 0} {
+            registry_deactivate_composite kdemultimedia4 "" [list ports_nodepcheck 1] 
+    } 
+}
+
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable
+livecheck.regex     (\\d+(\\.\\d+)+)

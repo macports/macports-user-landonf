@@ -1,0 +1,36 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                libkcompactdisc
+version             4.11.4
+categories          kde kde4
+maintainers         nicos openmaintainer
+license             GPL-2+ LGPL-2+
+description         Multi-plaform CD-Player library.
+long_description    ${description}
+homepage            http://www.kde.org
+platforms           darwin
+master_sites        kde:stable/${version}/src/
+use_xz              yes
+checksums           rmd160  f5657ee7fab21920929ec90c0ad5fe2ca838445b \
+                    sha256  3a1f4dc9b1b4887933f9666aeeec24656a05a3868712acf6350dfbb89f5cdca2
+
+#Binaries do not link to openssl, nor use the ssl backend of kdelibs4
+license_noconflict  openssl
+
+depends_lib-append  port:kdelibs4
+
+pre-activate {
+    #Deactivate hack for when kdemultimedia4 port has been fragmented into small ports
+    if {[file exists ${prefix}/include/libkcompactdisc/kcompactdisc.h] 
+        && ![catch {set vers [lindex [registry_active kdemultimedia4] 0]}] 
+        && [rpm-vercomp [lindex $vers 1] 4.9.3] < 0} {
+            registry_deactivate_composite kdemultimedia4 "" [list ports_nodepcheck 1] 
+    } 
+}
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

@@ -1,0 +1,29 @@
+# $Id$
+
+PortSystem 1.0
+
+name			ocilib
+version			3.11.1
+revision            1
+categories		databases devel
+platforms		darwin
+maintainers		pvanek openmaintainer
+description		Oracle OCI C wrapper
+license                 LGPL
+long_description	OCILIB is an open source and cross platform Oracle Driver that delivers efficient access to Oracle databases.
+
+homepage		http://orclib.sourceforge.net/
+master_sites		sourceforge:project/orclib/OCILIB%20Sources/${version}
+distname                ${name}-${version}-gnu
+worksrcdir              ${name}-${version}
+
+checksums           md5     4efda50769a5e5621e2e9d433936602e \
+                    sha1    389786aae6d78d859d143970fe3dcdceeeedb683 \
+                    rmd160  7571d269c0aa203d7c5b17002510a048a255d361
+
+configure.args-append  --with-oracle-headers-path=${prefix}/lib/oracle/sdk/include/ \
+                       --with-oracle-lib-path=${prefix}/lib/oracle/
+
+depends_lib-append      port:oracle-instantclient
+
+livecheck.regex     /${name}-(\[0-9.\]+)-gnu${extract.suffix}

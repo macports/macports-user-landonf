@@ -1,0 +1,64 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                latexmk
+version             4.39
+categories          tex print
+platforms           darwin
+maintainers         cal openmaintainer
+supported_archs     noarch
+license             GPL-2+
+
+description         Automates the process of generating a LaTeX document
+long_description \
+    Latexmk completely automates the process of generating a LaTeX document. \
+    Essentially, it is a highly specialized cousin of the general make       \
+    utility.  Given the source files for a document, latexmk issues the      \
+    appropriate sequence of commands to generate a .dvi, .ps, .pdf or        \
+    hardcopy version of the document.  It can also be set to run             \
+    continuously with a previewer\; the latex program, etc, are rerun        \
+    whenever one of the source files is modified.
+
+homepage            http://www.phys.psu.edu/~collins/software/latexmk-jcc/
+master_sites        ${homepage}
+distname            ${name}-[string map {. ""} $version]
+# stealth update, #41717
+dist_subdir         ${name}/${version}_1
+extract.mkdir       yes
+# latexmk 4.33c contains example_rcfiles/Sweave_latexmkrc and
+# example_rcfiles/sweave_latexmkrc, which leads to problems on case-insensitive
+# systems.
+# We can't use_zip yes, because that prevents passing any parameters to the
+# extract command :(
+
+# use_zip yes
+extract.cmd         unzip
+extract.suffix      .zip
+extract.pre_args    -qo
+extract.post_args   "-d ${worksrcpath}"
+
+checksums           rmd160  b53599a90330b891c2a48d625c10ab137a737e0c \
+                    sha256  b69a5665a366f1dfea01ea21a78923128e98e01b82101b8530de32aa881a07d8
+
+depends_run         bin:latex:texlive-latex
+
+use_configure       no
+build               {}
+
+destroot {
+    set bindir ${destroot}${prefix}/bin
+    file mkdir ${bindir}
+    xinstall -m 755 -v ${worksrcpath}/${name}.pl ${bindir}/${name}
+    set mandir ${destroot}${prefix}/share/man/man1
+    file mkdir ${mandir}
+    xinstall -m 644 -v ${worksrcpath}/${name}.1 ${mandir}
+    set docdir ${destroot}${prefix}/share/doc/${name}
+    file mkdir ${docdir}
+    xinstall -m 644 -v -W ${worksrcpath} \
+        CHANGES COPYING README ${name}.pdf ${name}.txt ${docdir}
+}
+
+livecheck.type      regex
+livecheck.regex     "(\[0-9a-z.\]+) dated"

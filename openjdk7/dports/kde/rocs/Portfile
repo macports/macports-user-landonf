@@ -1,0 +1,53 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                rocs
+version             4.11.4
+categories          kde kde4
+maintainers         nicos
+license             GPL-2+ LGPL-2.1 GFDL-1.2
+description         Graph Theory IDE
+long_description    KDE ${description}
+homepage            http://www.kde.org
+
+platforms           darwin
+depends_lib-append  port:boost port:libkdeedu
+
+master_sites        kde:stable/${version}/src/
+use_xz              yes
+
+checksums           rmd160  74e509c391102bda46d4a1f7ae4409d1ef65fa12 \
+                    sha256  e5477f4ded2b8189a6d8f857891fa4495ff5ecd8040d18e98a0e053cbf65c909
+
+#Binaries do not link to openssl, nor use the ssl backend of kdelibs4
+license_noconflict  openssl
+
+if {![variant_isset docs]} {
+    patchfiles-append   patch-CMakeLists.txt.diff
+}
+
+#Forcing depth to avoid error in Clang Xcode 5:
+#recursive template instantiation exceeded maximum depth of 128
+configure.cxxflags-append   -ftemplate-depth-1024
+
+pre-build {
+    # Add missing object files manually. (Should be in librocscore, but does not link)
+    reinplace "s|librocsvisualeditor.4.dylib|librocsvisualeditor.4.dylib ../RocsCore/CMakeFiles/rocscore.dir/Modifiers/ValueModifier.cpp.o|g" \
+        ${workpath}/build/VisualEditor/CMakeFiles/rocsvisualeditor.dir/link.txt
+    reinplace "s|rocs_assignvaluesplugin.so|rocs_assignvaluesplugin.so ../../../RocsCore/CMakeFiles/rocscore.dir/Modifiers/ValueModifier.cpp.o|g" \
+        ${workpath}/build/VisualEditor/Tools/AssignValues/CMakeFiles/rocs_assignvaluesplugin.dir/link.txt
+}
+
+post-destroot {
+    system "install_name_tool -id ${prefix}/lib/kde4/rocs_GraphStructure.dylib ${destroot}${prefix}/lib/kde4/rocs_GraphStructure.dylib"
+    system "install_name_tool -change ${prefix}/lib/rocs_GraphStructure.dylib ${prefix}/lib/kde4/rocs_GraphStructure.dylib ${destroot}${prefix}/lib/kde4/rocs_transformedgesplugin.so"
+    system "install_name_tool -change ${prefix}/lib/rocs_GraphStructure.dylib ${prefix}/lib/kde4/rocs_GraphStructure.dylib ${destroot}${prefix}/lib/kde4/rocs_dotfileformat.so"
+    system "install_name_tool -change ${prefix}/lib/rocs_GraphStructure.dylib ${prefix}/lib/kde4/rocs_GraphStructure.dylib ${destroot}${prefix}/lib/kde4/rocs_gmlfileformat.so"
+    system "install_name_tool -change ${prefix}/lib/rocs_GraphStructure.dylib ${prefix}/lib/kde4/rocs_GraphStructure.dylib ${destroot}${prefix}/lib/kde4/rocs_kmlfileformat.so" 
+}
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

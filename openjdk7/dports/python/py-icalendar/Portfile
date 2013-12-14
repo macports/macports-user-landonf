@@ -1,0 +1,44 @@
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+PortGroup           github 1.0
+
+github.setup        collective icalendar 3.5
+name                py-icalendar
+set realname        icalendar
+categories          python
+maintainers         deric
+platforms           darwin
+license             BSD
+description         The iCalendar package is a parser/generator of RFC 2445 \
+                    iCalendar files.
+long_description    The inspiration has come from the email package in the \
+                    standard lib, which I think is pretty simple, yet \
+                    efficient and powerful. The package can both generate \
+                    and parse iCalendar files, and can easily be used as is. \
+                    The aim is to make a package that is fully compliant to \
+                    RFC 2445, well designed, simple to use and well documented.
+                    
+homepage            http://icalendar.readthedocs.org/
+checksums           rmd160  93bd33228a499b9a7501ca07478625017b51d5ab \
+                    sha256  a999c18df1ba0af8146044ae43583a3f6d106651134e01649218017ee6a319bc
+
+python.versions 26 27
+python.default_version 27
+
+if {${name} ne ${subport}} {
+    depends_build-append    port:py${python.version}-setuptools
+    depends_lib-append      port:py${python.version}-tz \
+                            port:py${python.version}-dateutil
+    
+    post-destroot {
+        # install docs
+        xinstall -m 644 -W ${worksrcpath}/docs about.rst examples.rst install.rst license.rst changelog.rst credits.rst \
+        ${destroot}${prefix}/share/doc/${subport}
+    }
+}
+
+livecheck.type      regex
+livecheck.url       https://pypi.python.org/pypi/${realname}
+livecheck.regex     "${realname} (\\d+(?:\\.\\d+)*)"

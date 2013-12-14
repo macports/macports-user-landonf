@@ -1,0 +1,35 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                kig
+version             4.11.4
+categories          kde kde4
+maintainers         nicos
+license             GPL-2+ GFDL-1.2
+description         Interactive Geometry
+long_description    KDE ${description}
+homepage            http://www.kde.org
+
+platforms           darwin
+
+master_sites        kde:stable/${version}/src/
+use_xz              yes
+
+checksums           rmd160  c43a3fe8fa2036b1159fbeb09c3960d1bcc49f5d \
+                    sha256  97b6c19ebd9678450e752ad0dca0f5f7d1aa7a474ee58ff5c559551cb2e8c8f9
+
+#Binaries do not link to openssl, nor use the ssl backend of kdelibs4
+license_noconflict  openssl
+
+depends_lib-append  port:libkdeedu \
+                    port:boost
+
+if {![variant_isset docs]} {
+    patchfiles-append   patch-CMakeLists.txt.diff
+}
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

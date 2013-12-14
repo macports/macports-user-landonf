@@ -1,0 +1,70 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           texlive 1.0
+
+name                texlive-basic
+version             30847
+revision            0
+
+categories          tex
+maintainers         dports
+license             Copyleft Permissive
+description         TeX Live: Essential programs and files
+long_description    These files are regarded as basic for any TeX system, covering plain TeX macros, Computer Modern fonts, and configuration for common drivers\; no LaTeX.
+
+checksums           texlive-basic-30847-run.tar.xz \
+                    rmd160  3338209a8fa58026766abbeb3e3d874747a9bf6e \
+                    sha256  55261fb01fbb0cb1753000cf75312e1d3f51361f50086bece89f2f7f4b920686 \
+                    texlive-basic-30847-doc.tar.xz \
+                    rmd160  6ef9062951043bf8edd73ff901a3539b1b1fda15 \
+                    sha256  44baa37b52832f9f4cd2fd2f0bc4425692b1066181f490e9692147bfb1a875d1 \
+                    texlive-basic-30847-src.tar.xz \
+                    rmd160  83b0f4df4e678f97aa4f395bec48ac99d649d2b5 \
+                    sha256  59d054dcabc14a23dddf41e057aef0c321bd749f2d1a315143696da859d1cf04
+
+texlive.formats      \
+    {1 luatex luatex language.def,language.dat.lua {luatex.ini}} \
+    {1 dviluatex luatex language.def,language.dat.lua {dviluatex.ini}} \
+    {1 mf mf-nowin - {-translate-file=cp227.tcx mf.ini}} \
+    {1 pdftex pdftex language.def {-translate-file=cp227.tcx *pdfetex.ini}} \
+    {1 etex pdftex language.def {-translate-file=cp227.tcx *etex.ini}} \
+    {1 pdfetex pdftex language.def {-translate-file=cp227.tcx *pdfetex.ini}} \
+    {1 tex tex - {tex.ini}}
+
+texlive.maps      \
+    {MixedMap cm.map} \
+    {MixedMap cmextra.map} \
+    {MixedMap cyrillic.map} \
+    {Map euler.map} \
+    {MixedMap latxfont.map} \
+    {MixedMap symbols.map} \
+    {MixedMap cmtext-bsr-interpolated.map} \
+    {MixedMap mflogo.map} \
+    {Map mathpple.map}
+
+texlive.binaries    afm2tfm allcm allec allneeded bibtex dvi2fax dviluatex dvipdfm dvipdfmx dvipdft dvips dvired ebb etex extractbb fmtutil fmtutil-sys gftodvi gftopk gftype gsftopk inimf initex kpseaccess kpsepath kpsereadlink kpsestat kpsetool kpsewhere kpsewhich kpsexpand luatex makeindex mf mf-nowin mft mkindex mkocp mkofm mktexfmt mktexlsr mktexmf mktexpk mktextfm pdfetex pdftex pktogf pktype simpdftex tex texconfig texconfig-dialog texconfig-sys texhash texlinks texlua texluac updmap updmap-sys xdvi
+
+texlive.exclude     texmf-dist/web2c/fmtutil.cnf \
+                    texmf-dist/web2c/texmf.cnf \
+                    texmf-dist/web2c/texmfcnf.lua \
+                    texmf-dist/web2c/updmap.cfg \
+                    texmf-dist/web2c/updmap.cfg \
+                    texmf-dist/tex/generic/config/language.dat \
+                    texmf-dist/tex/generic/config/language.dat.lua \
+                    texmf-dist/tex/generic/config/language.def \
+                    texmf-dist/fonts/map/dvipdfm/updmap \
+                    texmf-dist/fonts/map/dvips/updmap \
+                    texmf-dist/fonts/map/pdftex/updmap \
+                    tlpkg/tlpostcode/dvipdfmx.pl \
+                    doc.html
+
+patchfiles          patch-runfiles_texmf-dist_dvipdfmx_dvipdfmx.cfg.diff \
+                    patch-runfiles_texmf-dist_scripts_texlive_updmap-sys.sh.diff
+
+
+texlive.forceupdatecnf yes
+texlive.use_mktexlsr_on_deactivate no
+
+texlive.texmfport

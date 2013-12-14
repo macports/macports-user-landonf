@@ -1,0 +1,28 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           perl5 1.0
+
+perl5.branches      5.8 5.10 5.12 5.14 5.16
+perl5.setup         Wx 0.9922
+
+platforms           darwin
+maintainers         nomaintainer
+license             {Artistic-1 GPL}
+
+description         interface to the wxWidgets GUI toolkit
+
+long_description    ${description}
+
+checksums           rmd160  98c987443c218ea949c25dce0d13123c2b370191 \
+                    sha256  dc298d4c6916c7a62fa9577116de1ae8e53ff4e42afd6b9858247ae6dc66a387
+
+if {${perl5.major} != ""} {
+    depends_build-append \
+                        port:p${perl5.major}-extutils-xspp
+    
+    depends_lib-append  port:p${perl5.major}-alien-wxwidgets
+
+    configure.args      installdirs=vendor
+}

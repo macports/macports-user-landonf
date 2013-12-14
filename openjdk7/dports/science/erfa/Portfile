@@ -1,0 +1,22 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem              1.0
+PortGroup               github 1.0
+
+github.setup            liberfa erfa 1.0.1 v
+categories              science
+maintainers             robitaille openmaintainer
+license                 BSD
+platforms               darwin
+
+description             Essential Routines for Fundamental Astronomy
+
+long_description        Essential Routines for Fundamental Astronomy
+
+# Remove this line when the port is updated to the next version.
+master_sites            ${github.homepage}/releases/download/${github.tag_prefix}${github.version}
+
+checksums               md5 35d8cf096313ed4500349aab04e8ae07 \
+                        rmd160  c1eba35a70cd5416157c960b2e468ea25aae60be \
+                        sha256  c60b763fefe7158e7cf55f4290d78c93566a6a536f8296e7d54f4c7ad7fc96da

@@ -1,0 +1,93 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            gnome-control-center
+version         3.8.5
+set branch      [join [lrange [split ${version} .] 0 1] .]
+description     GNOME's main interface for configuration of the various \
+                aspects of your desktop.
+long_description ${description}
+maintainers     devans openmaintainer
+categories      gnome
+license         GPL-2+
+platforms       darwin
+homepage        http://www.gnome.org/
+master_sites    gnome:sources/${name}/${branch}/
+
+use_xz          yes
+
+checksums       rmd160  4eca6dc99a251e901f57cabd9d8a5cb752b23e1e \
+                sha256  efb9fb47aaa9a308aed3064efc39356db05d71ddb0374561eeccc57c122212e2
+
+depends_build   port:pkgconfig \
+                port:intltool \
+                port:libxslt \
+                port:gnome-common \
+                port:gtk-doc
+
+depends_lib     port:desktop-file-utils \
+                port:gtk3 \
+                port:gsettings-desktop-schemas \
+                port:gnome-desktop \
+                port:fontconfig \
+                port:policykit \
+                port:libxml2 \
+                port:upower \
+                port:libgtop \
+                port:gnome-settings-daemon \
+                port:gnome-menus \
+                port:gnome-online-accounts \
+                port:accountsservice \
+                port:libcanberra \
+                port:pulseaudio \
+                port:libpwquality \
+                port:kerberos5 \
+                port:libsocialweb \
+                port:shared-mime-info \
+                port:xorg-libX11 \
+                port:xorg-libXxf86misc \
+                port:xorg-libXi
+
+depends_run     port:yelp
+
+# color panel disabled by patch, dependency colord requires libudev
+
+patchfiles      patch-disable-color-panel.diff \
+                patch-disable-shell-test-hostname.diff \
+                patch-panels-user-accounts.diff
+
+use_autoreconf  yes
+autoreconf.args -fvi
+
+configure.args  --x-includes=${prefix}/include \
+                --x-libraries=${prefix}/lib \
+                --with-libsocialweb \
+                --without-cheese \
+                --disable-ibus \
+                --disable-maintainer-mode \
+                --disable-update-mimedb \
+                --disable-silent-rules
+
+pre-activate {
+    if {![catch {set installed [lindex [registry_active gdm] 0]}]} {
+        set _version [lindex $installed 1]
+        if {[vercmp $_version 3.0.0] < 0} {
+            registry_deactivate_composite gdm "" [list ports_nodepcheck 1]
+        }
+    }
+    if {![catch {set installed [lindex [registry_active gnome-media] 0]}]} {
+        set _version [lindex $installed 1]
+        if {[vercmp $_version 3.10.0] < 0} {
+            registry_deactivate_composite gnome-media "" [list ports_nodepcheck 1]
+        }
+    }
+}
+
+post-activate   {
+    system "${prefix}/bin/update-desktop-database ${prefix}/share/applications"
+    system "${prefix}/bin/gtk-update-icon-cache-3.0 -f -t ${prefix}/share/icons/hicolor"
+}
+
+livecheck.type  gnome

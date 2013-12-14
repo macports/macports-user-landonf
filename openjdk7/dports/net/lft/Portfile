@@ -1,0 +1,44 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem    1.0
+
+name          lft
+version       3.35
+categories    net security
+maintainers   victor
+description   Layer Four Traceroute - advanced traceroute tool
+long_description LFT, short for Layer Four Traceroute, is a \
+    sort of 'traceroute' that often works much \
+    faster (than the commonly-used Van Jacobson \
+    method) and goes through many configurations \
+    of firewalls. More importantly, LFT \
+    implements numerous other features including \
+    firewall detection and identification, load \
+    balancer detection, AS number lookups, \
+    loose source routing, netblock name lookups,\
+    et al.  Also includes whob, a prefix whois client.
+license       Copyleft
+homepage      http://pwhois.org/lft
+platforms     darwin
+master_sites  http://pwhois.org/get/
+
+checksums     md5 38af19e2ed12ef722a364125a49a46e3\
+              sha1 b6c6fb51f423c5398ca649b2e8cbcbe597afff23\
+              rmd160 60ec1d3429cec19a9b7762fe7b52bff4bc037040
+
+depends_lib   port:libpcap
+
+configure.args    --mandir=\\\${prefix}/share/man
+
+destroot.destdir  prefix=${destroot}${prefix}
+
+variant universal description {Build universal binary} {
+    configure.args-append \
+            --enable-universal
+}
+
+variant gtod description {Use gettimeofday() instead of PCAP arrival time for latency metrics} {
+    configure.args-append \
+            --enable-gtod
+}

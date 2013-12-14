@@ -1,0 +1,62 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                phpbb
+version             3.0.12
+categories          www php
+platforms           darwin freebsd
+maintainers         snc openmaintainer
+license             {GPL-2 GPL-3}
+
+description         A PHP-based bulletin board / discussion forum system
+
+long_description    phpBB is a high powered, fully scalable, and highly \
+                    customisable open-source bulletin board package.  phpBB \
+                    has a user-friendly interface, simple and straightforward \
+                    administration panel, and helpful FAQ.  Based on the \
+                    powerful PHP server language and your choice of MySQL, \
+                    MS-SQL, PostgreSQL or Access/ODBC database servers, phpBB \
+                    is the ideal free community solution for all web sites.
+
+installs_libs       no
+
+depends_run         port:php5-web \
+                    port:php5-ftp \
+                    port:php5-imagick \
+                    port:php5-gd
+
+homepage            http://www.phpbb.com/
+master_sites        https://www.phpbb.com/files/release
+distname            phpBB-${version}
+use_bzip2           yes
+
+checksums           rmd160  7971b3dc1791a496851d2e90a2aa1b6317bea4d1 \
+                    sha256  14f216807063017a0110c6b36f1e4c0131e0ba4c42322ec6be77392059a197a8
+
+variant mysql description {add convenient runtime dependency on mysql5} {
+    depends_run-append  port:php5-mysql
+}
+
+variant postgresql description {add convenient runtime dependency on postgresql} {
+    depends_run-append  port:php5-postgresql
+}
+
+set docpath         ${destroot}${prefix}/www/data
+set worksrcpath     ${workpath}/phpBB3
+
+use_configure       no
+
+build               {}
+
+destroot {
+    xinstall -d -m 0755 ${docpath}/phpbb
+    eval file copy [glob ${worksrcpath}/*] ${docpath}/phpbb
+    file rename ${docpath}/phpbb/config.php \
+        ${docpath}/phpbb/config.php-dist
+}
+
+livecheck.type      regex
+livecheck.url       http://www.phpbb.com/
+livecheck.regex     version">(\\d+(\\.\\d+)+(-PL\\d+)?)

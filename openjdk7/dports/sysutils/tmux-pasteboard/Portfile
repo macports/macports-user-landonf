@@ -1,0 +1,43 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup   github  1.0
+
+github.setup        ChrisJohnsen tmux-MacOSX-pasteboard 2.2 v
+name                tmux-pasteboard
+license             BSD
+categories          sysutils
+maintainers         nomaintainer
+platforms           darwin
+description         Wrapper to use pasteboard services in tmux
+long_description    ${description}
+
+checksums           rmd160  ed170b404570dd4e18be5da61e086219d6194202 \
+                    sha256  93c23cda9544838f1a286236442740581874a9c96fd04f04dc17671a8b5d7ad7
+
+use_configure       no
+
+variant universal {}
+
+depends_run         port:tmux
+
+build.args          ARCHES="[get_canonical_archs]"
+
+build.env           CC="${configure.cc}" \
+                    CFLAGS="-I${prefix}/include" \
+                    LDFLAGS="-L${prefix}/lib"
+
+build.target        reattach-to-user-namespace
+
+destroot {
+    xinstall -m 755 ${worksrcpath}/reattach-to-user-namespace ${destroot}${prefix}/bin/
+}
+
+notes \
+"To enable tmux-MacOSX-pasteboard add the following line to ~/.tmux.conf replacing 'bash' with your actual shell:
+    set-option -g default-command \"${prefix}/bin/reattach-to-user-namespace bash\"" \
+"You can then copy last tmux buffer into system general pasteboard using:
+    tmux save-buffer - | pbcopy" \
+"or define a handier alias for it"
+

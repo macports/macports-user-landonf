@@ -1,0 +1,46 @@
+# $Id$
+
+PortSystem          1.0
+
+name                scummvm
+version             1.6.0
+platforms           darwin
+categories          emulators games
+maintainers         mww openmaintainer
+license             {GPL-2 BSD}
+description         cross-platform interpreter for several adventure engines
+long_description    \
+    ScummVM is a cross-platform interpreter for several point-and-click \
+    adventure engines. This includes all SCUMM-based adventures by LucasArts, \
+    Simon the Sorcerer by AdventureSoft, and Beneath a Steel Sky and Broken \
+    Sword 2 by Revolution.
+
+homepage            http://scummvm.org/
+master_sites        sourceforge:project/${name}/${name}/${version}
+use_bzip2           yes
+checksums           sha256  396060da6a8f391438055c292a280048d29dc408c5b615db43256a86f0e57ec4 \
+                    rmd160  503f9df623b7dbfa71466ed5c15bfa0c8c5d898d
+
+depends_lib         port:libsdl \
+                    port:libmad \
+                    port:libogg \
+                    port:libvorbis \
+                    port:libpng \
+                    port:flac
+
+configure.args      --with-sdl-prefix=${prefix} \
+                    --with-mad-prefix=${prefix} \
+                    --with-ogg-prefix=${prefix} \
+                    --with-vorbis-prefix=${prefix} \
+                    --with-flac-prefix=${prefix} \
+                    --with-zlib-prefix=${prefix} \
+                    --with-png-prefix=${prefix} \
+                    --enable-release \
+                    --enable-verbose-build
+
+configure.universal_args-delete --disable-dependency-tracking
+
+platform darwin {
+    destroot.args   INSTALL=/usr/bin/install
+}
+

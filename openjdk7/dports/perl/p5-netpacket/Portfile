@@ -1,0 +1,27 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           perl5 1.0
+
+perl5.branches      5.8 5.10 5.12 5.14 5.16
+perl5.setup         NetPacket 1.4.4 ../by-authors/id/Y/YA/YANICK/
+platforms           darwin
+maintainers         di.uminho.pt:jpo openmaintainer
+license             Artistic-2
+
+description         Modules to assemble/disassemble network packets at the protocol level
+
+long_description    NetPacket provides a base class for a cluster of modules \
+                    related to decoding and encoding of network protocols. Each \
+                    NetPacket descendent module knows how to encode and decode \
+                    packets for the network protocol it implements.
+
+checksums           rmd160 de42df043790b927d13e3895be05c06ba492d01f \
+                    sha256 70a2c5e28de54fc8422c3cedaeb24e7d4d71e2519dba6084460f3490e9d2f534
+
+if {${perl5.major} != ""} {
+perl5.use_module_build
+
+supported_archs noarch
+}

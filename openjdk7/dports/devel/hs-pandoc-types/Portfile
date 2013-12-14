@@ -1,0 +1,22 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           haskell 1.0
+
+haskell.setup       pandoc-types 1.12.3
+revision            2
+checksums           rmd160  04df3d7e32cd10cc060766ffe8bfcf0bea0d5bd8 \
+                    sha256  125825a795dc0cb2b6ffbe46789e60d62a42ba2eb0f07e544b5c39612fbd8ece
+
+maintainers         nomaintainer
+platforms           darwin
+license             GPL-2+
+
+description         Types for representing a structured document
+long_description    \
+    This package contains definitions for the Pandoc data structure, which is \
+    used by pandoc to represent structured documents.
+
+depends_lib-append  port:hs-aeson \
+                    port:hs-syb

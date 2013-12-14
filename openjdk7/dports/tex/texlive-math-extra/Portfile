@@ -1,0 +1,39 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           texlive 1.0
+
+name                texlive-math-extra
+version             30747
+revision            0
+
+categories          tex
+maintainers         dports
+license             Copyleft Permissive
+description         TeX Live: Mathematics packages
+long_description    Mathematics packages
+
+checksums           texlive-math-extra-30747-run.tar.xz \
+                    rmd160  e1412e89ec89132632cb9bce95364015f7bb83ac \
+                    sha256  c5ec2eafc7dada62288de303e9acd66787dac8711a3284ddf3eac6c481bee025 \
+                    texlive-math-extra-30747-doc.tar.xz \
+                    rmd160  0a46fbd7a346f6360c2dae20a6cfda5220043e02 \
+                    sha256  901b47a030cadf9c3ce1c75ccf66f4d49d2671cf0de7e4b8675d6d8998dceb78 \
+                    texlive-math-extra-30747-src.tar.xz \
+                    rmd160  0aeda398f9aea80e9c47a5ee08a3446de775a487 \
+                    sha256  c712d79396d11777a108b3bcea5cc52437e50b986db71ad13f14fe52adac0558
+
+depends_lib         port:texlive-fonts-recommended port:texlive-latex
+
+texlive.formats      \
+    {1 amstex pdftex - {-translate-file=cp227.tcx *amstex.ini}}
+
+texlive.maps      \
+    {MixedMap stmaryrd.map} \
+    {MixedMap yhmath.map}
+
+texlive.binaries    amstex
+
+
+texlive.texmfport

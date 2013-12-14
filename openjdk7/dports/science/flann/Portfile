@@ -1,0 +1,87 @@
+# $Id$
+
+PortSystem 1.0
+PortGroup cmake 1.0
+
+name                flann
+version             1.8.4
+revision            3
+categories          science devel
+maintainers         mmoll
+description         Fast Library for Approximate Nearest Neighbors
+long_description    FLANN is a library for performing fast approximate \
+                    nearest neighbor searches in high dimensional spaces. \
+                    It contains a collection of algorithms we found to \
+                    work best for nearest neighbor search and a system \
+                    for automatically choosing the best algorithm and \
+                    optimum parameters depending on the dataset.
+homepage            http://www.cs.ubc.ca/research/flann/
+platforms           darwin
+license             BSD
+master_sites        http://www.cs.ubc.ca/research/flann/uploads/FLANN/
+distname            ${name}-${version}-src
+use_zip             yes
+extract.mkdir       yes
+checksums           md5     a0ecd46be2ee11a68d2a7d9c6b4ce701 \
+                    sha1    e03d9d458757f70f6af1d330ff453e3621550a4f \
+                    rmd160  2f067dbe1ad583188a0ef587a13cc3e6179d88b6
+depends_lib         port:hdf5-18
+patchfiles          patch-src-python-CMakeLists.txt.diff patch-CMakeLists.txt.diff
+patch.dir           ${worksrcpath}/${worksrcdir}
+
+# MPI support is automatically disabled if hdf5-18 is installed without the +openmpi variant
+configure.args-append ${distname} -DBUILD_MATLAB_BINDINGS=OFF -DUSE_MPI=ON -DBUILD_CUDA_LIB=OFF \
+                    -DMPIEXEC=${prefix}/lib/openmpi/bin/mpiexec \
+                    -DMPI_COMPILER=${prefix}/lib/openmpi/bin/mpic++
+
+set pythons_suffixes {26 27 31 32 33}
+
+set pythons_ports {}
+foreach s ${pythons_suffixes} {
+    lappend pythons_ports python${s}
+}
+
+proc python_dir {} {
+    global pythons_suffixes
+    foreach s ${pythons_suffixes} {
+        if {[variant_isset python${s}]} {
+            set p python[string index ${s} 0].[string index ${s} 1]
+            return [file normalize [exec ${p} -c "import sys; print(sys.prefix)"]/lib/${p}]
+        }
+    }
+    error "Python support not enabled."
+}
+
+foreach s ${pythons_suffixes} {
+    set p python${s}
+    set v [string index ${s} 0].[string index ${s} 1]
+    set i [lsearch -exact ${pythons_ports} ${p}]
+    set c [lreplace ${pythons_ports} ${i} ${i}]
+    eval [subst {
+        variant ${p} description "Use Python ${v} for python bindings" conflicts ${c} {
+            depends_lib-append      port:${p}
+            configure.args-append   -DPYTHON_EXECUTABLE=${prefix}/bin/python${v}
+            post-patch {
+                reinplace "s|@@PREFIX@@|${destroot}${prefix}|g" ${patch.dir}/src/python/CMakeLists.txt
+                set pylibdir \[python_dir\]
+                reinplace "s|@@PYTHON_LIB@@|${destroot}\${pylibdir}|g" ${patch.dir}/src/python/CMakeLists.txt
+            }
+        }
+    }]
+}
+
+variant cuda description {Enable CUDA support} {
+    configure.args-delete -DBUILD_CUDA_LIB=OFF
+    configure.args-append -DBUILD_CUDA_LIB=ON
+    # As of cmake 2.8.10, the host compiler used is passed on to nvcc.
+    # Nvcc (at least versions 4.2 and 5.0) calls clang with the argument
+    # "-dumpspecs" which is a gcc-ism. To avoid this problem force
+    # llvm-gcc-4.2 to be the host compiler
+    if {[string match "*clang*" ${configure.compiler}]} {
+        configure.args-append -DCUDA_HOST_COMPILER=/usr/bin/llvm-gcc-4.2
+    }
+}
+
+livecheck.type      regex
+livecheck.url       ${homepage}
+livecheck.regex     Version (\[0-9.\]+)

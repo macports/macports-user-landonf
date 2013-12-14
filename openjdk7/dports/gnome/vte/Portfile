@@ -1,0 +1,56 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                vte
+version             0.34.9
+set branch          [join [lrange [split $version .] 0 1] .]
+maintainers         nomaintainer
+categories          gnome
+license             LGPL
+platforms           darwin
+description         VTE is a library (libvte) implementing a terminal emulator widget for GTK+, \
+                    and a minimal sample application (vte) using that.
+
+long_description    ${description} \
+                    Vte is mainly used in gnome-terminal, but can also be used to embed a \
+                    console/terminal in games, editors, IDEs, etc.
+
+homepage            http://www.gnome.org/
+master_sites        gnome:sources/$name/$branch/
+
+use_xz              yes
+
+checksums           rmd160  7582451ff61a1cc7005433fc92942fb1974013c2 \
+                    sha256  6f38c5edf57d0a5b870c4e5e210731cccfb4899d0856ba7a3dc599f2ba6e23e1
+
+depends_build       port:pkgconfig \
+                    port:intltool
+
+depends_lib         port:gtk3 \
+                    port:gobject-introspection
+
+patchfiles          patch-src-vteutils.c.diff
+
+configure.args      --disable-glade \
+                    --disable-Bsymbolic \
+                    --enable-introspection=yes
+
+configure.cflags-append -fstrict-aliasing
+
+variant glade description {Enable building of glade catalog items} {
+    depends_lib-append  port:glade
+    configure.args-delete --disable-glade
+}
+
+platform darwin 9 {
+    post-patch {
+        reinplace "s| -export-symbols-regex.*||g" \
+            ${worksrcpath}/python/Makefile.in
+        reinplace "s|-export-symbols-regex.*| \\\\|g" \
+            ${worksrcpath}/src/Makefile.in
+    }
+}
+
+livecheck.type      gnome

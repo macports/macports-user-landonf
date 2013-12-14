@@ -1,0 +1,82 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                genius
+version             1.0.17
+license             GPL-3+
+set branch          [join [lrange [split ${version} .] 0 1] .]
+categories          gnome math
+platforms           darwin
+maintainers         nomaintainer
+
+description         Genius is a calculator program.
+
+long_description    Genius is a calculator program similiar in some aspects \
+                    to BC, Matlab or Maple. GEL is the name of its extention \
+                    language (stands for \"Genius Extension Language\", \
+                    clever huh?), in fact, a large part of the standard \
+                    genius functions are written in GEL itself.
+
+homepage            http://www.jirka.org/genius.html
+#master_sites        gnome:sources/${name}/${branch}
+master_sites        http://ftp.5z.com/pub/genius/
+use_xz              yes
+
+checksums           rmd160  e4ac9ae1eff29e55bf46216a26c87c27e0263015 \
+                    sha256  c605dde4b7b7da8e47ac9327e7d5ffddf04264e335bdefaad92bfb3640127f38
+
+depends_build       port:pkgconfig \
+                    port:intltool \
+                    port:rarian
+
+depends_lib         path:lib/pkgconfig/glib-2.0.pc:glib2 \
+                    port:gnome-doc-utils \
+                    port:mpfr \
+                    port:ncurses \
+                    port:readline
+
+depends_run         port:desktop-file-utils \
+                    port:rarian \
+                    port:shared-mime-info \
+                    port:yelp
+
+configure.args      --disable-gnome \
+                    --disable-gtksourceview \
+                    --disable-update-mimedb \
+                    --disable-scrollkeeper
+
+configure.cflags-append -std=gnu89
+
+variant gnome conflicts without_gnome description {Compile with the GNOME frontend (GUI, plotting} {
+    depends_lib-append \
+                    port:gtksourceview2 \
+                    port:vte
+
+    configure.args-append \
+                    --enable-gnome \
+                    --enable-gtksourceview
+    configure.args-delete \
+                    --disable-gnome \
+                    --disable-gtksourceview
+}
+
+# Legacy without_gnome variant to be removed after March 2014
+variant without_gnome conflicts gnome description {Legacy compatibility variant} {}
+
+if {[variant_isset without_gnome]} {
+    default_variants -gnome
+} else {
+    default_variants +gnome
+}
+
+post-activate {
+    system "${prefix}/bin/scrollkeeper-update"
+    system "${prefix}/bin/update-mime-database ${prefix}/share/mime"
+    system "${prefix}/bin/update-desktop-database ${prefix}/share/applications"
+}
+
+livecheck.type  regex
+livecheck.url   http://ftp.5z.com/pub/genius/
+livecheck.regex "${name}-(\\d+(?:\\.\\d+)*)${extract.suffix}"

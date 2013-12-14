@@ -1,0 +1,31 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                libkipi
+version             4.11.4
+categories          kde kde4
+license             GPL-2+ LGPL-2+
+maintainers         nicos openmaintainer
+description         LibKipi is a C++ interface to use kipi-plugins from a KDE applications.
+long_description    LibKipi (KDE Image Plugin Interface) is a C++ interface to use kipi-plugins from a KDE \
+                    image management program like digiKam. Kipi-plugins project is an effort to develop a common \
+                    set of plugins dedicated to manipulated photographs. Its aim is to share image plugins among \
+                    graphic applications.
+platforms           darwin
+homepage            http://www.kde.org
+master_sites        kde:stable/${version}/src/
+use_xz              yes
+distname            libkipi-${version}
+checksums           rmd160  45edd4b181f82f63ea9c1f269941f1aa34f2e638 \
+                    sha256  965f5bb37696c0c9276be31ab3aece7b046bfa5b1c7b70b9041b218b4c171345
+
+#Binaries do not link to openssl, nor use the ssl backend of kdelibs4
+license_noconflict  openssl
+
+depends_lib-append  port:kdelibs4
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

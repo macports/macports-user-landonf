@@ -1,0 +1,31 @@
+# $Id$
+
+PortSystem          1.0
+
+name                bdftopcf
+version             1.0.4
+categories          x11
+license             X11
+platforms           darwin
+maintainers         jeremyhu openmaintainer
+description         X11 bdftopcf
+long_description    Convert X font from BDF to PCF
+
+homepage            http://www.x.org/
+master_sites        xorg:individual/app/
+
+checksums           md5     96a648a332160a7482885800f7a506fa \
+                    sha1    6010f4748d30007ebfeaa8cb053ec3c2e9bbda34 \
+                    rmd160  a8f96877887bc978b0076102ce91276838497277
+use_bzip2	    yes
+use_parallel_build  yes
+
+depends_build \
+	port:pkgconfig
+
+depends_lib \
+	port:xorg-libXfont
+
+livecheck.type  regex
+livecheck.url   http://xorg.freedesktop.org/archive/individual/app/?C=M&O=D
+livecheck.regex ${name}-(\\d+(?:\\.\\d+)*)

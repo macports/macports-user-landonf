@@ -1,0 +1,60 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            nautilus
+version         3.8.2
+set branch      [join [lrange [split ${version} .] 0 1] .]
+description     The GNOME filemanager
+long_description \
+                Nautilus is the official file manager for the \
+                GNOME desktop. It is designed to be primarly a file manager, \
+                but there are support for web and file viewing too.
+maintainers     devans openmaintainer
+categories      gnome
+license         GPL-2+
+platforms       darwin
+homepage        http://www.gnome.org/
+master_sites    gnome:sources/${name}/${branch}/
+
+use_xz          yes
+
+checksums       rmd160  112b43e649b81f570a870ecf40e5b7a0a7325882 \
+                sha256  dbddfdaac52d077d46d48a2f8dbecf6d13788d8f6b5fc9aa70826a24681d8a75
+
+depends_build   port:pkgconfig \
+                port:intltool
+
+depends_lib     port:desktop-file-utils \
+                port:shared-mime-info \
+                port:gnome-icon-theme \
+                port:gnome-icon-theme-symbolic \
+                port:gtk3 \
+                port:gnome-desktop \
+                port:exempi \
+                port:libexif \
+                port:libnotify \
+                port:libxml2 \
+                port:gsettings-desktop-schemas \
+                port:gobject-introspection \
+                port:xorg-libX11
+
+depends_run     port:gnome-settings-daemon
+
+patchfiles      patch-nautilus-global-preferences.diff
+
+configure.args  --enable-introspection=yes \
+                --enable-tracker=no \
+                --disable-packagekit \
+                --disable-silent-rules \
+                --disable-update-mimedb \
+                --disable-schemas-compile
+
+post-activate {
+    system "${prefix}/bin/update-desktop-database ${prefix}/share/applications"
+    system "${prefix}/bin/update-mime-database ${prefix}/share/mime"
+    system "${prefix}/bin/glib-compile-schemas ${prefix}/share/glib-2.0/schemas"
+}
+
+livecheck.type  gnome

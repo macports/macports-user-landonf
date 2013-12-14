@@ -1,0 +1,35 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                tcpdump
+version             4.5.1
+categories          net
+maintainers         mww openmaintainer
+license             BSD
+description         dump traffic on a network
+long_description \
+    tcpdump is a tool for network monitoring, protocol debugging \
+    and data acquisition.
+homepage            http://www.tcpdump.org/
+platforms           darwin
+master_sites        ${homepage}release/
+
+checksums           rmd160  c21e08d2536315247b3e6fa8aea0583d8783321b \
+                    sha256  14ab39657128f3a650aed4cf455f76c7590601087b6101c253d698f6e73f0b96
+
+depends_lib         port:libpcap port:openssl
+
+configure.args      --disable-smb --disable-universal
+
+# ugly: beat ./configure to use $prefix BEFORE /usr
+configure.cflags-append "-I${prefix}/include -L${prefix}/lib"
+
+variant smb description {enable possibly-buggy SMB printer} {
+    configure.args-delete   --disable-smb
+}
+
+livecheck.type      regex
+livecheck.url       ${homepage}
+livecheck.regex     tcpdump-(\[0-9.\]+)\\.tar\\.gz

@@ -1,0 +1,96 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            totem
+version         3.10.1
+set branch      [join [lrange [split ${version} .] 0 1] .]
+categories      gnome
+# also has an exception allowing use of non-GPL-compatible plugins
+license         GPL-2+
+maintainers     devans openmaintainer
+description     Official movie player of the GNOME desktop environment
+long_description \
+                Totem is based on GStreamer. It features a \
+                playlist, a full-screen mode, seek and volume controls, \
+                as well as keyboard navigation. It comes with added \
+                functionality such as: \
+                    * Video thumbnailer for the file manager \
+                    * Nautilus properties tab \
+                    * Webcam utility (in development)
+
+homepage        http://live.gnome.org/Totem
+platforms       darwin
+master_sites    gnome:sources/${name}/${branch}/
+
+use_xz          yes
+
+checksums       rmd160  80dce2fb0f61b442800aaa800a49991cd87c93d9 \
+                sha256  b6b6038c9104965671a6d25e98496a487c3a9c590c9c104f668bd9f4fa7be9e2
+
+patchfiles      patch-configure.diff
+
+depends_build   port:pkgconfig \
+                port:intltool \
+                port:itstool
+
+depends_lib     port:desktop-file-utils \
+                port:gnome-icon-theme \
+                port:gnome-icon-theme-symbolic \
+                port:gsettings-desktop-schemas \
+                port:gtk3 \
+                port:gobject-introspection \
+                port:gstreamer1-gst-plugins-base \
+                port:gstreamer1-gst-plugins-good \
+                port:gstreamer1-gst-plugins-bad \
+                port:clutter \
+                port:clutter-gtk \
+                port:clutter-gst \
+                port:totem-pl-parser \
+                port:libpeas \
+                port:libxml2 \
+                port:shared-mime-info \
+                port:dbus \
+                port:xorg-libX11 \
+                port:xorg-libsm \
+                port:xorg-libice
+
+depends_run     port:gnome-settings-daemon \
+                port:yelp
+
+configure.args  --with-plugins=apple-trailers,autoload-subtitles,chapters,dbusservice,im-status,gromit,media-player-keys,ontop,opensubtitles,properties,recent,skipto \
+                --enable-easy-codec-installation \
+                --enable-browser-plugins=no \
+                --enable-introspection=yes \
+                --enable-debug \
+                --disable-python \
+                --disable-vala \
+                --disable-nautilus \
+                --disable-schemas-compile \
+                --disable-silent-rules
+
+universal_variant no
+
+variant nautilus description {Build nautilus properties page plugin} {
+    configure.args-delete     --disable-nautilus
+    depends_lib-append        port:nautilus
+}
+
+variant python27 description {Use python 2.7} {
+    configure.python          ${prefix}/bin/python2.7
+    depends_lib-append        port:py27-gobject3
+    set python_framework      ${frameworks_dir}/Python.framework/Versions/2.7
+    configure.pkg_config_path ${python_framework}/lib/pkgconfig
+    configure.env              PATH=${python_framework}/bin:$env(PATH)
+}
+
+default_variants +python27
+
+post-activate {
+    system "${prefix}/bin/update-desktop-database ${prefix}/share/applications"
+    system "${prefix}/bin/gtk-update-icon-cache-3.0 -f -t ${prefix}/share/icons/hicolor"
+    system "${prefix}/bin/glib-compile-schemas ${prefix}/share/glib-2.0/schemas"
+}
+
+livecheck.type  gnome

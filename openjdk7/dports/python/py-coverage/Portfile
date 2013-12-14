@@ -1,0 +1,57 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+
+name                py-coverage
+version             3.6
+categories-append   devel
+maintainers         nomaintainer
+license             BSD
+description         Code coverage measurement for Python
+long_description    Coverage measures code coverage, typically during test \
+                    execution. It uses the code analysis tools and tracing \
+                    hooks provided in the Python standard library to \
+                    determine which lines are executable, and which have \
+                    been executed.
+
+platforms           darwin
+
+homepage            http://nedbatchelder.com/code/coverage/
+master_sites        http://pypi.python.org/packages/source/c/coverage/
+distname            coverage-${version}
+
+checksums           rmd160  c981f12bc918dff915c5d3c5469c45bb55470be5 \
+                    sha256  df3bf169d4727f3fad146ca715a49a1f72a8258689651ef9de908022e739700d
+
+python.versions     25 26 27 31 32 33
+
+if {${name} ne ${subport}} {
+    depends_build   port:py${python.version}-setuptools
+
+    post-patch {
+        # Permissions in the archive are 700
+        # Set directories to 755, *.py to 755, other files to 644
+        system "find ${worksrcpath} -type d -exec chmod 755 {} \\;"
+        system "find ${worksrcpath} -type f -name '*.py' -exec chmod 775 {} \\;"
+        system "find ${worksrcpath} -type f -not -name '*.py' -exec chmod 644 {} \\;"
+    }
+
+    python.move_binaries    no
+    if {${python.version} < 26} {
+        post-destroot {
+            foreach f {coverage coverage2} {
+                if {[file exists ${destroot}${prefix}/bin/${f}]} {
+                    file delete -force ${destroot}${prefix}/bin/${f}
+                }
+            }
+        }
+    }
+
+    livecheck.type      none
+} else {
+    livecheck.type      regex
+    livecheck.url       http://pypi.python.org/pypi/coverage
+    livecheck.regex     {/pypi/coverage/(\d+(?:\.\d+)*)"}
+}

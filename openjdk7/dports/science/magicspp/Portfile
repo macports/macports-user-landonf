@@ -1,0 +1,158 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                magicspp
+version             2.18.15
+revision            6
+platforms           darwin
+maintainers         takeshi
+license             Apache-2
+categories          science
+description         ECMWF's Meteorological plotting software
+homepage            http://software.ecmwf.int/wiki/display/MAGP/Magics
+master_sites        https://software.ecmwf.int/wiki/download/attachments/3473464/
+distname            Magics-${version}
+checksums           md5     0ca95215415fba244ca49fb51d0b2342 \
+                    sha1    340683acbd80370a0b9c2f1ec22cf7201abb29db \
+                    rmd160  aa0bb635b50cfd8cc7ee102696a183fd8f81db7f
+long_description \
+    Magics++ is the latest generation of the ECMWF's Meteorological plotting \
+    software MAGICS (Meteorological Applications Graphics Integrated Colour System) \
+    redesigned in C++.  Magics++ offers interfaces in Fortran, C, and MagML, \
+    a plot description language based on XML.  The library supports the plotting of \
+    contours, wind fields, observations, satellite images, symbols, text, axis \
+    and graphs (including boxplots). Input data can be in GRIB 1 and 2, BUFR and NetCDF \
+    or retrieved from an ODB database. The produced meteorological plots can be saved \
+    in various formats, such as PostScript, EPS, PDF, GIF, PNG and SVG.
+
+fetch.ignore_sslcert    yes
+
+depends_lib         port:emos \
+                    port:grib_api \
+                    port:netcdf-cxx \
+                    port:mesa \
+                    port:xorg-libXau \
+                    port:xorg-libXdmcp \
+                    port:p5.12-xml-parser \
+                    port:gd2 \
+                    path:lib/pkgconfig/pango.pc:pango \
+                    port:ghostscript \
+                    port:boost \
+                    port:proj47 \
+                    port:swig-python
+
+platform darwin {
+    if {${os.major} >= 13} {
+        depends_lib
+        depends_run
+        pre-fetch {
+            ui_error "$name does not build on Mavericks or later."
+            error "unsupported platform"
+        }
+    }
+}
+
+use_parallel_build  no
+universal_variant   no
+if {![variant_isset python25] && ![variant_isset python26]} {
+    default_variants-append +python27
+}
+
+patchfiles          patch-src-Makefile.in.diff \
+                    patch-configure.diff
+post-patch {
+    reinplace "s|pdir = \$(libdir)|pdir = ${frameworks_dir}/Python.framework/Versions/\$(PYTHON_VERSION)/lib|" \
+        ${worksrcpath}/python/Magics/Makefile.in
+}
+
+configure.libs-append       -lemosR64 -lX11
+configure.cppflags-append   -I${prefix}/include/freetype2
+configure.args-append       --disable-dependency-tracking \
+                            --disable-qt \
+                            --with-gd=${prefix} \
+                            --enable-cairo \
+                            --enable-bufr \
+                            --disable-python \
+                            --enable-proj4 \
+                            --with-proj4=${prefix}/lib/proj47 \
+                            --with-grib-api=${prefix} \
+                            --with-netcdf=${prefix} \
+                            --with-emos-libraries=${prefix}/lib \
+                            --with-gs-font-dir=${prefix}/share/ghostscript/fonts \
+                            --with-boost \
+                            --with-boost-libdir=${prefix}/lib
+
+# fatal error: 'bits/stream_iterator.h' file not found
+compiler.blacklist *clang*
+
+set gcc_versions {4.3 4.4 4.5 4.6 4.7 4.8 4.9}
+set default_fortran_variant +gcc48
+
+foreach ver ${gcc_versions} {
+    set ver_no_dot [join [split ${ver} "."] ""]
+
+    set variant_line {variant gcc${ver_no_dot} description "build with gfortran from gcc${ver_no_dot}"}
+
+    foreach over ${gcc_versions} {
+        if {${ver} == ${over}} {
+            continue
+        }
+
+        set over_no_dot [join [split ${over} "."] ""]
+        append variant_line " conflicts gcc${over_no_dot}"
+    }
+    append variant_line { {}}
+
+    eval $variant_line
+
+    if {[variant_isset gcc${ver_no_dot}]} {
+        if {${default_fortran_variant} != "+gcc${ver_no_dot}"} {
+            set default_fortran_variant ""
+        }
+    }
+}
+
+if {${default_fortran_variant} != ""} {
+    default_variants-append "${default_fortran_variant}"
+}
+
+foreach ver ${gcc_versions} {
+    set ver_no_dot [join [split ${ver} "."] ""]
+
+    if {[variant_isset gcc${ver_no_dot}]} {
+        depends_lib-append path:lib/libgcc/libgcc_s.1.dylib:libgcc
+        depends_build-append port:gcc${ver_no_dot}
+
+        configure.fc  ${prefix}/bin/gfortran-mp-${ver}
+        configure.f77 ${prefix}/bin/gfortran-mp-${ver}
+        configure.f90 ${prefix}/bin/gfortran-mp-${ver}
+
+        configure.args-append --with-fortran-libraries=${prefix}/lib/gcc${ver_no_dot}
+    }
+}
+
+variant python25 description {Add support for python25} {
+    depends_lib-append      port:py25-numpy
+    configure.args-delete   --disable-python
+    configure.args-append   --enable-python
+    configure.env-append    PYTHON=${prefix}/bin/python2.5 \
+                            PYTHON_VERSION=2.5
+}
+
+variant python26 description {Add support for python26} {
+    depends_lib-append      port:py26-numpy
+    configure.args-delete   --disable-python
+    configure.args-append   --enable-python
+    configure.env-append    PYTHON=${prefix}/bin/python2.6 \
+                            PYTHON_VERSION=2.6
+}
+
+variant python27 description {Add support for python27} {
+    depends_lib-append      port:py27-numpy
+    configure.args-delete   --disable-python
+    configure.args-append   --enable-python
+    configure.env-append    PYTHON=${prefix}/bin/python2.7 \
+                            PYTHON_VERSION=2.7
+}

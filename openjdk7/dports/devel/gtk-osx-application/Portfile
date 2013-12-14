@@ -1,0 +1,139 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem 1.0
+PortGroup       active_variants 1.1
+
+name            gtk-osx-application
+conflicts       ige-mac-integration
+version         2.0.1
+revision        1
+license         LGPL-2.1
+set branch      [join [lrange [split ${version} .] 0 1] .]
+categories      devel
+maintainers     elelay openmaintainer
+
+description	Mac OS X menu bar integration library for GTK2 quartz
+
+long_description \
+		A simple library whose purpose is to \
+		allow GTK2 quartz applications to integrate with \
+		the Mac OS X menu bar. Requires gtk2 and its \
+                dependencies to be built with variants +no_x11 +quartz
+
+homepage        http://live.gnome.org/GTK%2B/OSX/Integration
+
+platforms       darwin
+
+set myname      gtk-mac-integration
+master_sites    gnome:sources/gtk-mac-integration/${branch}/
+distname        ${myname}-${version}
+use_xz          yes
+
+checksums       md5     45a4d217d0a7d6f3d4f974f99ec50c29 \
+                sha1    9d939a2e4fb6c0ab4fe3d544ac712a152451249a \
+                rmd160  67b4c9bff4aaab9efcbc4042b452e8a79c038828
+
+depends_build   port:pkgconfig
+
+pre-configure {
+
+  if {![active_variants $gtk_version quartz x11]} {
+    ui_error "
+
+****
+**** gtk-osx-application is meant to be used only in a GTK quartz
+**** development environment but your version of GTK does not
+**** support quartz.  Please make sure that port $gtk_version and all its
+**** dependencies are built with variants +no_x11 +quartz and try again.
+****
+"
+    error "$gtk_version +no_x11 +quartz not installed."
+  }
+}
+
+variant python26 conflicts python27 description {Use Python 2.6} {
+
+    if {[variant_isset gtk3]} {
+
+    	depends_lib-append port:py26-gobject3
+
+        # don't bother configuring python because it's not needed (only gir matters)
+
+    } else {
+
+        depends_lib-append port:py26-pygtk
+        set python_prefix           ${frameworks_dir}/Python.framework/Versions/2.6
+
+        configure.python            ${python_prefix}/bin/python2.6
+        configure.env-append        PYGTK_CODEGEN=${python_prefix}/bin/pygtk-codegen-2.0
+        configure.env-append        PYGOBJECT_CODEGEN=${python_prefix}/bin/pygobject-codegen-2.0
+        configure.pkg_config_path   ${python_prefix}/lib/pkgconfig/
+        configure.pre_args           --prefix=${python_prefix}
+
+    }
+
+}
+
+variant python27 conflicts python26 description {Use Python 2.7} {
+
+    if {[variant_isset gtk3]} {
+
+    	depends_lib-append port:py27-gobject3
+
+        # don't bother configuring python because it's not needed (only gir matters)
+
+    } else {
+
+        depends_lib-append port:py27-pygtk
+    	
+        set python_prefix           ${frameworks_dir}/Python.framework/Versions/2.7
+
+        configure.python            ${python_prefix}/bin/python2.7
+        configure.env-append        PYGTK_CODEGEN=${python_prefix}/bin/pygtk-codegen-2.0
+        configure.env-append        PYGOBJECT_CODEGEN=${python_prefix}/bin/pygobject-codegen-2.0
+        configure.pkg_config_path   ${python_prefix}/lib/pkgconfig/
+        configure.pre_args          --prefix=${python_prefix}
+
+    }
+
+}
+
+variant no_python description {Don't build python bindings, don't require any python} {
+}
+
+if {![variant_isset python26] && ![variant_isset python27] && ![variant_isset no_python]} {
+    default_variants +python27
+}
+
+
+variant gtk3 description {Use gtk3} {
+    
+    depends_lib-append port:gtk3
+    
+    # force gtk version
+    configure.args-append --with-gtk=gtk+-3.0
+
+    # to put strings folder in /opt/local/share, not in python Framework share
+    configure.args-append --datadir=${prefix}/share
+
+}
+
+if {[variant_isset gtk3]} {
+    set gtk_version gtk3
+} else {
+    set gtk_version gtk2
+
+    # force gtk version to 2.0
+    configure.args-append --with-gtk=gtk+-2.0
+}
+
+configure.ccache        no
+configure.cmd-append    --libdir=${prefix}/lib --includedir=${prefix}/include
+
+patchfiles-append       patch-bindings-python-gtkmacintegration-Makefile-in.diff \
+                        patch-bindings-python-gtk_osxapplication-Makefile-in.diff \
+                        patch-cocoa-menu-item-c.diff
+
+livecheck.type          gnome
+livecheck.name          ${myname}

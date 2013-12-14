@@ -1,0 +1,31 @@
+# $Id$
+
+PortSystem 1.0
+
+name            uriparser
+conflicts       libkml
+version         0.7.9
+categories      devel www
+maintainers     80386.nl:ed
+description     a strictly RFC 3986 compliant parsing library for URIs
+long_description \
+    uriparser is a strictly RFC 3986 compliant parsing library for URIs.    \
+    uriparser is cross-platform, fast, and supports Unicode.
+
+homepage        http://uriparser.sourceforge.net/
+platforms       darwin
+master_sites    sourceforge:project/uriparser/Sources/${version}/
+use_bzip2       yes
+
+checksums       rmd160  71bba2a938abac63bce3fdf5d0f672602069e8ea \
+                sha256  a1d8f1007757ca1cf68b49edbac50876100cdee23a54cf1214f257b9ce51100d
+
+configure.cppflags
+
+configure.args  --disable-doc \
+                --disable-test
+
+test.run        yes
+test.target     check
+
+livecheck.regex /${name}-(\[0-9.\]+)${extract.suffix}

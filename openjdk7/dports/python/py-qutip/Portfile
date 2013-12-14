@@ -1,0 +1,111 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem              1.0
+PortGroup               python 1.0
+PortGroup               active_variants 1.1
+
+name                    py-qutip
+version                 2.2.0
+revision                1
+categories-append       science
+platforms               darwin
+license                 GPL-3
+maintainers             macsforever2000 openmaintainer
+
+description             Quantum Toolbox in Python
+long_description        QuTiP is open-source software for simulating the dynamics of open quantum systems.
+
+homepage                http://code.google.com/p/qutip/
+master_sites            googlecode:qutip
+distname                QuTiP-${version}
+worksrcdir              qutip-${version}
+
+checksums               rmd160  e2e6a8c8790e8cd1444b0e4f1c52c91d42fffada \
+                        sha256  a26a639d74b2754b3a1e329d91300e587e8c399d8a81d8f18a4a74c6d6f02ba3
+                        
+python.versions         26 27
+
+# py-scipy is not universal
+if {${name} ne ${subport}} {
+    # Can use either py*-pyqt4 or py*-pyqt4-devel.
+    depends_lib-append  port:py${python.version}-cython \
+                        port:py${python.version}-ipython \
+                        port:py${python.version}-matplotlib \
+                        port:py${python.version}-mayavi \
+                        port:py${python.version}-numpy \
+                        path:share/py${python.version}-sip/PyQt4:py${python.version}-pyqt4 \
+                        port:py${python.version}-scipy \
+                        port:vtk5
+ 
+    require_active_variants py${python.version}-ipython "pyqt4 notebook parallel scientific"
+    require_active_variants py${python.version}-matplotlib latex
+    require_active_variants vtk5 "python${python.version} qt4_mac"
+
+    set gcc_versions {4.3 4.4 4.5 4.6 4.7 4.8 4.9}
+    set default_fortran_variant +gcc48
+
+    foreach ver ${gcc_versions} {
+        set ver_no_dot [join [split ${ver} "."] ""]
+
+        set variant_line {variant gcc${ver_no_dot} description "build with gfortran from gcc${ver_no_dot}"}
+
+        foreach over ${gcc_versions} {
+            if {${ver} == ${over}} {
+                continue
+            }
+
+            set over_no_dot [join [split ${over} "."] ""]
+            append variant_line " conflicts gcc${over_no_dot}"
+        }
+        append variant_line { {}}
+
+        eval $variant_line
+
+        if {[variant_isset gcc${ver_no_dot}]} {
+            if {${default_fortran_variant} != "+gcc${ver_no_dot}"} {
+                set default_fortran_variant ""
+            }
+        }
+    }
+
+    if {${default_fortran_variant} != ""} {
+        default_variants-append "${default_fortran_variant}"
+    }
+
+    foreach ver ${gcc_versions} {
+        set ver_no_dot [join [split ${ver} "."] ""]
+
+        if {[variant_isset gcc${ver_no_dot}]} {
+            depends_lib-append path:lib/libgcc/libgcc_s.1.dylib:libgcc
+            depends_build-append port:gcc${ver_no_dot}
+
+            configure.fc  ${prefix}/bin/gfortran-mp-${ver}
+            configure.f77 ${prefix}/bin/gfortran-mp-${ver}
+            configure.f90 ${prefix}/bin/gfortran-mp-${ver}
+        }
+    }
+
+    use_parallel_build  no
+
+    python.add_archflags    no
+    universal_variant       no
+
+    build.args
+    build.post_args-append  --with-f90mc
+
+    build.env-append CFLAGS="${configure.cc_archflags}" \
+                     OBJCFLAGS="${configure.objc_archflags}" \
+                     CXXFLAGS="${configure.cxx_archflags}" \
+                     FFLAGS="${configure.f77_archflags}" \
+                     F90FLAGS="${configure.f90_archflags}" \
+                     FCFLAGS="${configure.fc_archflags}" \
+                     LDFLAGS="-undefined dynamic_lookup -bundle ${configure.ld_archflags}"
+
+    livecheck.type      none
+} else {
+    livecheck.type      regex
+    livecheck.url       ${homepage}
+    livecheck.regex     {QuTiP-([0-9\.]+)\.tar\.gz}
+}
+

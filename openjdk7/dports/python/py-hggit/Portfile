@@ -1,0 +1,72 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem              1.0
+PortGroup               python 1.0
+PortGroup               bitbucket 1.0
+
+epoch                   20130201
+
+set realname            hggit
+name                    py-hggit
+
+categories-append       devel
+license                 GPL-2
+platforms               darwin
+supported_archs         noarch
+maintainers             easieste sean openmaintainer
+
+homepage                http://hg-git.github.com/
+description             Push to and pull from a Git server repository from Mercurial.
+long_description        This is the Hg-Git plugin for Mercurial, adding the ability \
+                        to push to and pull from a Git server repository from Mercurial.\
+                        This means you can collaborate on Git based projects from Mercurial, \
+                        or use a Git server as a collaboration point for a team with \
+                        developers using both Git and Mercurial.
+
+# can't set python.versions before adding custom subports
+set pversions           27
+
+foreach pv $pversions {
+    subport py$pv-$realname-devel {
+    }
+}
+
+if {[string match "*-devel" $subport]} {
+    bitbucket.setup     durin42 hg-git 503d403fc040
+    name                py-$realname-devel
+    version             0.4.99
+    revision            2
+
+    checksums           rmd160  973a44cb164946eab713b4214bead598209ac20b \
+                        sha256  545ac92034d1b7bc8de93287a82ed78028f14580615d9b2a89eb07e19ac966a9
+} else {
+    bitbucket.setup     durin42 hg-git 0.4.0
+    name                py-${realname}
+
+    checksums           rmd160  61dfdc017e9475dc5f4ca676c03e1465bbdc3735 \
+                        sha256  64072882e86f37687cd5d50e1382a7504edf73e5fc3acad934bc882638440f57
+}
+
+set python.versions    $pversions
+
+if {${name} ne ${subport}} {
+    depends_lib-append  path:bin/hg:mercurial \
+                        port:py${python.version}-dulwich
+
+    conflicts           py${python.version}-$realname-devel
+    if {[string match "*-devel" $subport]} {
+        conflicts       py${python.version}-$realname
+    }
+
+    notes               "
+To enable ${realname}, add the following to your ~/.hgrc:
+
+\[extensions\]
+${realname} =
+"
+
+    if {![string match "*-devel" $subport]} {
+        livecheck.type      none
+    }
+}

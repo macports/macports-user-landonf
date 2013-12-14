@@ -1,0 +1,31 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+PortGroup       github 1.0
+
+github.setup    Yubico yubico-c-client 2.12 ykclient-
+checksums       rmd160  5ef98fc1c52f51e2b084980d5682839624d00b99 \
+                sha256  8a6904b6fef9fbc69dcb4162bae8822de6fdddfd6a0106b9eed1301009426524
+
+# I'm explicitly not marking this openmaintainer
+maintainers     cal
+
+categories      security
+description     C library to validate a YubiKey OTP against a validation server
+long_description \
+                Library to validate YubiKey one-time-passwords against online validation \
+                servers, such as the Yubico YubiCloud.
+
+platforms       darwin
+license         BSD
+
+depends_lib     port:curl \
+                port:libyubikey
+
+depends_build   port:help2man \
+                port:pkgconfig
+
+patchfiles      patch-configure.ac-automake-1.12-compatibility.patch
+
+use_autoreconf  yes

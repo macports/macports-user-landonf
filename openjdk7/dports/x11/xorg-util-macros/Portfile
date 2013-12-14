@@ -1,0 +1,25 @@
+# $Id$
+
+PortSystem 1.0
+
+name		xorg-util-macros
+version		1.17.1
+categories	x11 devel
+license		X11
+maintainers	jeremyhu openmaintainer
+description	X.org util-macros
+homepage	http://www.x.org
+platforms	darwin
+supported_archs	noarch
+long_description Miscellaneous utility macros required by the Modular X.org codebase.
+master_sites 	xorg:individual/util/
+
+distname	util-macros-${version}
+checksums           sha1    80db85f0c117260e01c3ab8705cdcc6e38b39d09 \
+                    rmd160  f374a4a36563ee50ac3e7dac3a340a8ba8e7430e \
+                    sha256  5e52654f2a0b04223cf28a9d7fd62cf288852e639ac13a75172fd47d0d6ac625
+use_bzip2	yes
+
+livecheck.type  regex
+livecheck.url   http://xorg.freedesktop.org/archive/individual/util/?C=M&O=D
+livecheck.regex util-macros-(\\d+(?:\\.\\d+)*)

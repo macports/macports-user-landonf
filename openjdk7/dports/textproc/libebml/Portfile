@@ -1,0 +1,58 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                libebml
+version             1.3.0
+revision            1
+categories          textproc
+license             LGPL-2.1+
+maintainers         nomaintainer
+description         EBML (Extensible Binary Meta Language), sort of binary version of XML.
+long_description    EBML (Extensible Binary Meta Language), a binary derivative of \
+                    XML. EBML enables the Matroska Development Team to gain \
+                    significant advantages in terms of future format \
+                    extensibility, without breaking file support in old parsers.
+homepage            http://www.matroska.org/
+platforms           darwin
+master_sites        http://dl.matroska.org/downloads/${name}/
+use_bzip2           yes
+
+checksums           md5     efec729bf5a51e649e1d9d1f61c0ae7a \
+                    sha1    5a49ae3fddfe4b514f76d5743b29b23e0ecbc935 \
+                    rmd160  76f945a96e9950c25ccdb6c9e5cc4225dd6bd163
+
+post-extract {
+    system "cd ${worksrcpath}/make && cp -R linux darwin"
+}
+
+use_configure       no
+
+variant universal {}
+if {[variant_isset universal]} {
+    set archflags ${configure.universal_cxxflags}
+} else {
+    set archflags ${configure.cxx_archflags}
+}
+
+set cxx_stdlibflags {}
+if {[info exists configure.cxx_stdlib] &&
+    ${configure.cxx_stdlib} ne {} &&
+    [string match *clang* ${configure.cxx}]} {
+    set cxx_stdlibflags -stdlib=${configure.cxx_stdlib}
+}
+
+build.dir           ${worksrcpath}/make/darwin
+build.args          prefix=${prefix} \
+                    CXX=${configure.cxx} \
+                    CXXFLAGS="${archflags} ${cxx_stdlibflags}"
+
+# We need -p for install because ld will ask for ranlib if the modification date changes.
+destroot.args       INSTALL_OPTS_LIB='-m 644 -p'
+destroot.destdir    prefix=${destroot}${prefix}
+
+# livecheck.
+livecheck.type      regex
+livecheck.url       http://www.bunkus.org/videotools/mkvtoolnix/source.html
+livecheck.regex     ${name} (\[0-9.\]+)

@@ -1,0 +1,63 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+name                bitcoin
+categories          finance crypto
+version             0.8.5
+revision            0
+platforms           darwin
+license             MIT
+maintainers         yopmail.com:sami.laine easieste openmaintainer
+description         client user interface for a peer-to-peer digital currency
+long_description    Bitcoin is a peer-to-peer digital currency. By peer-to-peer,  \
+                    we mean that there is no central authority to issue \
+                    new Bitcoins or keep track of transactions. Instead, these \
+                    tasks are managed collectively by the Bitcoin protocol \
+                    operating through the nodes of the network. 
+homepage            http://www.bitcoin.org/
+master_sites        sourceforge
+distname            ${name}-${version}-linux
+checksums           md5     df456ff0bd037657d5de640715e740c8 \
+                    sha1    f2cb0c55633cab822fb7024357aac17cf5de2b3a \
+                    rmd160  82e99dc536a942102b5909580aa1b3cf2da0e3e0
+
+depends_lib         port:boost \
+                    port:openssl \
+                    port:db48 \
+                    port:miniupnpc \
+                    port:qt4-mac
+
+worksrcdir          ${name}-${version}-linux/src
+
+if {![variant_isset daemon]} {
+    PortGroup            qmake 1.0
+}
+
+build.args          ""
+build.pre_args      ""
+build.post_args     ""
+build.target        ""
+build.cmd           (cd src && make -f makefile.osx ) && make
+
+destroot {
+    xinstall -d ${destroot}${prefix}/bin
+    xinstall -d ${destroot}${prefix}/sbin
+    if {![variant_isset daemon]} {
+        xinstall -m 755 -W ${worksrcpath} \
+            Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt \
+            ${destroot}${prefix}/bin/bitcoin-qt
+    }
+    xinstall -m 755 -W ${worksrcpath} src/bitcoind ${destroot}${prefix}/sbin
+
+    set docdir ${destroot}${prefix}/share/doc/${name}
+    xinstall -d ${docdir}
+    eval xinstall -m 444 -W ${worksrcpath} [glob ${worksrcpath}/doc/*] ${docdir}
+}
+
+variant daemon description {Build and install only the bitcoind daemon} {
+    use_configure no
+    build.cmd "cd src && make -f makefile.osx"
+    depends_lib-delete port:qt4-mac
+}
+

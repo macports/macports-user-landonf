@@ -1,0 +1,33 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                kbruch
+version             4.11.4
+categories          kde kde4
+license             GPL-2+
+maintainers         nicos
+description         Practice Fractions
+long_description    KDE ${description}
+homepage            http://www.kde.org
+
+platforms           darwin
+depends_lib-append  port:libkdeedu
+
+master_sites        kde:stable/${version}/src/
+use_xz              yes
+
+checksums           rmd160  aec5fe6ed5f21e425c4c6887e74a7362d8e96083 \
+                    sha256  dee8409781a359c55cfe9c20f6b0b2e8c0e51d9fda8ac4cade42f7d6948e811f
+
+#Binaries do not link to openssl, nor use the ssl backend of kdelibs4
+license_noconflict  openssl
+
+if {![variant_isset docs]} {
+    patchfiles      patch-CMakeLists.txt.diff
+}
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

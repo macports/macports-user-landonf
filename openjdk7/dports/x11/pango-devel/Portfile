@@ -1,0 +1,151 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem              1.0
+PortGroup               active_variants 1.1
+
+# Please keep the pango and pango-devel ports as similar as possible.
+
+name                    pango-devel
+conflicts               pango
+set my_name             pango
+version                 1.36.1
+set branch              [join [lrange [split ${version} .] 0 1] .]
+categories              x11
+maintainers             ryandesign openmaintainer
+license                 LGPL-2
+homepage                http://www.pango.org/
+master_sites            gnome:sources/${my_name}/${branch}
+platforms               darwin
+distname                ${my_name}-${version}
+dist_subdir             ${my_name}
+use_xz                  yes
+use_parallel_build      yes
+
+description \
+    Framework for the layout and rendering of i18n text
+
+long_description \
+    The goal of the Pango project is to provide an \
+    open-source framework for the layout and rendering \
+    of internationalized text.
+
+checksums               rmd160  9ce8ea9bf324c621e19f5cbc74a342e171d8793a \
+                        sha256  42e4b51cdc99e6878a9ea2a5ef2b31b79c1033f8518726df738a3c54c90e59f8
+
+depends_build \
+    port:pkgconfig
+
+depends_lib \
+    path:lib/pkgconfig/glib-2.0.pc:glib2 \
+    path:lib/pkgconfig/cairo.pc:cairo \
+    port:gobject-introspection \
+    port:harfbuzz
+
+patchfiles              patch-ltmain.sh.diff
+
+configure.ccache        no
+
+platform macosx {
+variant quartz {
+    # Although this variant does nothing, pango will automatically build
+    # itself differently depending on whether or not cairo is installed with
+    # the quartz variant. Therefore this variant is necessary to be able to
+    # distinguish whether an installed pango has quartz support or not.
+}
+    if {[variant_isset quartz]} {
+        require_active_variants path:lib/pkgconfig/cairo.pc:cairo quartz
+    } else {
+        require_active_variants path:lib/pkgconfig/cairo.pc:cairo "" quartz
+    }
+}
+
+pre-configure {
+    set fontconfig_minimum_version 2.10.91
+    set fontconfig_installed_version [exec ${prefix}/bin/pkg-config fontconfig --modversion]
+    if {[vercmp ${fontconfig_installed_version} ${fontconfig_minimum_version}] < 0} {
+        ui_error "${name} ${version} requires fontconfig ${fontconfig_minimum_version} or later but you have fontconfig ${fontconfig_installed_version}."
+        return -code error "incompatible fontconfig version"
+    }
+    
+    set harfbuzz_minimum_version 0.9.9
+    set harfbuzz_installed_version [exec ${prefix}/bin/pkg-config harfbuzz --modversion]
+    if {[vercmp ${harfbuzz_installed_version} ${harfbuzz_minimum_version}] < 0} {
+        ui_error "${name} ${version} requires harfbuzz ${harfbuzz_minimum_version} or later but you have harfbuzz ${harfbuzz_installed_version}."
+        return -code error "incompatible harfbuzz version"
+    }
+    
+    set glib_minimum_version 2.33.12
+    set glib_installed_version [exec ${prefix}/bin/pkg-config glib-2.0 --modversion]
+    if {[vercmp ${glib_installed_version} ${glib_minimum_version}] < 0} {
+        ui_error "${name} ${version} requires glib2 ${glib_minimum_version} or later but you have glib2 ${glib_installed_version}."
+        return -code error "incompatible glib2 version"
+    }
+    
+    set cairo_minimum_version 1.7.6
+    set cairo_installed_version [exec ${prefix}/bin/pkg-config cairo --modversion]
+    if {[vercmp ${cairo_installed_version} ${cairo_minimum_version}] < 0} {
+        ui_error "${name} ${version} requires cairo ${cairo_minimum_version} or later but you have cairo ${cairo_installed_version}."
+        return -code error "incompatible cairo version"
+    }
+}
+
+configure.args          --enable-static \
+                        --enable-introspection \
+                        --disable-silent-rules \
+                        --without-x
+
+# gobject-introspection uses g-ir-scanner, which uses $CC from env
+build.args-append       CC="${configure.cc} ${configure.cc_archflags}"
+destroot.args-append    CC="${configure.cc} ${configure.cc_archflags}"
+
+variant builtin_modules description {Build the modules into Pango statically (most users do not need this variant)} {
+    configure.args-append   --with-included-modules
+}
+
+variant x11 {
+    depends_lib-append      port:Xft2
+    configure.args-delete   --without-x
+    configure.args-append   --x-include=${prefix}/include \
+                            --x-lib=${prefix}/lib
+}
+
+default_variants        +x11
+
+if {[variant_isset x11]} {
+    require_active_variants path:lib/pkgconfig/cairo.pc:cairo x11
+} else {
+    require_active_variants path:lib/pkgconfig/cairo.pc:cairo "" x11
+}
+
+post-destroot {
+    xinstall -d ${destroot}${prefix}/etc/pango
+    if {![variant_isset builtin_modules]} {
+        xinstall -m 0644 ${worksrcpath}/modules/pangorc \
+            ${destroot}${prefix}/etc/pango
+        reinplace "s|\\.\\./modules/|${prefix}/etc/pango/|g" \
+            ${destroot}${prefix}/etc/pango/pangorc
+
+        system "env LANG=C DYLD_LIBRARY_PATH=${destroot}${prefix}/lib \
+            ${destroot}${prefix}/bin/pango-querymodules ${destroot}${prefix}/lib/pango/*/modules/*.so \
+            >${destroot}${prefix}/etc/pango/pango.modules"
+        reinplace s|${destroot}||g ${destroot}${prefix}/etc/pango/pango.modules
+    }
+
+    set docdir ${prefix}/share/doc/${my_name}
+    xinstall -d ${destroot}${docdir}
+    xinstall -m 0644 -W ${worksrcpath} AUTHORS ChangeLog COPYING MAINTAINERS NEWS README THANKS \
+        ${destroot}${docdir}
+}
+
+# The rules enabled by gobject-introspection require GNU make 3.81+, #35203
+platform darwin 8 {
+    depends_build-append    port:gmake
+    build.cmd               ${prefix}/bin/gmake
+}
+
+test.run                yes
+test.target             check
+
+livecheck.type          gnome-with-unstable
+livecheck.name          ${my_name}

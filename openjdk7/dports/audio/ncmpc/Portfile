@@ -1,0 +1,27 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                ncmpc
+version             0.21
+set branch          [join [lrange [split ${version} .] 0 0] .]
+categories          audio
+maintainers         gmail.com:phirince rmstonecipher
+description         curses Music Player Daemon (MPD) client
+long_description    ncmpc is  a client for MPD, the Music Player Daemon.
+license             GPL-2+
+homepage            http://www.musicpd.org/clients/${name}/
+master_sites        http://www.musicpd.org/download/${name}/${branch}/
+platforms           darwin
+use_bzip2           yes
+checksums           rmd160  e53e47a640118ee6c15a1dbc2f34f435dd4233c5 \
+                    sha256  648e846e305c867cb937dcb467393c2f5a30bf460bdf77b63de7af69fba1fd07
+depends_build       port:pkgconfig
+depends_lib         path:lib/pkgconfig/glib-2.0.pc:glib2 \
+                    port:libmpdclient \
+                    port:ncurses
+configure.args      --mandir=${prefix}/share/man
+configure.cflags-append    -fnested-functions
+livecheck.url       http://www.musicpd.org/download/${name}/${branch}/
+livecheck.regex     "${name}-(\\d+(?:\\.\\d+)*)"

@@ -1,0 +1,24 @@
+# $Id$
+
+PortSystem 1.0
+
+name                    diffstat
+version                 1.57
+categories              devel
+maintainers             toby
+description             Make histogram from diff-output
+long_description        diffstat reads the output of diff and displays a histogram\
+                        of the insertions, deletions, and modifications per-file.\
+                        It is useful for reviewing large, complex patch files.
+homepage                http://invisible-island.net/diffstat/
+platforms               darwin
+master_sites            ftp://invisible-island.net/diffstat/
+extract.suffix          .tgz
+checksums               sha1    c6d9247b8b32eeab5d866686f91a8fbdde3e340f \
+                        rmd160  283eb92f468466215fc897da6cb92818cb99f73b \
+                        sha256  cb9845839d695f178d6b5458b08d3e04773e400f35c0c062c4c0102220fba1e6
+
+configure.args          --mandir=${prefix}/share/man
+
+test.run                yes
+test.target             check

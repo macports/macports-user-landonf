@@ -1,0 +1,22 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           perl5 1.0
+
+perl5.branches      5.8 5.10 5.12 5.14 5.16
+perl5.setup         pmtools 1.54 Devel
+platforms           darwin
+maintainers         di.uminho.pt:jpo openmaintainer
+
+description         A suite of small programs to help manage Perl modules
+long_description    \
+    This is pmtools -- a suite of small programs to help manage modules. \
+    The names are totally preliminary, and in fact, so is the code.  We \
+    follow the \"keep it small\" notion of many tiny tools each doing one \
+    thing well, eschewing giant megatools with millions of options.
+
+checksums           rmd160 cdaab5d87b5f163b3a31a377b822e6ef92aefb84 \
+                    sha256 dd2943b74049383cc17d97fbd69d8168cef1a93ece31f7c05820dac9e876da7f
+
+supported_archs noarch

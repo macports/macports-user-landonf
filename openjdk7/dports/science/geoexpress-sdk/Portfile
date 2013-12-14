@@ -1,0 +1,41 @@
+# $Id$
+
+PortSystem 1.0
+name		geoexpress-sdk
+version		8.5.0.3422
+maintainers	landonf openmaintainer
+platforms	darwin
+description	LizardTech's SDK for reading MrSID and JPEG 2000 imagery
+long_description \
+		LizardTech's SDK for reading MrSID and JPEG 2000 imagery. This \
+		SDK is NOT open source software, and must be downloaded \
+		manually from http://www.lizardtech.com/developer/ \
+		Please carefully review the SDK agreement prior to downloading \
+		and installing this software.
+homepage	http://www.lizardtech.com/developer/
+master_sites	http://www.lizardtech.com/developer/
+categories	science
+
+distname	MrSID_DSDK-${version}-darwin10.universal.gccA42
+worksrcdir	MrSID_DSDK-${version}-darwin10.universal.gccA42
+
+checksums	md5	598c39ce8427b73d7126ffc4ff852454 \
+		sha1	94ebc0f28653eb470b9d58bb55ca0d8a00f36218 \
+		rmd160	7ddc2bdc4f7af7323575f4e4fc0e0239791de341
+
+
+fetch {
+	file mkdir ${distpath}
+	if {![file exists ${distpath}/${distfiles}]} {
+		error "NOTE: Due to licensing restrictions, '${distfiles}' must be manually downloaded from ${homepage} and placed in ${distpath}"
+	}
+}
+
+use_configure       no
+build {}
+
+destroot {
+	file copy ${worksrcpath} ${destroot}${prefix}/share/Geo_DSDK
+	system "ln -s ${prefix}/share/Geo_DSDK/bin/mrsiddecode ${destroot}${prefix}/bin"
+	system "ln -s ${prefix}/share/Geo_DSDK/bin/mrsidinfo ${destroot}${prefix}/bin"
+}

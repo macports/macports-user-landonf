@@ -1,0 +1,19 @@
+# $Id$
+
+PortSystem          1.0
+PortGroup           perl5 1.0
+
+perl5.branches      5.8 5.10 5.12 5.14 5.16
+perl5.setup         MIME-Base64 3.14
+license             {Artistic GPL}
+maintainers         nomaintainer
+description         base64 encoder/decoder
+long_description    This package contains a base64 encoder/decoder \
+                    and a quoted-printable encoder/decoder.  These encoding \
+                    methods are specified in RFC 2045 - \
+                    MIME (Multipurpose Internet Mail Extensions).
+
+platforms           darwin
+
+checksums           rmd160  75bae366fd4d24ec5e46600233088ad586d1e5be \
+                    sha256  125a9427625477f90c8214d2ec80714c443c2d15ac390b7111fb1e19fb8d6ce1

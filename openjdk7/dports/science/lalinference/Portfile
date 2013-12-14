@@ -1,0 +1,80 @@
+# $Id$
+
+PortSystem    1.0
+PortGroup     active_variants 1.1
+
+name          lalinference
+version       1.2.1
+revision      2
+categories    science
+platforms     darwin
+maintainers   ram
+license       GPL
+
+description   LSC Algorithm Library - Inference
+long_description \
+  LIGO Scientific Collaboration Algorithm Library - Inference containing \
+  routines for Bayesian inference data analysis.
+
+homepage      https://www.lsc-group.phys.uwm.edu/daswg/projects/lalsuite.html
+master_sites  http://www.lsc-group.phys.uwm.edu/daswg/download/software/source/lalsuite
+
+checksums     rmd160 d0833c24b833c44de71df864ef7deba972762141 \
+              sha256 42810fd9aa6e38f2b375773f8e5906868eb5b59c737eb4650be6ff6416abd7a7
+
+# upstream fix for swig bindings
+patchfiles    patch-swig-bindings-fix.diff
+patch.pre_args -p1
+use_autoreconf yes
+
+depends_build-append port:pkgconfig \
+              port:python27
+
+depends_lib   port:gsl \
+              port:metaio \
+              port:lal \
+              port:lalframe \
+              port:lalmetaio \
+              port:lalsimulation \
+              port:lalinspiral \
+              port:lalpulsar
+
+configure.python ${prefix}/bin/python2.7
+configure.args --mandir=${prefix}/share/man \
+               --disable-silent-rules \
+               --disable-gcc-flags \
+               --disable-debug
+
+use_parallel_build yes
+
+set pythondir "${frameworks_dir}/Python.framework/Versions/2.7/lib/python2.7/site-packages"
+destroot.args-append \
+              pythondir="${pythondir}" \
+              pyexecdir="${pythondir}" \
+              pkgpythondir="${pythondir}/${name}" \
+              pkgpyexecdir="${pythondir}/${name}"
+
+variant lalxml description {Build with LALXML support} {
+  require_active_variants lalpulsar lalxml
+  depends_lib-append    port:libxml2 \
+                        port:lalxml
+  configure.args-append --enable-lalxml
+}
+
+variant swig_python description {Build python SWIG bindings} {
+  require_active_variants lal swig_python
+  require_active_variants lalframe swig_python
+  require_active_variants lalmetaio swig_python
+  require_active_variants lalsimulation swig_python
+  require_active_variants lalinspiral swig_python
+  require_active_variants lalpulsar swig_python
+  depends_build-append  port:swig-python
+  depends_lib-append    port:py27-numpy
+  configure.args-append --enable-swig-python
+}
+
+default_variants +lalxml +swig_python
+
+livecheck.type   regex
+livecheck.url    ${master_sites}
+livecheck.regex  {lalinference-(\d+(?:\.\d+)*).tar.gz}

@@ -1,0 +1,98 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 8; truncate-lines: t; indent-tabs-mode: nil; c-basic-offset: 4
+# $Id$
+# vim: set fileencoding=utf-8 tabstop=8 shiftwidth=4 softtabstop=4 noexpandtab filetype=tcl :
+
+PortSystem 1.0
+
+name		    android
+version		    22.3
+categories	    java devel emulators
+maintainers	    openmaintainer krischik
+platforms	    darwin
+description	    Android SDK
+long_description							\
+    The Android SDK allows development for the Android mobile platform.
+supported_archs	    noarch
+
+set patchversion    114239
+set appbundles	    ${name}-appbundles-r${patchversion}.tar.gz
+set prog	    ${name}-sdk_r${version}-macosx.zip
+
+homepage	    http://developer.${name}.com/
+master_sites	    http://dl.google.com/${name}:prog			\
+		    macports:${name}:appbundles
+distfiles	    ${prog}:prog					\
+		    ${appbundles}:appbundles
+distname	    ${name}-sdk-macosx
+worksrcdir	    ${name}-sdk-macosx
+extract.only	    ${appbundles}
+
+checksums	    ${prog}						\
+                    md5     ecde88ca1f05955826697848fcb4a9e7		\
+                    sha1    547ea51c4aa61d623a4823d0b635d3b66b6c9329	\
+                    rmd160  2feefd61659c711d81cfd4459a3e9124d787c154	\
+		    ${appbundles}					\
+                    md5     4b063feb919989a2fa9576a3e00a126f		\
+                    sha1    8e7dad4e0f57bf5e48ad3d5cfe4d58d9ad1c24a8	\
+                    rmd160  ca4c01ad96a1ebdfd8c34b2294e9066521d14ae3
+
+use_configure	    no
+build.cmd	    true
+
+destroot.keepdirs						\
+    ${destroot}${prefix}/share/java/${worksrcdir}/add-ons	\
+    ${destroot}${prefix}/share/java/${worksrcdir}/docs		\
+    ${destroot}${prefix}/share/java/${worksrcdir}/platforms	\
+    ${destroot}${prefix}/share/java/${worksrcdir}/samples	\
+    ${destroot}${prefix}/share/java/${worksrcdir}/temp
+
+post-extract {
+	system "unzip -q ${distpath}/${prog} -d ${workpath}"
+}
+
+destroot {
+    xinstall -m 755 -d ${destroot}${prefix}/share/java/${distname}
+
+    # file copy can not copy with rename and directory tree.
+    #
+    system "cp -r ${worksrcpath}/. ${destroot}${prefix}/share/java/${distname}/."
+
+    xinstall -m 770 -d ${destroot}${prefix}/share/java/${distname}/docs
+    xinstall -m 770 -d ${destroot}${prefix}/share/java/${distname}/samples
+    xinstall -m 770 -d ${destroot}${prefix}/share/java/${distname}/temp
+
+    system "
+	chgrp -R _developer ${destroot}${prefix}/share/java/${distname};
+	chmod -R g+w ${destroot}${prefix}/share/java/${distname};
+    "
+
+    ui_info "####################################################################"
+    ui_info "# add-ons, docs, platforms, samples and temp have been made	#"
+    ui_info "# group _developer writable. You need to be member of the		#"
+    ui_info "# _developer group to use the android tools. If you are not use:	#"
+    ui_info "#									#"
+    ui_info "# sudo dscl . append /Groups/_developer GroupMembership <username> #"
+    ui_info "####################################################################"
+    ui_info "# you need to download the actual SDKs. Because of the licence     #"
+    ui_info "# querys this can not be done automaticaly. Use:			#"
+    ui_info "#									#"
+    ui_info "# @PREFIX@/share/java/android-sdk-macosx/tools/android update sdk	#"
+    ui_info "####################################################################"
+}
+
+platform macosx {
+    post-destroot {
+	xinstall -m 755 -d ${destroot}${applications_dir}/Developer
+
+	system "touch ${destroot}${applications_dir}/Developer/.localized"
+
+	foreach comp { Android-DDMS Android-Draw9Patch Android-Emulator Android-Hierarchyviewer Android-Manager Android-Monitor} {
+	copy											\
+	    ${workpath}/appbundles-r${patchversion}/${comp}.app					\
+	    ${destroot}${applications_dir}/Developer
+	    reinplace s|@PREFIX@|${prefix}|g							\
+		${destroot}${applications_dir}/Developer/${comp}.app/Contents/MacOS/Start.command
+	}
+    }
+}
+

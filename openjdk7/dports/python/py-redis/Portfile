@@ -1,0 +1,38 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+
+name                py-redis
+version             2.8.0
+revision            0
+categories-append   devel
+platforms           darwin
+license             MIT
+supported_archs     noarch
+
+maintainers         stromnov openmaintainer
+
+description         Python client for Redis key-value store
+long_description    ${description}
+
+homepage            http://github.com/andymccurdy/redis-py
+master_sites        http://pypi.python.org/packages/source/r/redis/
+
+distname            redis-${version}
+
+checksums           rmd160  8a4ac99ed36f58acfb7f5ef54bfaabf57b17a850 \
+                    sha256  5a34f92937cacb4082f5834d2ce8b710b791342d17d1769b998327e6479e2b24
+
+python.versions     25 26 27 31 32 33
+
+if {${name} ne ${subport}} {
+    depends_build-append \
+                        port:py${python.version}-setuptools
+    livecheck.type      none
+} else {
+    livecheck.type      regex
+    livecheck.url       ${master_sites}
+    livecheck.regex     "redis-(\\d+(?:\\.\\d+)*)"
+}

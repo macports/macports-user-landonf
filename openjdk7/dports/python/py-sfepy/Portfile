@@ -1,0 +1,53 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem              1.0
+PortGroup               python 1.0
+
+name                    py-sfepy
+version                 2013.1
+categories-append       science
+platforms               darwin
+license                 BSD
+maintainers             macsforever2000 openmaintainer
+
+description             Simple finite elements in Python
+long_description        SfePy is a software for solving systems of coupled partial differential equations (PDEs) by the finite element \
+                        method in 2D and 3D. It can be viewed both as black-box PDE solver, and as a Python package which can be used \
+                        for building custom applications. The word "simple" means that complex FEM problems can be coded very easily \
+                        and rapidly.
+
+homepage                http://code.google.com/p/sfepy/
+master_sites            googlecode:sfepy
+distname                sfepy-${version}
+worksrcdir              ${distname}
+
+checksums               rmd160  e15764b3a3ba2964d45f60789e0b468e545627d5 \
+                        sha256  240cd54cea161dee8b623a5a6ef67b2074cad996ebfd72617319e4c0e3c162f1
+                        
+python.versions         26 27
+
+if {${name} ne ${subport}} {
+    depends_lib-append  port:gmsh \
+                        port:py${python.version}-ipython \
+                        port:py${python.version}-matplotlib \
+                        port:py${python.version}-mayavi \
+                        port:py${python.version}-numpy \
+                        port:py${python.version}-parsing \
+                        port:py${python.version}-pexpect \
+                        port:py${python.version}-pysparse \
+                        port:py${python.version}-scipy \
+                        port:py${python.version}-sphinx \
+                        port:py${python.version}-sympy \
+                        port:py${python.version}-tables \
+                        port:SuiteSparse \
+                        port:swig-python
+
+    build.env-append    MPLCONFIGDIR=${worksrcpath}
+    livecheck.type      none
+} else {
+    livecheck.type  regex
+    livecheck.url   ${homepage}
+    livecheck.regex {sfepy-([0-9\.]+)\.tar\.gz}
+}
+

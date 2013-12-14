@@ -1,0 +1,39 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem              1.0
+
+name                    edje
+epoch                   2
+version                 1.7.9
+maintainers             ryandesign openmaintainer
+categories              graphics x11
+platforms               darwin
+# The "epp" utility is GPL-2+; everything else is BSD.
+license                 {BSD GPL-2+}
+
+description             A library for graphical layout and animation.
+
+long_description        A graphical layout and animation library \
+                        for animated resizable, compressed and scalable \
+                        themes.
+
+homepage                http://trac.enlightenment.org/e/wiki/Edje
+master_sites            http://download.enlightenment.org/releases/
+use_bzip2               yes
+
+checksums               rmd160  38f67293adf3bdd8b72cb5b915d34512cc778f9d \
+                        sha256  846dcf4b56b48465e6b8373389984c2e06a06fd681a803cb341a985e1c5d5f3c
+
+depends_build           port:pkgconfig
+depends_lib             port:ecore \
+                        port:embryo \
+                        port:lua
+
+configure.args          --disable-silent-rules
+
+use_parallel_build      yes
+
+livecheck.type          regex
+livecheck.url           [lindex ${master_sites} 0]
+livecheck.regex         ${name}-(\[0-9a-z.\]+)${extract.suffix}

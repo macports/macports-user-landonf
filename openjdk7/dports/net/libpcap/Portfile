@@ -1,0 +1,49 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                libpcap
+version             1.5.2
+categories          net
+maintainers         nomaintainer
+license             BSD
+description         Packet Capture library
+long_description    The Packet Capture library provides a high level \
+                    interface to packet capture systems.  All packets \
+                    on the network, even those destined for other hosts, \
+                    are accessible through this mechanism.
+homepage            http://www.tcpdump.org/
+platforms           darwin
+master_sites        ${homepage}release/
+
+checksums           rmd160  e6b0c37f6ee4e7b1892e8386625a51d01bfc12a4 \
+                    sha256  806d4ba23b126476d39a458ad1468f73dfe63c92f9586208f7e4e18c13e52ddd
+
+depends_build       port:pkgconfig
+
+depends_lib         port:dbus
+
+configure.args      --disable-bluetooth \
+                    --disable-canusb \
+                    --disable-can \
+                    --disable-universal \
+                    --enable-dbus \
+                    --enable-ipv6 \
+
+post-destroot {
+    set docdir ${destroot}${prefix}/share/doc/${name}
+    xinstall -d ${docdir}
+    xinstall -m 644 -W ${worksrcpath} \
+        CHANGES \
+        CREDITS \
+        LICENSE \
+        README \
+        README.macosx \
+        TODO \
+        ${docdir}
+}
+
+livecheck.type      regex
+livecheck.url       [lindex ${master_sites} 0]
+livecheck.regex     ${name}-(\[0-9.\]+)\\.tar

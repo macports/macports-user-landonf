@@ -1,0 +1,33 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=portfile:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem              1.0
+
+name                    mspdebug
+version                 0.22
+maintainers             g5pw
+
+categories              devel cross
+description             MSPDebug is a free debugger for use with MSP430 MCUs.
+long_description        MSPDebug is a free debugger for use with MSP430 MCUs. \
+                        It supports FET430UIF, eZ430, RF2500, Launchpad and Olimex \
+                        MSP-JTAG-TINY programmers. It can be used as a proxy for gdb \
+                        or as an independent debugger with support for programming, \
+                        disassembly and reverse engineering.
+
+platforms               darwin
+
+homepage                http://mspdebug.sourceforge.net/
+
+master_sites            sourceforge
+
+checksums               rmd160  2c072a65bec138d04107062cfc788e73e577b7b1 \
+                        sha256  9a0550f3c7911bcc4e3231fff652c8f14763eb6a945609ce715db7164bf76c55
+
+depends_lib             port:libusb-compat port:libelf
+
+use_configure           no
+
+destroot.env-append     PREFIX="${prefix}"
+
+livecheck.regex         "${name}-((?!.*${name}.*|\\${extract.suffix}).*)\\${extract.suffix}"

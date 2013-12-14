@@ -1,0 +1,36 @@
+# -*- coding: utf-8; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+
+name                py-scikits-bootstrap
+version             0.3.1
+categories-append   science
+license             BSD
+platforms           darwin
+maintainers         aronnax
+description         Bootstrap confidence interval estimation routines for SciPy.
+long_description    Algorithms for SciPy to calculate bootstrap confidence \
+                    intervals for statistics functions applied to data.
+homepage            http://github.org/cgevans/scikits-bootstrap
+master_sites        http://pypi.python.org/packages/source/s/scikits.bootstrap/
+
+distname            scikits.bootstrap-${version}
+
+checksums           rmd160  2443123ed219d6e9a74fc5eede68b8fc5c16dd2c \
+                    sha256  f1a18b7930a1743838988aa82bcde2a35edefbea80892692e340d9ac505a573b
+
+python.versions     26 27
+
+if {${name} ne ${subport}} {
+    depends_lib-append  port:py${python.version}-setuptools \
+                        port:py${python.version}-numpy \
+                        port:py${python.version}-scipy
+
+    livecheck.type      none
+} else {
+    livecheck.type      regex
+    livecheck.url       ${master_sites}
+    livecheck.regex     "scikits\\.bootstrap-(\\d+(?:\\.\\d+)*)${extract.suffix}"
+}

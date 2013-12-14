@@ -1,0 +1,56 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                fizmo
+version             0.7.7
+categories          games
+platforms           darwin linux
+maintainers         spellbreaker.org:Christoph.Ender
+license             BSD
+
+description         Console-based Z-Machine interpreter for Infocom games.
+
+long_description    Fizmo is a Z-Machine interpreter (Fizmo Interprets \
+                    Z-Machine Opcodes) which allows you to run Infocom- and \
+                    most other Z-Machine based games -- except version 6 -- on \
+                    POSIX-like systems which provide a ncursesw (note the 'w') \
+                    library. It has been successfully compiled on Debian based \
+                    Linux, Mac OS X (with MacPorts providing ncursesw) and \
+                    Windows (using Cygwin and a self-compiled ncursesw \
+                    library). This is a console-style application, meaning \
+                    that it runs in textmode and does not provide any GUI \
+                    whatsoever. For more information about Infocom and \
+                    interactive fiction, see the 'New to IF' section at \
+                    http://www.ifarchive.org. Games are available from \
+                    http://www.ifarchive.org/indexes/if-archiveXgamesXzcode.html
+
+homepage            http://spellbreaker.org/~chrender/fizmo/
+master_sites        http://spellbreaker.org/~chrender/fizmo/source/
+
+checksums           sha256  6b17e0536828946804d89730d4390b9f43043e22695d3b30ec3a81e95c1adfb6 \
+                    rmd160  df6d3fbb1f93dda58ab83f5c149bd64e7f214087
+
+depends_build       port:pkgconfig
+
+depends_lib         port:ncurses \
+                    port:libsdl_sound \
+                    port:libsndfile \
+                    port:libxml2 \
+                    port:xorg-libX11 \
+                    port:jpeg \
+                    port:libpng
+
+configure.args      --with-jpeg-includedir=${prefix}/include \
+                    --with-jpeg-libdir=${prefix}/lib
+
+post-destroot {
+    file link -symbolic ${destroot}${prefix}/bin/fizmo fizmo-ncursesw
+    file link -symbolic ${destroot}${prefix}/share/man/man6/fizmo.6 fizmo-ncursesw.6
+}
+
+livecheck.type      regex
+livecheck.url       [lindex ${master_sites} 0]
+livecheck.regex     ${name}-(\[0-9.\]+)${extract.suffix}
+

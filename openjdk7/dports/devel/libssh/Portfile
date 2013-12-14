@@ -1,0 +1,46 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           cmake 1.0
+
+name                libssh
+epoch               1
+version             0.5.5
+set major           [join [lrange [split ${version} .] 0 1] .]
+categories          devel security net
+platforms           darwin
+maintainers         cal openmaintainer
+license             LGPL-2.1
+
+description         an SSH library
+
+long_description    The ssh library was designed to be used by \
+                    programmers needing a working SSH implementation \
+                    by the mean of a library.
+
+homepage            http://www.libssh.org
+master_sites        https://red.libssh.org/attachments/download/51
+
+checksums           rmd160  4b1dcb9c5a61b059d5094803bd4a2391a9607f87 \
+                    sha256  c0df0f05fc812dbe26fd4118bec0776aa9e892c0719590f3971130489c6b8e9d
+
+depends_lib         port:openssl \
+                    port:zlib
+
+post-extract {
+    file mkdir ${workpath}/build
+}
+
+# standard post-arg, where to find the primary CMakeLists.txt file.
+configure.post_args ../${distname}
+configure.dir       ${workpath}/build
+configure.args-append \
+                    -DWITH_GCRYPT=OFF \
+                    -DWITH_INTERNAL_DOC=OFF \
+                    -DWITH_LIBZ=ON
+build.dir           ${workpath}/build
+
+livecheck.type      regex
+livecheck.url       http://git.libssh.org/projects/libssh.git/refs/
+livecheck.regex     ${name}-(\\d+\\.\\d+(\\.\\d+)+)

@@ -1,0 +1,23 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           github 1.0
+
+# until 2.9.2 or higher is released, we need this commit so that we can use
+# fsevents on the mac
+github.setup        facebook watchman e0762edf3306
+version             2.9.1
+categories          sysutils
+platforms           darwin
+maintainers         sean openmaintainer
+license             Apache-2
+
+description         watches files and takes action when they change
+long_description    ${description}
+
+use_autoreconf      yes
+autoreconf.env      AUTOMAKE="automake --foreign"
+
+checksums           rmd160  09a27ff9692d621e2abb9bf19be9d882664d7380 \
+                    sha256  3cd790ee668b7d667b4dff64ac160bc6fbe6648617f3ec3e98737cf0bb7219ec

@@ -1,0 +1,50 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+# See dports/_resources/port1.0/group/kde4-1.1.tcl for more info.
+PortGroup           kde4    1.1
+
+name                kmymoney4
+version             4.6.4
+
+categories          kde kde4 finance
+maintainers         mk pixilla openmaintainer
+
+description         kmymoney version 4
+long_description    KMyMoney is the personal finance manager for KDE.
+platforms           darwin
+license             GPL-2+
+
+homepage            http://kmymoney2.sourceforge.net/index-home.html
+master_sites        sourceforge:kmymoney2
+
+livecheck.type      regex
+livecheck.url       http://sourceforge.net/projects/kmymoney2/files/KMyMoney-KDE4
+livecheck.regex     "enter (4\\.\\d+?(\\.\\d+))\""
+
+distname            kmymoney-${version}
+use_xz              yes
+
+build.asroot        yes
+
+checksums           md5     0674b9ef7ed5447e6a88b56a834389f8 \
+                    sha1    3e4b17574684fd717fc75963d0a0c4d31aa81b71 \
+                    rmd160  db9bfc37de48c87cce65b58d3f9439d952ca8054
+
+conflicts           kmymoney4-devel
+
+depends_lib-append  port:libofx \
+                    port:aqbanking5 \
+                    port:kdepimlibs4 \
+                    port:oxygen-icons \
+                    port:kde4-runtime \
+                    port:libalkimia
+
+patch.dir           ${workpath}/${distname}
+patch.pre_args      -p1
+patchfiles          patch-CMakeLists.txt.diff \
+                    patch-CMakeLists_remove_APIDOC.txt.diff \
+                    patch_remove_manpage_and_APIDOC.diff
+

@@ -1,0 +1,12 @@
+# $Id$
+
+PortSystem 1.0
+replaced_by	pbtomake
+PortGroup	obsolete 1.0
+
+name		pb2make
+version		4.0
+categories	devel
+platforms	darwin
+maintainers	nomaintainer
+homepage	http://members.bellatlantic.net/~vze35xda/software.html

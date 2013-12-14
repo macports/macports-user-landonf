@@ -1,0 +1,38 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+
+name                py-x2go
+maintainers         cal openmaintainer
+version             0.4.0.8
+checksums           rmd160  03452b7e7f64ff50e79e1f54a571e9bf3064704f \
+                    sha256  7c94d4a82c4104adaccee3890cea5f4c2430c915c885e1b8fd2b94fe096c17cd
+
+categories-append   net
+license             AGPL-3
+homepage            http://www.x2go.org/
+description         Python bindings for the x2go terminal server solution.
+long_description    \
+    Python X2Go provides a client-side X2go API for the Python programming\
+    language. Python X2go is mostly interesting for developers who want to\
+    incorporate X2go client support into their own Python applications.
+
+platforms           darwin
+supported_archs     noarch
+
+master_sites        http://code.x2go.org/releases/source/python-x2go/
+distname            python-x2go-${version}
+
+python.versions     27 31 32
+python.default_version 27
+
+if {${name} ne ${subport}} {
+    livecheck.type          none
+    depends_build-append    port:py${python.version}-setuptools
+} else {
+    livecheck.type          regex
+    livecheck.url           ${master_sites}
+    livecheck.regex         "python-x2go-(\\d+(?:\\.\\d)*)[quotemeta ${extract.suffix}]<"
+}

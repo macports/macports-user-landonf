@@ -1,0 +1,42 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+PortGroup           select 1.0
+PortGroup           github 1.0
+
+github.setup        eliben pss 1.39 v
+name                py-pss
+
+categories-append   devel
+platforms           darwin
+license             public-domain
+supported_archs     noarch
+maintainers         sean openmaintainer
+
+description         pss is a tool for grepping through source code
+
+long_description    ${description}
+
+checksums           rmd160  c9effd4b4ad62831772c9298a88ed1df552b77f9 \
+                    sha256  cd7afb174ffdda39a8f0e0efb5fa55b28824a119af19f9b14c31c7faa8196316
+
+python.versions     26 27 31 32 33
+
+if {${name} ne ${subport}} {
+
+    depends_run         port:py-pss_select
+
+    select.group        py-pss
+    select.file         ${filespath}/py${python.version}-pss
+
+    livecheck.type  none
+
+    notes "
+To make the Python ${python.branch} version of py-pss the one that is run\
+when you execute the commands without a version suffix, e.g. 'pss', run:
+
+port select --set ${select.group} [file tail ${select.file}]
+"
+}

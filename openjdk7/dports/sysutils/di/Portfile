@@ -1,0 +1,32 @@
+# $Id$
+
+PortSystem 1.0
+
+name                di
+version             4.34
+categories          sysutils
+platforms           darwin
+maintainers         mww
+license             zlib
+description         disk information utility
+long_description    di is a disk information utility, displaying everything \
+                    (and more) than the classic df command does.
+
+homepage            http://www.gentoo.com/di/
+master_sites        ${homepage} http://fresh.t-systems-sfr.com/unix/src/privat2/
+
+checksums           rmd160  538e943a9c699659e4ae150b82314fdbc6f0834d \
+                    sha256  c2bdb2aab01da3fadd45037b37e11532316237c8bd8103e9c6307571c5876feb
+
+depends_lib         port:gettext
+
+use_configure       no
+
+build.target
+build.args          prefix=${prefix} CC="${configure.cc}" CFLAGS="${configure.cflags}"
+
+destroot.args       prefix=${destroot}${prefix}
+
+livecheck.type      regex
+livecheck.regex     ${name}-(\[0-9.\]+)\\.tar
+

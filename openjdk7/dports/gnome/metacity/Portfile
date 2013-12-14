@@ -1,0 +1,64 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+PortGroup       active_variants 1.1
+
+name            metacity
+version         2.34.13
+set branch      [join [lrange [split ${version} .] 0 1] .]
+description     A window manager for the adult in you.
+long_description \
+                ${description}
+maintainers     devans openmaintainer
+categories      gnome x11-wm
+license         GPL-2+
+platforms       darwin
+homepage        http://www.gnome.org
+master_sites    gnome:sources/${name}/${branch}/
+
+use_xz          yes
+
+checksums       rmd160  c04af49aedb46207053c199c61974751461bfd37 \
+                sha256  8cf4dbf0da0a6f36357ce7db7f829ec685908a7792453c662fb8184572b91075
+
+depends_build   port:gnome-doc-utils \
+                port:pkgconfig \
+                port:intltool \
+                port:itstool
+
+depends_lib     port:desktop-file-utils \
+                port:gtk2 \
+                port:libcanberra \
+                port:gsettings-desktop-schemas \
+                port:startup-notification \
+                port:xorg-libXcomposite \
+                port:xorg-libXfixes \
+                port:xrender \
+                port:xorg-libXdamage \
+                port:xorg-libXcursor \
+                port:xorg-libXinerama \
+                port:xorg-libXext \
+                port:xorg-libxkbfile \
+                port:xorg-libXrandr \
+                port:xorg-libsm \
+                port:xorg-libice \
+                port:libgtop \
+                port:zenity
+
+depends_run     port:gnome-settings-daemon
+
+require_active_variants gtk2 x11
+
+configure.args  --x-includes=${prefix}/include \
+                --x-libraries=${prefix}/lib \
+                --disable-silent-rules \
+                --disable-schemas-compile \
+                --disable-themes-documentation
+
+post-activate {
+    system "${prefix}/bin/glib-compile-schemas ${prefix}/share/glib-2.0/schemas"
+    system "${prefix}/bin/update-desktop-database ${prefix}/share/applications"
+}
+
+livecheck.type  gnome

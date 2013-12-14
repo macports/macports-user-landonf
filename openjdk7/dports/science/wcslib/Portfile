@@ -1,0 +1,75 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                wcslib
+version             4.17
+categories          science
+license             LGPL-3+
+platforms           darwin
+maintainers         transientskp.org:swinbank
+description         Library for handling World Coordinate System in FITS files
+long_description    A C library, with a set of Fortran wrappers, that \
+                    implements the World Coordinate System (WCS) standard \
+                    in FITS (Flexible Image Transport System).
+homepage            http://www.atnf.csiro.au/people/mcalabre/WCS/index.html
+master_sites        ftp://ftp.atnf.csiro.au/pub/software/wcslib/
+use_bzip2           yes
+
+checksums           rmd160  4112b19811aa7d9185684ddd61098264151896ee \
+                    sha256  b81259260ece1afa738490e6ae3821315208cb5f121096fff958a0f90c3a7d5c
+
+depends_lib         port:cfitsio
+configure.args      --disable-fortran
+
+universal_variant   no
+
+livecheck.type      regex
+livecheck.url       http://www.atnf.csiro.au/people/mcalabre/WCS/CHANGES
+livecheck.regex     "WCSLIB version (\\d+\\.\\d+\(\\.\\d+\)?)"
+
+variant gcc44 conflicts gcc45 gcc46 gcc47 gcc48 description {Build with GCC 4.4; enables Fortran support}  {
+    configure.compiler      macports-gcc-4.4
+    depends_lib-append      port:pgplot
+    configure.args-delete   --disable-fortran
+    post-destroot {
+        system "install_name_tool -change libwcs.${version}.dylib ${prefix}/lib/libwcs.${version}.dylib ${destroot}${prefix}/lib/libpgsbox.${version}.dylib"
+    }
+}
+
+variant gcc45 conflicts gcc44 gcc46 gcc47 gcc48 description {Build with GCC 4.5; enables Fortran support}  {
+    configure.compiler      macports-gcc-4.5
+    depends_lib-append      port:pgplot
+    configure.args-delete   --disable-fortran
+    post-destroot {
+        system "install_name_tool -change libwcs.${version}.dylib ${prefix}/lib/libwcs.${version}.dylib ${destroot}${prefix}/lib/libpgsbox.${version}.dylib"
+    }
+}
+
+variant gcc46 conflicts gcc44 gcc45 gcc47 gcc48 description {Build with GCC 4.6; enables Fortran support}  {
+    configure.compiler      macports-gcc-4.6
+    depends_lib-append      port:pgplot
+    configure.args-delete   --disable-fortran
+    post-destroot {
+        system "install_name_tool -change libwcs.${version}.dylib ${prefix}/lib/libwcs.${version}.dylib ${destroot}${prefix}/lib/libpgsbox.${version}.dylib"
+    }
+}
+
+variant gcc47 conflicts gcc44 gcc45 gcc46 gcc48 description {Build with GCC 4.7; enables Fortran support}  {
+    configure.compiler      macports-gcc-4.7
+    depends_lib-append      port:pgplot
+    configure.args-delete   --disable-fortran
+    post-destroot {
+        system "install_name_tool -change libwcs.${version}.dylib ${prefix}/lib/libwcs.${version}.dylib ${destroot}${prefix}/lib/libpgsbox.${version}.dylib"
+    }
+}
+
+variant gcc48 conflicts gcc44 gcc45 gcc46 gcc47 description {Build with GCC 4.8; enables Fortran support}  {
+    configure.compiler      macports-gcc-4.8
+    depends_lib-append      port:pgplot
+    configure.args-delete   --disable-fortran
+    post-destroot {
+        system "install_name_tool -change libwcs.${version}.dylib ${prefix}/lib/libwcs.${version}.dylib ${destroot}${prefix}/lib/libpgsbox.${version}.dylib"
+    }
+}

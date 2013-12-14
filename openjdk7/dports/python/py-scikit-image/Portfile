@@ -1,0 +1,47 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+PortGroup           github 1.0
+
+github.setup        scikit-image scikit-image 0.9.3 v
+name                py-${name}
+revision            0
+categories-append   science
+platforms           darwin
+license             BSD
+
+python.versions     26 27 32 33
+
+maintainers         stromnov openmaintainer
+
+description         Image processing algorithms for SciPy.
+
+long_description    Image processing algorithms for SciPy, including IO, \
+                    morphology, filtering, warping, color manipulation, \
+                    object detection, etc.
+
+homepage            http://scikit-image.org/
+
+checksums           rmd160  3d792360cf576e564ab739e36a722a1b4bd7171f \
+                    sha256  579eceb64811e0d50f162e78a13d45d33351e32844abc3dfb415b5c779d4dbb3
+
+if {${name} ne ${subport}} {
+    patchfiles          patch-skimage__build.py.diff
+
+    depends_build-append \
+                        port:py${python.version}-cython
+
+    depends_lib-append  port:py${python.version}-setuptools \
+                        port:py${python.version}-numpy
+
+    depends_run-append  port:py${python.version}-scipy
+
+    post-patch {
+        reinplace "s|@prefix@|${prefix}|g" ${worksrcpath}/skimage/_build.py
+        reinplace "s|@python.branch@|${python.branch}|g" ${worksrcpath}/skimage/_build.py
+    }
+
+    livecheck.type      none
+}

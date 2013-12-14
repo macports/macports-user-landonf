@@ -1,0 +1,11 @@
+--- CMakeLists.txt.orig	2013-10-18 21:01:21.000000000 +0900
++++ CMakeLists.txt	2013-10-18 21:01:26.000000000 +0900
+@@ -49,7 +49,7 @@
+ add_subdirectory(documentation)
+ add_subdirectory(kdeintegration)
+ add_subdirectory(utils)
+-add_subdirectory(doc)
++#add_subdirectory(doc)
+ add_subdirectory(file_templates)
+ 
+ #macro_optional_add_subdirectory(doc)

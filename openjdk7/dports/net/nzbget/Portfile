@@ -1,0 +1,56 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                nzbget
+version             11.0
+checksums           sha256  27abacf6c604969dc987b7e50689caef22a65dbb1690b020b0c6d147ae123b3d \
+                    rmd160  8ee2f6b864ed58c1e8b8d3fbcef6d3b1449346a8
+
+categories          net
+maintainers         nomaintainer
+platforms           darwin
+
+license             GPL-2+
+description     \
+    NZBGet is a cross-platform binary newsgrabber for nzb files, written in C++.
+long_description \
+    ${description} \
+    It supports client/server mode, automatic par-check/-repair and \
+    web-interface. NZBGet requires low system resources and runs great on \
+    routers, NAS-devices and media players.
+
+homepage            http://nzbget.sourceforge.net
+master_sites        sourceforge
+
+depends_build       port:pkgconfig
+depends_lib         port:libsigcxx2 \
+                    port:gnutls \
+                    port:libgcrypt \
+                    port:libpar2 \
+                    port:libxml2 \
+                    port:ncurses \
+                    port:zlib
+
+configure.args      --with-tlslib=GnuTLS \
+                    --with-libgnutls-includes=${prefix}/include/gnutls \
+                    --with-libgnutls-libraries=${prefix}/lib \
+                    --mandir=${prefix}/share/man \
+                    --disable-libpar2-bugfixes-check
+
+# clang chokes on: libpar2/par2fileformat.h:87:25: error: flexible array member 'entries' of non-POD element type 'FILEVERIFICATIONENTRY []'
+compiler.blacklist  *clang*
+
+post-destroot {
+    set docdir ${prefix}/share/doc/${name}-${version}
+    xinstall -d ${destroot}${docdir}
+    xinstall -m 0644 -W ${worksrcpath} AUTHORS COPYING INSTALL NEWS README \
+        nzbget.conf ${destroot}${docdir}
+}
+
+notes \
+    "An example configuration file has been installed at\
+    ${prefix}/share/doc/${name}-${version}/nzbget.conf"
+
+livecheck.regex      "/[quotemeta ${name}-stable]/(\[a-zA-Z0-9.\]+\.\[a-zA-Z0-9.\]+)/"

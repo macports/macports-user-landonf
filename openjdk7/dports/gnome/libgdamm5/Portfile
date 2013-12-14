@@ -1,0 +1,44 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            libgdamm5
+set gname       libgdamm
+version         4.99.7
+license         LGPL-2.1
+set branch      [join [lrange [split ${version} .] 0 1] .]
+
+description     C++ wrappers for libgda5.
+long_description ${description}
+
+maintainers     devans openmaintainer
+categories      gnome
+platforms       darwin
+ 
+homepage        http://www.gtkmm.org/
+master_sites    gnome:sources/${gname}/${branch}/
+
+dist_subdir     ${gname}
+distname        ${gname}-${version}
+
+use_xz          yes
+
+checksums       rmd160  731275e6af46f1625c5489b8a910b412ef2070cf \
+                sha256  5b864ddc7d5555c6c2d7fb5c6a3856c690911d12837148511a7b9f85100ca06c
+
+depends_build   port:pkgconfig
+
+depends_lib     port:glibmm \
+                port:libgda5
+
+configure.args  --disable-documentation
+
+variant docs description {Install documentation} {
+        configure.args-replace --disable-documentation --enable-documentation
+}
+
+default_variants +docs
+
+livecheck.type  gnome-with-unstable
+livecheck.name  ${gname}

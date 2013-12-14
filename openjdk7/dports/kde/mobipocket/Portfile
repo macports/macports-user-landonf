@@ -1,0 +1,30 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                mobipocket
+version             4.11.4
+categories          kde kde4
+license             GPL-2+
+maintainers         nicos openmaintainer
+description         Mobipocket plugins for Strigi indexing, Okular and thumbnails.
+long_description    ${description}
+platforms           darwin
+homepage            http://www.kde.org/
+master_sites        kde:stable/${version}/src/
+use_xz              yes
+distname            kdegraphics-mobipocket-${version}
+checksums           rmd160  562cf85fee50f1855b6d00f59dce5c771e4cad89 \
+                    sha256  bbc6196694df111f1133cee617b8aaae5b863863fb23cfb13b2a8112294c10f4
+
+#Binaries do not link to openssl, nor use the ssl backend of kdelibs4
+license_noconflict  openssl
+
+depends_lib-append  port:kdelibs4 \
+                    port:strigi \
+                    port:okular
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

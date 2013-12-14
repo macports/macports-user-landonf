@@ -1,0 +1,68 @@
+# $Id$
+
+PortSystem      1.0
+PortGroup       python 1.0
+
+name            py-protobuf
+version         2.5.0
+revision        1
+categories-append   devel
+maintainers     blair
+license         BSD
+description     Encode data in an efficient yet extensible format.
+
+long_description \
+                Google Protocol Buffers are a flexible, efficient, \
+                automated mechanism for serializing structured data -- \
+                think XML, but smaller, faster, and simpler.  You \
+                define how you want your data to be structured once, \
+                then you can use special generated source code to \
+                easily write and read your structured data to and from \
+                a variety of data streams and using a variety of \
+                languages.  You can even update your data structure \
+                without breaking deployed programs that are compiled \
+                against the "old" format.  You specify how you want \
+                the information you're serializing to be structured by \
+                defining protocol buffer message types in .proto \
+                files.  Each protocol buffer message is a small \
+                logical record of information, containing a series of \
+                name-value pairs.
+
+homepage        http://code.google.com/p/protobuf/
+master_sites    googlecode:protobuf
+
+distname        protobuf-${version}
+dist_subdir     protobuf-cpp
+use_bzip2       yes
+checksums       sha1   62c10dcdac4b69cc8c6bb19f73db40c264cb2726 \
+                sha256 13bfc5ae543cf3aa180ac2485c0bc89495e3ae711fc6fab4f8ffe90dfb4bb677
+
+platforms       darwin
+
+python.versions 24 25 26 27
+
+if {${name} ne ${subport}} {
+    depends_lib     port:protobuf-cpp \
+                    port:py${python.version}-setuptools
+
+    worksrcdir      ${worksrcdir}/python
+
+    patchfiles      patch-python-except-clause-compatibility.diff
+
+    # PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=cpp is disabled until
+    # this bug [1] is fixed.  Better to ensure that the Python
+    # protobuf bindings slowly and properly encode and decode data
+    # then quickly fail ;)
+    #
+    # [1] http://code.google.com/p/protobuf/issues/detail?id=503
+
+    # build.env       PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=cpp
+    build.cmd-append    build_ext -I${prefix}/include
+
+    # destroot.env    PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=cpp
+
+    test.run        yes
+    # test.env        PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=cpp
+    test.cmd        "${python.bin} setup.py"
+    test.target     test
+}

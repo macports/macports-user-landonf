@@ -1,0 +1,35 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem                      1.0
+PortGroup                       cmake 1.0
+
+name                            armadillo
+version                         3.920.2
+categories                      science
+platforms                       darwin
+maintainers                     gmail.com:christian.frisson openmaintainer
+license                         MPL-2.0
+
+description                     Armadillo C++ linear algebra library
+
+long_description                Armadillo is a C++ linear algebra library (matrix maths) \
+                                aiming towards a good balance between speed and ease of use. \
+                                Integer, floating point and complex numbers are supported, \
+                                as well as a subset of trigonometric and statistics functions. \
+                                Various matrix decompositions are provided through optional \
+                                integration with LAPACK or high-performance LAPACK-compatible \
+                                libraries.
+
+homepage                        http://arma.sf.net/
+master_sites                    sourceforge:project/arma
+
+checksums                       rmd160  fd0145a8843264ae454ed8c7a5d53a5970b87674 \
+                                sha256  ffc844858d9382a6e4d2d77917b5547f84715055464676b2aec1f02753818616
+
+depends_build-append            port:pkgconfig
+
+depends_lib-append              port:boost \
+                                port:hdf5-18
+
+livecheck.regex                 /${name}-(\[0-9.\]+)${extract.suffix}

@@ -1,0 +1,65 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem              1.0
+
+name                    libgsf
+version                 1.14.28
+license                 LGPL-2.1
+set branch              [join [lrange [split $version .] 0 1] .]
+maintainers             nomaintainer
+categories              gnome
+platforms               darwin
+
+description \
+    An I/O abstraction library for dealing with file formats
+
+long_description \
+    libgsf aims to provide an efficient extensible \
+    i/o abstraction for dealing with different \
+    structured file formats.
+
+homepage                http://www.gnome.org/
+master_sites            gnome:sources/$name/$branch/
+
+use_xz                  yes
+
+checksums               rmd160  3f6e44589087b6f0f4ed0139105070150c5b082d \
+                        sha256  ea94914f1fdaa5d4eb49149f0228ae6e41a54bdeb8caf52a7dd8acaa329fcbe4
+
+depends_build           port:pkgconfig \
+                        port:intltool
+
+depends_lib             port:gettext \
+                        port:gobject-introspection \
+                        path:lib/pkgconfig/glib-2.0.pc:glib2 \
+                        port:libxml2 \
+                        port:gdk-pixbuf2 \
+                        port:zlib \
+                        port:bzip2
+
+configure.args          --disable-compile-warnings \
+                        --disable-silent-rules \
+                        --enable-introspection
+
+# Don't do intltool's INTLTOOL_PERL dance
+use_autoreconf  yes
+autoreconf.args -fvi
+
+# gobject-introspection uses g-ir-scanner, which uses $CC from env
+build.args-append       CC="${configure.cc} ${configure.cc_archflags}"
+
+post-destroot {
+    set docdir ${prefix}/share/doc/${name}
+    xinstall -d ${destroot}${docdir}
+    xinstall -m 644 -W ${worksrcpath} AUTHORS COPYING COPYING.LIB NEWS README \
+        ${destroot}${docdir}
+}
+
+platform darwin 8 {
+    # The rules enabled by gobject-introspection require GNU make 3.81+ (#38928)
+    depends_build-append    port:gmake
+    build.cmd               ${prefix}/bin/gmake
+}
+
+livecheck.type  gnome

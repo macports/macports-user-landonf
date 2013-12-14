@@ -1,0 +1,11 @@
+# $Id$
+
+PortSystem 1.0
+replaced_by		py24-pyro
+PortGroup obsolete 1.0
+
+name			py-ro
+
+version			3.7
+revision		1
+categories		python devel

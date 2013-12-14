@@ -1,0 +1,41 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           app 1.0
+
+name                gdash
+version             20100212
+revision            2
+categories          games
+platforms           darwin
+maintainers         ryandesign openmaintainer
+license             BSD
+
+description         Emerald Mine-like game for GTK+ and SDL
+
+long_description    ${name} is an ${description}.
+
+homepage            http://code.google.com/p/gdash/
+master_sites        googlecode
+
+checksums           sha1    a9318249c0d471777c4ff8260d80d1cb0a6b37f9 \
+                    rmd160  17201f947ce76aa4deb01e525d41f8432c925bf5
+
+depends_build       port:pkgconfig
+
+depends_lib         port:gtk2 \
+                    port:libpng \
+                    port:libsdl \
+                    port:libsdl_image \
+                    port:libsdl_mixer
+
+patchfiles          patch-src-IMG_savepng.c.diff
+
+configure.args      --disable-glibtest \
+                    --disable-gtktest \
+                    --disable-sdltest
+
+app.name            SDash
+app.executable      sdash
+app.icon            docs/gdash.png

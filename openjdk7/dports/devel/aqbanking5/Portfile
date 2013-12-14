@@ -1,0 +1,130 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem        1.0
+
+name              aqbanking5
+# This port offers the latest stable version (also as a gtk subport)
+# as well as the latest beta version as aqbanking5-devel
+# and the svn version as aqbanking5-svn!
+
+categories        devel net finance
+maintainers       mk dports openmaintainer
+platforms         darwin
+license           {GPL-2 GPL-3 OpenSSLException}
+
+description       a generic online banking interface
+long_description  aqbanking is a generic online banking interface mainly \
+                  supporting Home Banking Computer Interface, a standard \
+                  used for German checking accounts, but also suitable \
+                  for OFX as used in several other countries. \
+                  Note that the YellowNet backend (for Suisse Postfinance) \
+                  is not available for OS X (upstream only has a Linux binary).
+
+homepage          http://www2.aquamaniac.de/sites/aqbanking/index.php
+
+conflicts         aqbanking
+
+depends_lib       port:gwenhywfar4 \
+                  port:ktoblzcheck \
+                  port:libofx \
+                  port:gmp \
+                  port:gnutls
+
+depends_build     port:pkgconfig \
+                  port:libtool
+
+universal_variant no
+
+if {$subport eq $name} {
+    conflicts-append aqbanking5-devel aqbanking5-gtk aqbanking5-svn
+}
+
+if {$subport eq $name || $subport eq "aqbanking5-gtk"} {
+    version           5.0.25
+    revision          1
+    # this is specific to this port and *version* for downloading it
+    set release       95
+
+    checksums         md5     b238639962128ce25db81870f65173d9 \
+                      sha1    80314a6f6114a0a3f0062161bb38effc0f1f4b62 \
+                      rmd160  6dc5d915e3fda4e2eff7c604ee3fad7ca0e1052d
+}
+
+subport aqbanking5-devel {
+    conflicts-append  aqbanking5 aqbanking5-gtk aqbanking5-svn
+    version             5.1.0beta
+    # this is specific to this port and *version* for downloading it
+    set release         103
+
+    checksums           md5     06bd17cfb729bb74004d2c0342e50a6f \
+                        sha1    a628ddd93a58caee6e826e80829e98a85c14fc57 \
+                        rmd160  e65cff586e6d94754224f9912b9331e002e6bd94
+
+    depends_lib-delete  port:gwenhywfar4
+    depends_lib-append  port:gwenhywfar4-devel
+}
+
+subport aqbanking5-svn {
+    conflicts-append  aqbanking5 aqbanking5-gtk aqbanking5-devel
+
+    fetch.type          svn
+    svn.url             http://devel.aqbanking.de/svn/aqbanking/trunk
+    # r2384 is indeed identical to 5.0.32beta
+    svn.revision        2384
+    version             svn-r${svn.revision}
+    worksrcdir          trunk
+
+    use_autoreconf      yes
+    autoreconf.args     -fvi
+    patchfiles          patch-Makefile.am.diff
+
+    depends_lib-delete    port:gwenhywfar4
+    depends_lib-append    port:gwenhywfar4-devel
+}
+
+if {$subport ne "aqbanking5-svn"} {
+    master_sites      http://www2.aquamaniac.de/sites/download/download.php?package=03&release=${release}&file=01&dummy=
+}
+
+distname          aqbanking-${version}
+# This is only to be used in case the dist was directly created from git
+#distname          aqbanking-${version}.0-git
+
+subport aqbanking5-gtk {
+    conflicts-append    aqbanking5 aqbanking5-devel
+    depends_lib-delete  port:gwenhywfar4 port:qt4-mac
+    depends_lib-append  port:gwenhywfar4-gtk
+}
+
+configure.cppflags-append "-L${prefix}/lib"
+configure.cflags-append   "-L${prefix}/lib"
+configure.ldflags-append  "-Wl,-dylib_file,/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib:/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib"
+configure.env             PKG_CONFIG=${prefix}/bin/pkg-config QTDIR=${prefix}
+configure.args-append \
+                          --enable-static \
+                          --disable-dependency-tracking \
+                          --with-backends="aqhbci aqofxconnect aqnone aqpaypal"
+
+variant enable_local_install description "Enable local installation mode (plugins, data, locale and config are located relatively to the binary)" {
+    configure.args-append   --enable-local-install
+}
+
+variant debug description "Enable debug." {
+    configure.args-append --enable-debug
+}
+
+use_parallel_build no
+
+if {$subport != "aqbanking5-svn"} {
+    livecheck.type    regex
+    livecheck.url     http://www2.aquamaniac.de/sites/download/packages.php?package=03&showall=1
+    if {$subport != "aqbanking5-devel"} {
+        livecheck.regex   aqbanking-(\[0-9.\]*)\\.tar
+    } else {
+        livecheck.regex   aqbanking-(\[0-9.\]*beta)\\.tar
+    }
+} else {
+    livecheck.type    none
+}
+

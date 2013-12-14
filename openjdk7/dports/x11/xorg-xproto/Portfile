@@ -1,0 +1,63 @@
+# $Id$
+
+PortSystem 1.0
+
+name		xorg-xproto
+version		7.0.24
+categories	x11 devel
+license		X11
+maintainers	jeremyhu openmaintainer
+description	X.org xproto
+homepage	http://www.x.org
+platforms	darwin
+supported_archs	noarch
+long_description The X.org xproto package contains miscellaneous X11 prototype headers.
+master_sites 	xorg:individual/proto/
+
+distname	xproto-${version}
+use_bzip2	yes
+
+checksums           sha1    c05b5757174839644f2fd98c1b062150494b6b15 \
+                    rmd160  9a4d909e2b434bb0f2b7664ed8f3331c94c98580 \
+                    sha256  3698a1c7e3b734bc1139a7eb694ed8c66188658d6b4dea3d567066fe4e88b2fc
+
+post-destroot {
+    set docdir ${prefix}/share/doc/${name}-${version}
+    xinstall -d ${destroot}${docdir}
+    xinstall -m 0644 -W ${worksrcpath} AUTHORS COPYING ChangeLog \
+        ${destroot}${docdir}
+}
+
+configure.args \
+	--without-xmlto \
+	--without-fop \
+	--disable-specs
+
+build.args V=1
+
+# Depending on ghostscript for the PDF documentation creates a dependency
+# loop, so you may want to install first without the docs variant
+variant docs description "Install extra documentation" {
+	depends_build-append \
+		port:fop \
+		port:xmlto \
+		port:xorg-sgml-doctools
+
+	configure.args-delete \
+		--without-xmlto \
+		--without-fop \
+		--disable-specs
+
+	configure.args-append \
+		--with-xmlto \
+		--with-fop \
+		--enable-specs
+
+	configure.env-append \
+		XMLTO="${prefix}/bin/xmlto" \
+		FOP="${prefix}/bin/fop"
+}
+
+livecheck.type  regex
+livecheck.url   http://xorg.freedesktop.org/archive/individual/proto/?C=M&O=D
+livecheck.regex xproto-(\\d+(?:\\.\\d+)*)

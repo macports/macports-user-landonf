@@ -1,0 +1,33 @@
+# $Id$
+
+PortSystem 1.0
+
+name			xfe
+version			1.35
+categories		x11
+platforms		darwin freebsd
+license			GPL-2+
+maintainers		afb
+description		X File Explorer (Xfe) is an MS-Explorer like file manager for X.
+long_description	\
+X File Explorer (Xfe) is a filemanager for X. It is based on the popular \
+X Win Commander, which is discontinued. Xfe is desktop independent and \
+is written with the C++ Fox Toolkit. It has Windows Commander or \
+MS-Explorer look and is very fast and simple. The main features are: \
+file associations, mount/umount devices, directory tree for quick cd, \
+change file attributes, auto save registry, compressed archives \
+view/creation/extraction and much more.
+
+homepage 		http://roland65.free.fr/xfe/
+master_sites		sourceforge:xfe
+
+checksums		sha1 9d5319cd11e3af24282bb8b789904fd2da33936c \
+			rmd160 5c33e3f3bd21a68829a69cd3871c1d8276a66d6f
+depends_lib		lib:libFOX-1.6:fox lib:libpng:libpng port:freetype
+
+patchfiles		patch-filepanel.diff
+
+post-configure		{
+				reinplace "s;/usr/local/share;${prefix}/share;" \
+				          ${worksrcpath}/src/xfedefs.h
+			}

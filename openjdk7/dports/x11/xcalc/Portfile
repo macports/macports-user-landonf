@@ -1,0 +1,31 @@
+# $Id$
+
+PortSystem          1.0
+
+name                xcalc
+version             1.0.5
+categories          x11 math science
+license             X11
+maintainers         jeremyhu openmaintainer
+description         Scientific calculator for X11
+long_description \
+   xcalc is a scientific calculator desktop accessory that can emulate a \
+   TI-30 or an HP-10C.
+
+platforms           darwin
+
+homepage            http://www.x.org/
+master_sites        xorg:individual/app/
+use_bzip2           yes
+
+checksums           md5     8a5597cb97db0dfcfef9dc7a6238d204 \
+                    sha1    af06858e39db247bfc8802b46d4aedfd7053b388 \
+                    rmd160  5adfcd18aaea8cdaca0c3110235a252ea48f113f
+
+depends_build       port:pkgconfig
+
+depends_lib         port:xorg-libXaw
+
+livecheck.type      regex
+livecheck.regex     ${name}-(\[\\d.\]+)${extract.suffix}
+livecheck.url       http://xorg.freedesktop.org/archive/individual/app/?C=M&O=D

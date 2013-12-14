@@ -1,0 +1,42 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem 1.0
+
+name            liblo
+epoch           1
+# 0.27 is buggy on x86_64 and is not considered stable; wait for 0.28
+# https://sourceforge.net/p/liblo/bugs/33/
+version         0.26
+categories      audio
+platforms       darwin
+maintainers     nomaintainer
+license         LGPL-2.1
+description     Lightweight Open Sound Control implementation.
+long_description liblo is an implementation of the Open Sound Control \
+                protocol for POSIX systems.
+homepage        http://liblo.sourceforge.net/
+master_sites    sourceforge:project/liblo/liblo/${version}
+
+checksums       rmd160  380025d0d79280b13929da82db2e0908a3f4be39 \
+                sha256  a636fb09f8178ad0d5303e94fec37b182d3062a0e3daee85eed2a39ab6232258
+
+# Does not have dependencies, so does not need -I flag, and -I flag causes configure error with clang
+# https://sourceforge.net/p/liblo/bugs/34/
+configure.cppflags
+
+configure.args  --disable-silent-rules \
+                --enable-static
+
+post-destroot {
+    set docdir ${destroot}${prefix}/share/doc/${name}
+    xinstall -d ${docdir}
+    xinstall -m 644 -W ${worksrcpath} \
+        AUTHORS \
+        COPYING \
+        ChangeLog \
+        NEWS \
+        README \
+        TODO \
+        ${docdir}
+}

@@ -1,0 +1,42 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                minicom
+version             2.6.2
+categories          comms
+maintainers         nomaintainer
+platforms           darwin
+license             GPL-2
+
+description         Menu driven communications program
+
+long_description    Minicom is a menu driven communications program. It \
+                    emulates ANSI and VT102 terminals. It has a dialing \
+                    directory and auto zmodem download.
+
+homepage            http://alioth.debian.org/projects/minicom
+master_sites        http://alioth.debian.org/frs/download.php/file/3869
+
+checksums           rmd160  c6c2936bc0e4ae662bdf09ead6e76b68d7278e56 \
+                    sha256  f3cf215f7914ffa5528e398962176102ad74df27ba38958142f56aa6d15c9168
+
+depends_build       port:pkgconfig
+
+depends_lib         port:gettext
+
+depends_run         port:kermit \
+                    port:lrzsz
+
+post-patch {
+    reinplace "s|/usr/local|${prefix}|g" ${worksrcpath}/src/rwconf.c
+    reinplace "s|/usr/bin/ascii-xfr|${prefix}/bin/ascii-xfr|g" ${worksrcpath}/src/rwconf.c
+}
+
+configure.args      --enable-lock-dir=/tmp \
+                    --enable-kermit=${prefix}/bin
+
+livecheck.type      regex
+livecheck.url       ${homepage}
+livecheck.regex     ${name}-(\[0-9.\]+)

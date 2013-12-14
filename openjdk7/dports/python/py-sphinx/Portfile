@@ -1,0 +1,55 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+PortGroup           select 1.0
+
+name                py-sphinx
+version             1.2
+categories-append   textproc devel
+license             BSD
+maintainers         jmr gmail.com:michel.sylvan openmaintainer
+description         Python documentation generator
+long_description \
+    Sphinx is a tool that makes it easy to create intelligent and beautiful \
+    documentation for Python projects (or other documents consisting of \
+    multiple reStructuredText sources), written by Georg Brandl. It was \
+    originally created to translate the new Python documentation, but has now \
+    been cleaned up in the hope that it will be useful to many other projects.
+
+platforms           darwin
+supported_archs     noarch
+
+homepage            http://sphinx.pocoo.org/
+master_sites        https://pypi.python.org/packages/source/S/Sphinx/
+distname            Sphinx-${version}
+
+checksums           md5 8516046aad73fe46dedece4e8e434328 \
+                    rmd160 82d88024572075a50563042a0a7062999e5fc8e3 \
+                    sha256 bc3c424a0114ff4711f64353cc3eaca30682a5bbfabf3a7f338cd5ea70af79da
+
+python.versions     25 26 27 31 32 33
+
+if {$subport ne $name} {
+    depends_lib     port:py${python.version}-docutils \
+                    port:py${python.version}-setuptools
+    depends_run     port:py${python.version}-pygments \
+                    port:py${python.version}-jinja2 \
+                    port:sphinx_select
+
+    select.group    sphinx
+    select.file     ${filespath}/py${python.version}-sphinx
+
+    notes "
+To make the Python ${python.branch} version of Sphinx the one that is run when\
+you execute the commands without a version suffix, e.g. 'sphinx-build', run:
+
+port select --set ${select.group} [file tail ${select.file}]
+"
+
+    livecheck.type  none
+} else {
+    livecheck.type  regex
+    livecheck.regex {<p>Current version: <b>([0-9.]+)</b></p>}
+}

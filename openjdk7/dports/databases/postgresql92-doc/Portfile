@@ -1,0 +1,53 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem 1.0
+
+name			postgresql92-doc
+version			9.2.6
+categories		databases
+platforms		darwin
+maintainers		mww jwa
+license			Permissive
+description		Documentation for the postgresql database ALPHA release.
+long_description PostgreSQL is Object-Relational Database Management System. \
+				It supports almost all SQL constructs, including transactions, \
+				subselects, and user-defined types and functions. Write-ahead \
+				logging means increased performance while retaining data \
+				integrity. This is the documentation.
+
+homepage		http://www.postgresql.org/
+master_sites		postgresql:source/v${version}
+distname		postgresql-${version}
+
+checksums           rmd160  7a74773af202730f4848ef82de333c5c18deb501 \
+                    sha256  4ba98053a66e5678af93dbc2956e8b04623f759e174f48940c41f4251cf0f886
+
+use_bzip2		yes
+dist_subdir		postgresql92
+
+set libdir		${prefix}/lib/postgresql92
+configure.args	--mandir=${prefix}/share/man \
+				--with-docdir=${prefix}/share/doc/postgresql92 \
+				--without-openssl \
+				--without-rendezvous \
+				--without-readline \
+				--without-zlib
+
+build.dir		${worksrcpath}/doc
+build.type		gnu
+build.target
+
+destroot.dir	${build.dir}
+
+post-destroot {
+	file rename ${destroot}${prefix}/share/doc/postgresql \
+		${destroot}${prefix}/share/doc/postgresql92
+}
+
+livecheck.type	regex
+livecheck.url	${homepage}
+livecheck.regex	(9\\.2\\.\[.0-9\]+)
+#livecheck.url	${homepage}/developer/beta
+#livecheck.url	${homepage}/ftp/source/
+#livecheck.regex	(9\\.2\[.0-9\]+\[a-z\]+\[0-9\])

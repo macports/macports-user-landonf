@@ -1,0 +1,48 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+PortGroup           select 1.0
+PortGroup           github 1.0
+
+github.setup        fabric fabric 1.6.1
+name                py-fabric
+revision            1
+platforms           darwin
+supported_archs     noarch
+maintainers         deric openmaintainer
+homepage            http://fabfile.org
+license             BSD
+description         Fabric is a simple pythonic remote deployment tool.
+long_description    It is designed to upload files to, and run shell commands \
+                    on, a number of servers in parallel or serially. These \
+                    commands are grouped in tasks (regular python functions) \
+                    and specified in a 'fabfile'. \
+                    \
+                    It is a bit like a dumbed down Capistrano, except it's in \
+                    Python, dosn't expect you to be deploying Rails \
+                    applications, and the 'put' command works. \
+                    \
+                    Unlike Capistrano, Fabric wants to stay small, light, \
+                    easy to change and not bound to any specific framework.
+
+checksums           rmd160  0df6e5584ad06dcdb840fcdce47ab844ecaf6926 \
+                    sha256  86adc26ae9cae64dfbccba29077b343775b147f814adb4001d33bbcc263cc7e8
+
+python.versions     25 26 27
+
+if {${name} ne ${subport}} {
+    depends_lib-append  port:py${python.version}-setuptools \
+                        port:py${python.version}-paramiko \
+                        port:fabric_select
+    livecheck.type      none
+    select.group        fabric
+    select.file         ${filespath}/fabric${python.version}
+    notes "
+To make the Python ${python.branch} version of fabric the one that is run\
+when you execute the commands without a version suffix, e.g. 'fab', run:
+
+port select --set ${select.group} [file tail ${select.file}]
+"
+}

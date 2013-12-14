@@ -1,0 +1,26 @@
+--- configure.ac.orig	2013-03-01 03:10:27.000000000 -0800
++++ configure.ac	2013-07-01 09:43:23.000000000 -0700
+@@ -1,22 +1,13 @@
+ AC_INIT
+ 
+-orig_CFLAGS="$CFLAGS"
+-
+ AC_CONFIG_SRCDIR([ev_epoll.c])
+ 
+-AM_INIT_AUTOMAKE(libev,4.15) dnl also update ev.h!
++AM_INIT_AUTOMAKE(libev,4.15)
+ AC_CONFIG_HEADERS([config.h])
+ AM_MAINTAINER_MODE
+ 
+ AC_PROG_CC
+ 
+-dnl Supply default CFLAGS, if not specified
+-if test -z "$orig_CFLAGS"; then
+-  if test x$GCC = xyes; then
+-    CFLAGS="-g -O3"
+-  fi
+-fi
+-
+ AC_PROG_INSTALL
+ AC_PROG_LIBTOOL
+ 

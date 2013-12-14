@@ -1,0 +1,82 @@
+# -*- Mode: Tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem 1.0
+PortGroup  muniversal 1.0
+
+name            gnutls
+version         3.1.10
+revision        1
+set branch      [join [lrange [split ${version} .] 0 1] .]
+categories      devel security
+# yes, some of the libs are GPL only
+license         LGPL-2.1+ GPL-3+
+maintainers     nomaintainer
+description     GNU Transport Layer Security Library
+homepage        http://www.gnutls.org/
+platforms       darwin
+
+long_description \
+    GnuTLS is a portable ANSI C based library which implements the TLS 1.2, \
+    TLS 1.1, TLS 1.0, SSL 3.0, and Datagram TLS protocols. The library does \
+    not include any patented algorithms \
+    and is available under the GNU Lesser General Public License (LGPL).
+
+master_sites    ftp://ftp.gnutls.org/gcrypt/gnutls/v${branch}/
+
+checksums       md5     9e73aa5c3ef3b7358159a31302e25aa7 \
+                rmd160  a4b3118fb6f0e9032f799079acc04ed8e523dabd \
+                sha256  535373f59c88c171429ed3c4777dc7126681b597e3adca95aa88ecbb69e7c646
+
+use_xz          yes
+
+depends_build   port:pkgconfig \
+                port:gettext
+
+depends_lib     port:gmp \
+                port:libidn \
+                port:libtasn1 \
+                port:p11-kit \
+                port:nettle
+
+post-patch {
+    # Remove comments which confuse at least Leopard's assembler.
+    eval reinplace {/^#/d} [glob ${worksrcpath}/lib/accelerated/x86/macosx/*.s]
+}
+
+use_autoreconf  yes
+autoreconf.args -fvi
+
+configure.args  --disable-guile \
+                --disable-silent-rules \
+                --with-p11-kit           
+
+if {[variant_isset universal]} { 
+    set merger_host(x86_64) x86_64-apple-${os.platform}${os.major}
+    set merger_host(i386) i686-apple-${os.platform}${os.major}
+    set merger_configure_args(x86_64) --build=x86_64-apple-${os.platform}${os.major}
+    set merger_configure_args(i386) --build=i686-apple-${os.platform}${os.major}
+} elseif {${build_arch} eq "i386"} {
+    configure.args-append \
+        --host=i686-apple-${os.platform}${os.major} \
+        --build=i686-apple-${os.platform}${os.major}
+} elseif {${build_arch} eq "x86_64"} {
+    configure.args-append \
+        --host=${build_arch}-apple-${os.platform}${os.major} \
+        --build=${build_arch}-apple-${os.platform}${os.major}
+}
+
+test.run        yes
+test.target     check
+
+post-destroot {
+    move ${destroot}${prefix}/bin/certtool ${destroot}${prefix}/bin/gnutls-certtool
+}
+
+platform darwin 8 {
+    depends_build-append   port:texinfo
+}
+
+livecheck.type  regex
+livecheck.url   ${master_sites}
+livecheck.regex "${name}-(\\d+(?:\\.\\d+)*)${extract.suffix}"

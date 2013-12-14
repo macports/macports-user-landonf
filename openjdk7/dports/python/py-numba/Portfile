@@ -1,0 +1,52 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+
+name                py-numba
+version             0.10.1
+revision            0
+categories-append   devel
+platforms           darwin
+license             BSD
+
+python.versions     26 27 32 33
+
+maintainers         stromnov openmaintainer
+
+description         Numba is a NumPy aware dynamic compiler for Python.
+
+long_description    Numba is an Open Source NumPy-aware optimizing compiler \
+                    for Python. It uses the remarkable LLVM compiler \
+                    infrastructure to compile Python syntax to machine code.
+
+homepage            http://numba.github.com/
+master_sites        http://pypi.python.org/packages/source/n/numba/
+
+distname            numba-${version}
+
+checksums           rmd160  6c14bba0e30c52f644a47021d1287703c73cce05 \
+                    sha256  569386f278246f2fc196cbc2fd1374a3d04bf6b5cdced0e3a5a170395f14fea3
+
+if {${name} ne ${subport}} {
+    depends_build-append \
+                        port:py${python.version}-setuptools \
+                        port:py${python.version}-cython \
+
+    depends_lib-append  port:py${python.version}-llvmpy \
+                        port:py${python.version}-llvmmath \
+                        port:py${python.version}-numpy \
+                        port:py${python.version}-meta-devel \
+                        port:py${python.version}-cffi
+
+    if {${subport} eq "py26-numba"} {
+        depends_lib-append  port:py26-argparse
+    }
+
+    livecheck.type      none
+} else {
+    livecheck.type      regex
+    livecheck.url       ${master_sites}
+    livecheck.regex     {numba-(\d+(?:\.\d+)*)\.[tz]}
+}

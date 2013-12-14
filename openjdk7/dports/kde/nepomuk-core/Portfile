@@ -1,0 +1,38 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                nepomuk-core
+version             4.11.4
+categories          kde kde4
+maintainers         nicos openmaintainer
+license             GPL-2+ LGPL-2.1+
+description         Nepomuk-core contains the Semantik Desktop core libraries.
+long_description    ${description}  This includes central services like file \
+                    indexing, file system monitoring, query, and of course storage, \
+                    as well as the corresponding client libraries.
+platforms           darwin
+homepage            http://www.kde.org
+master_sites        kde:stable/${version}/src/
+use_xz              yes
+checksums           rmd160  43d31168275b9a0026e88f7448d543c24ee6ca72 \
+                    sha256  7ac067bbf4388b2655c12742d04914f6392d65e9b1bda4774009ff2f08df9821
+
+#Binaries do not link to openssl, nor use the ssl backend of kdelibs4
+license_noconflict  openssl
+
+depends_lib-append  port:kdelibs4
+
+pre-activate {
+    #Deactivate hack for when nepomuk-core was splitted from kde4-runtime
+    if {[file exists ${applications_dir}/KDE4/nepomukbackup.app/Contents/Info.plist] 
+        && ![catch {set vers [lindex [registry_active kde4-runtime] 0]}] 
+        && [rpm-vercomp [lindex $vers 1] 4.9.3] < 0} {
+            registry_deactivate_composite kde4-runtime "" [list ports_nodepcheck 1] 
+    } 
+}
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

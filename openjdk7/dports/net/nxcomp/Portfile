@@ -1,0 +1,67 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem              1.0
+
+name                    nxcomp
+version                 3.5.0.21
+checksums               rmd160  5e57233ec3caf9036f1391d34e7c9522c2dba35d \
+                        sha256  ef0a7495112b5567efa7eb5440db776938182977c776f0ee51978a64dfbdbc43
+
+categories              net
+platforms               darwin
+license                 GPL-2
+
+maintainers             cal openmaintainer
+
+description             nxcomp is the X compression library by NX
+long_description        nxcomp is a library compressing X commands to be passed over network \
+                        for use with x2go.
+
+homepage                http://www.nomachine.com/
+master_sites            http://code.x2go.org/releases/source/nx-libs/
+distname                nx-libs-${version}-lite
+
+universal_variant       yes
+supported_archs         ppc i386 x86_64
+
+depends_build           port:makedepend
+
+depends_lib             port:libpng \
+                        port:jpeg \
+                        port:zlib \
+                        port:xorg-xproto
+
+use_autoreconf          yes
+
+configure.cxxflags-append \
+                        -I${prefix}/include
+
+subport nxcomp {
+    worksrcdir          nx-libs-${version}/nxcomp
+
+    patchfiles          patch-nxcomp__configure.in.diff \
+                        patch-nxcomp__Makefile.in.diff \
+                        patch-nxcomp__Types.h-dont-use-STL-internals-on-libc++.diff
+}
+
+subport nxproxy {
+    description         nxproxy is a compressing proxy for X
+    long_description    nxproxy is a library compressing X commands to be passed over network \
+                        for use with x2go.
+
+    worksrcdir          nx-libs-${version}/nxproxy
+
+    patchfiles          patch-nxproxy__configure.in.diff \
+                        patch-nxproxy__Makefile.in.diff
+
+    configure.ldflags-append \
+                        -L${prefix}/lib/nx
+
+    depends_lib         port:nxcomp
+
+    livecheck.type      none
+}
+
+livecheck.url           ${master_sites}
+livecheck.regex         nx-libs-(\[0-9\]+(\\.\[0-9\]+)+(-\[0-9\]+)?)-lite

@@ -1,0 +1,37 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           kde4   1.1
+
+name                kdnssd
+version             4.11.4
+categories          kde kde4
+license             GPL-2+ LGPL-2+
+maintainers         nicos openmaintainer
+description         KdeNetwork utility
+long_description    ${description}
+platforms           darwin
+homepage            http://www.kde.org
+master_sites        kde:stable/${version}/src/
+use_xz              yes
+
+checksums           rmd160  660c71891c133b0eb40a320aada8916b01188b84 \
+                    sha256  0b0ee255f873fc46f257dc22e2111ab6a94227b6f48d06d089a4caff5b91986f
+
+#Binaries do not link to openssl, nor use the ssl backend of kdelibs4
+license_noconflict  openssl
+
+depends_lib-append  port:kdelibs4
+
+pre-activate {
+    #Deactivate hack for when kdenetwork4 port has been fragmented into small ports
+    if {[file exists ${prefix}/lib/kde4/sambausershareplugin.so]
+        && ![catch {set vers [lindex [registry_active kdenetwork4] 0]}] 
+        && [rpm-vercomp [lindex $vers 1] 4.11.0] < 0} {
+            registry_deactivate_composite kdenetwork4 "" [list ports_nodepcheck 1] 
+    } 
+}
+
+livecheck.url       http://kde.mirrors.hoobly.com/stable/
+livecheck.regex     (\\d+(\\.\\d+)+)

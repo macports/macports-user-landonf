@@ -1,0 +1,33 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           github 1.0
+PortGroup           muniversal 1.0
+
+github.setup        jedisct1 libsodium 0.4.5
+
+categories          devel security
+platforms           darwin
+license             MIT
+
+maintainers         brianandjenny.com:brian.andrew openmaintainer
+
+description         libsodium is a portable, cross-compilable, installable, packageable, API-compatible version of NaCl.
+
+long_description    libsodium is a software library for network communication, encryption,decryption, signatures, etc. \
+                    libsodium is a portable, cross-compilable, installable, packageable, API-compatible version of NaCl.
+
+checksums           rmd160  bcbd4782718051cf399d828bc963005500ac3f7c \
+                    sha256  001d390f294a9f1182908fc81d8705e9d30f4134af4a2dce63175a28d49dca14
+
+depends_build       port:autoconf \
+                    port:automake \
+                    port:libtool
+
+pre-configure {
+    system -W ${worksrcpath} "./autogen.sh"
+}
+
+test.run            yes
+test.target         check

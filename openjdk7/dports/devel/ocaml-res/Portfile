@@ -1,0 +1,31 @@
+# $Id$
+
+PortSystem          1.0
+PortGroup           ocaml 1.0
+
+name                ocaml-res
+version             4.0.3
+categories          devel ml
+platforms           darwin
+license             LGPL-2.1
+maintainers         mww openmaintainer
+description         OCaml library for automatically resizing contiguous memory (arrays and strings)
+long_description    ${description}
+homepage            https://bitbucket.org/mmottl/res/
+master_sites        https://bitbucket.org/mmottl/res/downloads/
+checksums           rmd160  9ee7bd870f49b49678296c67eaa31241bbaeba82 \
+                    sha256  264319e586b2695f4ce453eb950546f4898875bed11df5e514f84c8670269b5e
+
+distname            res-${version}
+
+depends_lib         port:ocaml port:ocaml-findlib
+
+use_oasis           yes
+use_oasis_doc       yes
+
+configure.args-append "--override docdir ${destroot}${prefix}/share/doc/${name}"
+
+livecheck.type      regex
+livecheck.url       ${master_sites}
+livecheck.regex     res-(\[0-9.\]+)${extract.suffix}
+

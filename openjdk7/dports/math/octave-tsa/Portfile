@@ -1,0 +1,18 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           octave 1.0
+
+octave.setup        tsa 4.2.4
+platforms           darwin
+license             GPL-3+
+maintainers         nomaintainer
+description         Stochastic concepts and maximum entropy \
+                    methods for time series analysis.
+long_description    ${description}
+
+checksums           rmd160 425d30d9b11e79eb25758418360da53ddcb5a09b \
+                    sha256 b542119a27313c0136bca436be679f6711ff8943130f1231c0c93960c45e6b23
+
+patchfiles          patch-src_Makefile.diff

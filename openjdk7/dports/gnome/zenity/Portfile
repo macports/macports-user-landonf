@@ -1,0 +1,61 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            zenity
+version         3.8.0
+set branch      [join [lrange [split ${version} .] 0 1] .]
+description     zenity allows you to display dialog boxes from the commandline.
+long_description \
+    This is zenity - a rewrite of gdialog, the GNOME port of dialog which \
+    allows you to display dialog boxes from the commandline and shell scripts.
+maintainers     devans openmaintainer
+categories      gnome
+license         LGPL-2+
+platforms       darwin
+homepage        http://www.gnome.org/
+master_sites    gnome:sources/${name}/${branch}/
+
+use_xz          yes
+
+checksums       rmd160  23e616b1f0c332ccf555a49c58c82d23d9e84323 \
+                sha256  94fbf0b71592f26dce0e2c49b82b4401139c8434084ad24c2c6a61ace1e6563f
+
+depends_build   port:pkgconfig \
+                port:gnome-common \
+                port:yelp-tools \
+                port:intltool \
+                port:itstool
+
+depends_lib     port:gtk3 \
+                port:libnotify \
+                path:lib/pkgconfig/webkitgtk-3.0.pc:webkit-gtk3
+
+# Don't do intltool's INTLTOOL_PERL dance
+use_autoreconf  yes
+autoreconf.args -fvi
+
+configure.args  --disable-silent-rules
+
+platform darwin {
+    set cxx_stdlib {}
+
+    if {[info exists configure.cxx_stdlib] &&
+        ${configure.cxx_stdlib} ne {} &&
+        [string match *clang* ${configure.cxx}]} {
+        set cxx_stdlib ${configure.cxx_stdlib}
+    } elseif {[string match *clang* ${configure.cxx}] &&
+              ${os.major} >= 13} {
+        set cxx_stdlib libc++
+    } else {
+        set cxx_stdlib libstdc++
+    }
+
+    if {${cxx_stdlib} == "libstdc++"} {
+       depends_lib-delete path:lib/pkgconfig/webkitgtk-3.0.pc:webkit-gtk3
+       depends_lib-append path:lib/pkgconfig/webkitgtk-3.0.pc:webkit-gtk3-2.0
+    }
+}
+
+livecheck.type  gnome

@@ -1,0 +1,7 @@
+bin/mpicc-clang
+bin/mpichversion-clang
+bin/mpicxx-clang
+bin/mpiexec-clang
+-
+-
+bin/parkill-clang

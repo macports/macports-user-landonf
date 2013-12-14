@@ -1,0 +1,119 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           compiler_blacklist_versions 1.0
+PortGroup           conflicts_build 1.0
+PortGroup           muniversal 1.0
+
+name                mongodb
+epoch               1
+version             2.4.8
+revision            1
+license             AGPL-3
+categories          databases
+maintainers         ryandesign
+
+description         High-performance, schema-free document-oriented database
+long_description    ${description}
+
+platforms           darwin
+
+homepage            http://www.mongodb.org/
+master_sites        http://downloads.mongodb.org/src/
+distname            ${name}-src-r${version}
+
+checksums           rmd160  2febfa9e93f70929c9f4c47b3062b3b5cf2c9e02 \
+                    sha256  fd703ce5e53ddfa0cca9c7fba9a0c4cea4179d38972a98c675f45d9f15b4cfdc
+
+depends_build       port:scons
+
+depends_lib         port:boost \
+                    port:libpcap \
+                    port:pcre \
+                    port:snappy
+
+license_noconflict  scons
+
+patchfiles          patch-SConstruct.diff \
+                    patch-distsrc-client-SConstruct.diff \
+                    patch-libcpp.diff \
+                    patch-src-mongo-db-fts-stemmer.cpp.diff \
+                    patch-src-mongo-dbtests-documentsourcetests.cpp.diff \
+                    patch-src-mongo-util-compress.cpp.diff \
+                    patch-src-third_party-v8-SConscript.diff \
+                    patch-src-third_party-v8-src-spaces.h.diff
+
+post-patch {
+    reinplace "s|@@PREFIX@@|${prefix}|g" \
+        ${worksrcpath}/distsrc/client/SConstruct
+}
+
+use_configure       no
+
+compiler.blacklist  gcc-4.0 {clang < 318.0.45}
+
+# TODO: fix me
+conflicts_build     v8
+
+build.env           TERM=xterm \
+                    CPPFLAGS="${configure.cppflags}" \
+                    LDFLAGS="${configure.ldflags}"
+
+build.cmd           ${prefix}/bin/scons
+build.target        all mongobridge mongosniff
+build.args          --cc=${configure.cc} \
+                    --cxx=${configure.cxx} \
+                    --full \
+                    --use-system-boost \
+                    --use-system-pcre \
+                    --use-system-snappy \
+                    --usev8 \
+                    --extralib=pcre,pcrecpp,snappy
+
+supported_archs     i386 x86_64
+lappend merger_build_args(i386) --32
+lappend merger_build_args(x86_64) --64
+lappend merger_destroot_args(i386) --32
+lappend merger_destroot_args(x86_64) --64
+if {![variant_isset universal] && [info exists merger_build_args(${build_arch})]} {
+    build.args-append $merger_build_args(${build_arch})
+}
+
+eval destroot.env   [option build.env]
+eval destroot.args  [option build.args]
+destroot.destdir    --prefix=${destroot}${prefix}
+
+set dbdir           ${prefix}/var/db/mongodb
+set logdir          ${prefix}/var/log/mongodb
+set mongouser       _mongo
+add_users           ${mongouser} group=${mongouser} realname=MongoDB\ Server
+
+post-destroot {
+    if {[variant_isset universal]} {
+        system -W ${worksrcpath} "lipo -create ${worksrcpath}-i386/mongobridge ${worksrcpath}-x86_64/mongobridge -output mongobridge"
+    }
+    xinstall -W ${worksrcpath} mongobridge ${destroot}${prefix}/bin
+
+    xinstall -m 755 -o ${mongouser} -g ${mongouser} -d \
+        ${destroot}${dbdir} \
+        ${destroot}${logdir}
+    destroot.keepdirs-append  \
+        ${destroot}${dbdir} \
+        ${destroot}${logdir}
+}
+
+startupitem.create      yes
+startupitem.executable  sudo -u ${mongouser} ${prefix}/bin/mongod --dbpath ${dbdir} --logpath ${logdir}/mongodb.log --logappend
+
+if {${os.platform} eq "darwin" && ${os.major} < 10} {
+    depends_build
+    depends_lib
+    pre-fetch {
+        ui_error "${name} ${version} requires OS X 10.6 or greater."
+        return -code error "incompatible OS X version"
+    }
+}
+
+livecheck.url       ${homepage}downloads
+livecheck.regex     {mongodb-src-r(\d+\.\d*[02468]\.\d+)\.}

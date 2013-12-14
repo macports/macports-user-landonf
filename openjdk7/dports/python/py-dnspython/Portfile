@@ -1,0 +1,55 @@
+# $Id$
+
+PortSystem         1.0
+PortGroup          python 1.0
+
+name               py-dnspython
+version            1.11.1
+categories-append  net
+license            ISC
+platforms          darwin
+supported_archs    noarch
+maintainers        ram openmaintainer
+
+description        DNS toolkit for Python
+long_description \
+  dnspython is a DNS toolkit for Python. It supports almost all \
+  record types. It can be used for queries, zone transfers, and \
+  dynamic updates. It supports TSIG authenticated messages and EDNS0.
+
+homepage           http://www.dnspython.org/
+master_sites       ${homepage}kits/${version}
+distname           dnspython-${version}
+
+python.versions    24 25 26 27 31 32 33
+
+checksums          rmd160 a6369f77c4da591e0e6ede094c3a02e901d52ef9 \
+                   sha256 c0c6fcf3ff52939e7eadd931282d083271f65cf0a174555a703563a400289768
+
+if {${name} ne ${subport}} {
+  if {${python.version} >= 30} {
+    distname       dnspython3-${version}
+    master_sites   ${homepage}kits3/${version}
+    checksums      rmd160 8c8d8acd5e3fa0eebba6494ed05dee6c26484113 \
+                   sha256 e5a5349fd7cf29fc709254e8193eece79f9339e94f77e4fff3c3292f0f3ccace
+  }
+}
+
+post-destroot {
+  if {${name} ne ${subport}} {
+  xinstall -d -m 755 ${destroot}${prefix}/share/doc/${subport}/examples
+  xinstall -m 644 -W ${worksrcpath} ChangeLog LICENSE README \
+    ${destroot}${prefix}/share/doc/${subport}
+  xinstall -m 644 -W ${worksrcpath}/examples ddns.py e164.py \
+    mx.py name.py reverse.py reverse_name.py xfr.py \
+    ${destroot}${prefix}/share/doc/${subport}/examples
+  }
+}
+
+if {${name} eq ${subport}} {
+  livecheck.type   regex
+  livecheck.url    ${homepage}
+  livecheck.regex  {is (\d+(?:\.\d+)*),}
+} else {
+  livecheck.type   none
+}

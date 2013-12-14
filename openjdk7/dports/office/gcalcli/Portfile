@@ -1,0 +1,38 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python27 1.0
+PortGroup           github 1.0
+
+github.setup        insanum gcalcli 2.4.2 v
+
+categories          office python devel
+maintainers         nomaintainer
+supported_archs     noarch
+
+description         Google Calendar Command Line Interface
+long_description \
+    gcalcli is a Python application that allows you to access your Google Calendar \
+    from a command line. It is easy to get your agenda, search for events and \
+    quickly add new events. Additionally, gcalcli can be used as a reminder \
+    service to execute any application you want.
+license             MIT
+platforms           darwin
+
+checksums           rmd160  91b60951b2764c3ad00987b992e0375781c4c9a1 \
+                    sha256  f20237400567383a614424485998d7f315f9ff819c84fab5d7d97f5f22daf00e
+                    
+depends_lib         port:py27-dateutil \
+                    port:py27-gdata \
+                    port:py27-vobject
+
+post-patch {
+    reinplace "s|^#!/usr/bin/env python|#!${prefix}/bin/python2.7|" ${worksrcpath}/gcalcli
+}
+
+build {}
+
+destroot {
+    xinstall -m 755 ${worksrcpath}/${name} ${destroot}${prefix}/bin/
+}

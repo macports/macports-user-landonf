@@ -1,0 +1,157 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem 1.0
+
+name            empathy
+version         3.10.2
+license         GPL-2+ LGPL-2.1+ GFDL-1.3+ Attribution-ShareAlike-3.0
+set branch      [join [lrange [split ${version} .] 0 1] .]
+description     Empathy is an instant-messaging(chat) program for GNOME
+long_description \
+                Empathy is an instant-messaging(chat) program which supports text, \
+                voice, video, file transfers, and inter-application communication (tubes) \
+                over many different protocols(AIM, MSN, Google/Jabber, Facebook, SIP, Yahoo, etc).
+maintainers     devans openmaintainer
+categories      gnome
+platforms       darwin
+homepage        http://live.gnome.org/Empathy
+master_sites    gnome:sources/${name}/${branch}/
+
+use_xz          yes
+
+checksums       rmd160  118fe2f8910c1d50a5134ce6525bd8fc9e6d9508 \
+                sha256  9d8e082a448f3e9450a31f0ec21f01e34cf1c15b192cfa30842d71537796cfbf
+
+depends_build   port:pkgconfig \
+                port:intltool \
+                port:itstool
+
+depends_lib     port:desktop-file-utils \
+                port:gnome-icon-theme \
+                port:gnome-icon-theme-symbolic \
+                port:gtk3 \
+                port:dbus-glib \
+                port:folks \
+                port:libsecret \
+                port:gnutls \
+                port:gsettings-desktop-schemas \
+                port:libxml2 \
+                port:telepathy-glib \
+                port:telepathy-logger \
+                port:libcanberra \
+                port:libnotify \
+                port:gcr \
+                port:pulseaudio \
+                path:lib/pkgconfig/webkitgtk-3.0.pc:webkit-gtk3 \
+                port:libsoup \
+                port:libgee  \
+                port:telepathy-farstream \
+                port:clutter-gtk \
+                port:clutter-gst \
+                port:gstreamer1 \
+                port:enchant \
+                port:iso-codes \
+                port:xorg-libX11
+
+depends_run     port:telepathy-mission-control \
+                port:telepathy-idle \
+                port:telepathy-gabble \
+                port:telepathy-haze \
+                port:telepathy-salut \
+                port:gnome-settings-daemon \
+                port:yelp
+
+platform darwin {
+    set cxx_stdlib {}
+
+    if {[info exists configure.cxx_stdlib] &&
+        ${configure.cxx_stdlib} ne {} &&
+        [string match *clang* ${configure.cxx}]} {
+        set cxx_stdlib ${configure.cxx_stdlib}
+    } elseif {[string match *clang* ${configure.cxx}] &&
+              ${os.major} >= 13} {
+        set cxx_stdlib libc++
+    } else {
+        set cxx_stdlib libstdc++
+    }
+
+    if {${cxx_stdlib} == "libstdc++"} {
+       depends_lib-delete path:lib/pkgconfig/webkitgtk-3.0.pc:webkit-gtk3
+       depends_lib-append path:lib/pkgconfig/webkitgtk-3.0.pc:webkit-gtk3-2.0
+    }
+}
+
+patchfiles      patch-configure.diff
+
+configure.args  --x-includes=${prefix}/include \
+                --x-libraries=${prefix}/lib \
+                --enable-gst-1.0=yes \
+                --enable-debug \
+                --enable-gudev=no \
+                --enable-spell=yes \
+                --enable-map=no \
+                --enable-location=no \
+                --enable-geocode=no \
+                --enable-nautilus-sendto=no \
+                --enable-goa=no \
+                --without-cheese \
+                --enable-ubuntu-online-accounts=no \
+                --disable-coding-style-checks \
+                --disable-schemas-compile \
+                --disable-silent-rules \
+                --disable-Werror
+
+variant map description {Enable map view} {
+    depends_lib-append      port:libchamplain
+    configure.args-replace  --enable-map=no --enable-map=yes
+}
+
+variant geocode description {Enable geocode support} {
+    depends_lib-append      port:geocode-glib
+    configure.args-replace  --enable-geocode=no --enable-geocode=yes
+}
+
+variant location description {Enable location awareness using geoclue} {
+    depends_lib-append      port:geoclue
+    configure.args-replace  --enable-location=no --enable-location=yes
+}
+
+variant goa description {Enable GNOME online accounts plugin for mission control} {
+    depends_lib-append      port:gnome-online-accounts \
+                            port:telepathy-mission-control
+    configure.args-replace  --enable-goa=no --enable-goa=yes
+}
+
+default_variants +map +geocode +goa 
+
+#
+# folks is not universal
+#
+
+universal_variant no
+
+variant python26 conflicts python27 description {Build using Python 2.6} {
+    configure.python          ${prefix}/bin/python2.6
+    depends_build-append      port:python26
+}
+
+variant python27 conflicts python26 description {Build using Python 2.7} {
+    configure.python          ${prefix}/bin/python2.7
+    depends_build-append      port:python27
+}
+
+default_variants +map +goa
+
+if {![variant_isset python26]} {
+    default_variants +python27
+}
+
+
+post-activate {
+    system "${prefix}/bin/gtk-update-icon-cache-3.0 -f -t ${prefix}/share/icons/hicolor"
+    system "${prefix}/bin/update-desktop-database ${prefix}/share/applications"
+    system "${prefix}/bin/glib-compile-schemas ${prefix}/share/glib-2.0/schemas"
+}
+
+livecheck.type  gnome

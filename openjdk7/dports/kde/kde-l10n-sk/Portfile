@@ -1,0 +1,36 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+PortGroup       kde4 1.1
+
+name            kde-l10n-sk
+version         4.11.4
+categories      kde kde4
+maintainers     nicos
+license         {LGPL-2.1 LGPL-3+ GPL-2+ MIT BSD}
+description     KDE Slovak language files.
+long_description \
+                ${description}
+platforms       darwin
+homepage        http://www.kde.org/
+
+master_sites    kde:stable/${version}/src/kde-l10n/
+use_xz          yes
+
+supported_archs noarch
+depends_lib     port:kdelibs4
+
+checksums           rmd160  5b25690229bcf369da9ece1cace935d51fe840c2 \
+                    sha256  8025d55debede1519a5b12d7b8c3ad8e393d1b41ecf501b004e5cd03d002a1a5
+
+if {![variant_isset docs]} {
+    patchfiles-append   patch-CMakeLists.txt.diff
+}
+
+post-destroot {
+    xinstall -d -m 755 ${destroot}${prefix}/share/doc/kde-installed-packages
+    system "touch ${destroot}${prefix}/share/doc/kde-installed-packages/kde-l10n-slovak"
+}
+
+livecheck.type  none

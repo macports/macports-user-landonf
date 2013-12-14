@@ -1,0 +1,49 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                mybb
+version             1.6.9
+categories          www php
+platforms           darwin freebsd
+maintainers         nomaintainer
+supported_archs     noarch
+license             LGPL-3
+
+description         A PHP-based bulletin board / discussion forum system
+
+long_description    MyBB is the free and open source, intuitive, extensible, \
+                    and incredibly powerful forum software you've been \
+                    looking for.
+
+depends_run         port:php5-web \
+                    port:php5-imagick \
+                    port:php5-gd \
+                    port:php5-mysql \
+                    port:php5-xsl
+
+homepage            http://www.mybb.com/
+master_sites        http://resources.mybb.com/downloads
+distname            ${name}_[string map {. ""} [subst [regsub {\.(\d+)$} ${version} {[format {%02d} {\1}]}]]]
+use_zip             yes
+
+checksums           rmd160  0b4a665ce44d67d19695e631a586cbe044b8b039 \
+                    sha256  85863ff15c98361c8634f3011bfa171feb61f00df745bf80081d6229ee97a46f
+
+extract.mkdir       yes
+
+use_configure       no
+
+build               {}
+
+set docpath         ${destroot}${prefix}/www/data
+
+destroot {
+    xinstall -d -m 0755 ${docpath}
+    copy ${worksrcpath}/Upload ${docpath}/${name}
+}
+
+livecheck.type      regex
+livecheck.url       ${homepage}downloads
+livecheck.regex     {>Download MyBB ([0-9.]+)<}

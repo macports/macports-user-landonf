@@ -1,0 +1,48 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+
+name                py-reportlab
+version             2.7
+revision            0
+categories-append   textproc
+platforms           darwin freebsd
+license             BSD
+
+python.versions     24 25 26 27
+
+maintainers         stromnov openmaintainer
+
+description         python library for creating pdf files
+
+long_description    ReportLab is a software library that lets you directly \
+                    create documents in Adobe's Portable Document Format \
+                    (PDF) using the python programming language.
+
+homepage            http://www.reportlab.com/software/opensource/rl-toolkit/
+master_sites        http://www.reportlab.com/ftp/
+
+distname            reportlab-${version}
+
+checksums           rmd160  0ff90be737e925bc156c36dabb25b183834cf537 \
+                    sha256  82b56935e4a75641b40eb22050f0b6e46a0f0a9ebfacdf3b24a1e9c0eef2af6d
+
+if {${name} ne ${subport}} {
+    depends_lib-append  port:py${python.version}-pil
+
+    patchfiles      patch-src_reportlab_lib_testutils.py.diff
+
+    post-destroot {
+        set docdir ${prefix}/share/doc/${subport}
+        xinstall -m 644 -W ${worksrcpath} README.txt CHANGES.txt LICENSE.txt \
+            ${destroot}${docdir}
+    }
+
+    livecheck.type  none
+} else {
+    livecheck.type  regex
+    livecheck.url   [lindex ${master_sites} 0]
+    livecheck.regex reportlab-(\[0-9.\]+)${extract.suffix}
+}

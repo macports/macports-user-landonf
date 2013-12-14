@@ -1,0 +1,129 @@
+--- build/make/configure.sh.orig	2013-10-06 19:07:09.000000000 -0700
++++ build/make/configure.sh	2013-10-06 19:07:09.000000000 -0700
+@@ -621,25 +621,13 @@
+ 
+         # detect tgt_os
+         case "$gcctarget" in
+-            *darwin8*)
++            *darwin[89]*)
+                 tgt_isa=universal
+-                tgt_os=darwin8
++                tgt_os=darwin
+                 ;;
+-            *darwin9*)
+-                tgt_isa=universal
+-                tgt_os=darwin9
+-                ;;
+-            *darwin10*)
+-                tgt_isa=x86_64
+-                tgt_os=darwin10
+-                ;;
+-            *darwin11*)
+-                tgt_isa=x86_64
+-                tgt_os=darwin11
+-                ;;
+-            *darwin12*)
++            *darwin*)
+                 tgt_isa=x86_64
+-                tgt_os=darwin12
++                tgt_os=darwin
+                 ;;
+             *mingw32*|*cygwin*)
+                 [ -z "$tgt_isa" ] && tgt_isa=x86
+@@ -689,55 +677,6 @@
+     # PIC is probably what we want when building shared libs
+     enabled shared && soft_enable pic
+ 
+-    # Handle darwin variants. Newer SDKs allow targeting older
+-    # platforms, so find the newest SDK available.
+-    case ${toolchain} in
+-        *-darwin*)
+-            if [ -z "${DEVELOPER_DIR}" ]; then
+-                DEVELOPER_DIR=`xcode-select -print-path 2> /dev/null`
+-                [ $? -ne 0 ] && OSX_SKIP_DIR_CHECK=1
+-            fi
+-            if [ -z "${OSX_SKIP_DIR_CHECK}" ]; then
+-                OSX_SDK_ROOTS="${DEVELOPER_DIR}/SDKs"
+-                OSX_SDK_VERSIONS="MacOSX10.4u.sdk MacOSX10.5.sdk MacOSX10.6.sdk"
+-                OSX_SDK_VERSIONS="${OSX_SDK_VERSIONS} MacOSX10.7.sdk"
+-                for v in ${OSX_SDK_VERSIONS}; do
+-                    if [ -d "${OSX_SDK_ROOTS}/${v}" ]; then
+-                        osx_sdk_dir="${OSX_SDK_ROOTS}/${v}"
+-                    fi
+-                done
+-            fi
+-            ;;
+-    esac
+-
+-    if [ -d "${osx_sdk_dir}" ]; then
+-        add_cflags  "-isysroot ${osx_sdk_dir}"
+-        add_ldflags "-isysroot ${osx_sdk_dir}"
+-    fi
+-
+-    case ${toolchain} in
+-        *-darwin8-*)
+-            add_cflags  "-mmacosx-version-min=10.4"
+-            add_ldflags "-mmacosx-version-min=10.4"
+-            ;;
+-        *-darwin9-*)
+-            add_cflags  "-mmacosx-version-min=10.5"
+-            add_ldflags "-mmacosx-version-min=10.5"
+-            ;;
+-        *-darwin10-*)
+-            add_cflags  "-mmacosx-version-min=10.6"
+-            add_ldflags "-mmacosx-version-min=10.6"
+-            ;;
+-        *-darwin11-*)
+-            add_cflags  "-mmacosx-version-min=10.7"
+-            add_ldflags "-mmacosx-version-min=10.7"
+-            ;;
+-        *-darwin12-*)
+-            add_cflags  "-mmacosx-version-min=10.8"
+-            add_ldflags "-mmacosx-version-min=10.8"
+-            ;;
+-    esac
+-
+     # Handle Solaris variants. Solaris 10 needs -lposix4
+     case ${toolchain} in
+         sparc-solaris-*)
+--- configure.orig	2013-09-04 11:49:22.000000000 -0700
++++ configure	2013-10-06 19:07:09.000000000 -0700
+@@ -100,9 +100,11 @@
+ all_platforms="${all_platforms} mips32-linux-gcc"
+ all_platforms="${all_platforms} ppc32-darwin8-gcc"
+ all_platforms="${all_platforms} ppc32-darwin9-gcc"
++all_platforms="${all_platforms} ppc32-darwin-gcc"
+ all_platforms="${all_platforms} ppc32-linux-gcc"
+ all_platforms="${all_platforms} ppc64-darwin8-gcc"
+ all_platforms="${all_platforms} ppc64-darwin9-gcc"
++all_platforms="${all_platforms} ppc64-darwin-gcc"
+ all_platforms="${all_platforms} ppc64-linux-gcc"
+ all_platforms="${all_platforms} sparc-solaris-gcc"
+ all_platforms="${all_platforms} x86-darwin8-gcc"
+@@ -112,6 +114,8 @@
+ all_platforms="${all_platforms} x86-darwin10-gcc"
+ all_platforms="${all_platforms} x86-darwin11-gcc"
+ all_platforms="${all_platforms} x86-darwin12-gcc"
++all_platforms="${all_platforms} x86-darwin-gcc"
++all_platforms="${all_platforms} x86-darwin-clang"
+ all_platforms="${all_platforms} x86-linux-gcc"
+ all_platforms="${all_platforms} x86-linux-icc"
+ all_platforms="${all_platforms} x86-os2-gcc"
+@@ -124,6 +128,8 @@
+ all_platforms="${all_platforms} x86_64-darwin10-gcc"
+ all_platforms="${all_platforms} x86_64-darwin11-gcc"
+ all_platforms="${all_platforms} x86_64-darwin12-gcc"
++all_platforms="${all_platforms} x86_64-darwin-gcc"
++all_platforms="${all_platforms} x86_64-darwin-clang"
+ all_platforms="${all_platforms} x86_64-linux-gcc"
+ all_platforms="${all_platforms} x86_64-linux-icc"
+ all_platforms="${all_platforms} x86_64-solaris-gcc"
+@@ -135,6 +141,8 @@
+ all_platforms="${all_platforms} universal-darwin10-gcc"
+ all_platforms="${all_platforms} universal-darwin11-gcc"
+ all_platforms="${all_platforms} universal-darwin12-gcc"
++all_platforms="${all_platforms} universal-darwin-gcc"
++all_platforms="${all_platforms} universal-darwin-clang"
+ all_platforms="${all_platforms} generic-gnu"
+ 
+ # all_targets is a list of all targets that can be configured

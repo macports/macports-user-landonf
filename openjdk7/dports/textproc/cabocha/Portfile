@@ -1,0 +1,59 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                cabocha
+version             0.66
+categories          textproc japanese
+maintainers         hum openmaintainer
+
+description         Yet Another Japanese Dependency Structure Analyzer
+
+long_description    CaboCha is a Japanese dependency structure analyzer based on \
+                    support vector machines. \
+                    This version of CaboCha supports the UTF-8 encoding.
+
+homepage            http://code.google.com/p/cabocha/
+platforms           darwin
+license             {BSD Permissive}
+
+master_sites        googlecode
+checksums           rmd160  23bd1ac45ca9a065c91f223542f61ddf18d97dfd \
+                    sha256  349758f71181b45cf4465b363916f5b2c98b4ed20a43028d939f0a48ec526e08
+
+use_bzip2           yes
+
+depends_lib         port:crfpp \
+                    port:libiconv \
+                    port:mecab-base \
+                    port:mecab-utf8
+
+patchfiles          patch-configure.diff
+
+configure.args      --with-charset=UTF8
+
+variant juman conflicts unidic description {Set the default posset to JUMAN} {
+    configure.args-append  --with-posset=JUMAN
+}
+
+variant unidic conflicts juman description {Set the default posset to UniDic} {
+    configure.args-append  --with-posset=UNIDIC
+}
+
+test.run            yes
+test.target         check
+
+post-destroot {
+    # install additional documents.
+    set doc_dir ${destroot}${prefix}/share/doc/${name}
+    file mkdir ${doc_dir}
+    xinstall -m 644 -W ${worksrcpath} \
+        AUTHORS COPYING ChangeLog TODO \
+        ${doc_dir}
+    xinstall -m 644 ${worksrcpath}/doc/README.txt ${doc_dir}
+    # install extra tools.
+    set share_dir ${destroot}${prefix}/share/${name}
+    file mkdir ${share_dir}
+    copy ${worksrcpath}/tools ${share_dir}
+}

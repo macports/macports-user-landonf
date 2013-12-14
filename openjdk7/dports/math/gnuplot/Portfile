@@ -1,0 +1,173 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem                  1.0
+PortGroup                   elisp           1.0
+PortGroup                   texlive         1.0
+PortGroup                   xcodeversion    1.0
+PortGroup                   wxWidgets       1.0
+
+name                        gnuplot
+version                     4.6.4
+revision                    1
+categories                  math science
+# the license has some inconvenient requirements that we're not meeting
+# to be allowed to distribute binaries
+license                     Restrictive
+# luckily nothing has to link against this
+installs_libs               no
+platforms                   darwin
+maintainers                 mojca openmaintainer
+
+description                 A command-driven interactive function plotting program
+
+long_description            Gnuplot is a command-driven interactive function \
+                            plotting program. Plots any number of functions, \
+                            built up of C operators, C library functions, and \
+                            some things C does not have like **, sgn(), etc. \
+                            Also support for plotting data files, to compare \
+                            actual data to theoretical curves.
+
+homepage                    http://gnuplot.sourceforge.net/
+master_sites                sourceforge:project/gnuplot/gnuplot/${version}
+dist_subdir                 ${name}/${version}
+
+distfiles-append            ${name}.pdf
+extract.only                ${distname}.tar.gz
+checksums                   ${distname}.tar.gz \
+                            rmd160  a2dcc9d7768b9fbd12fa0993c6d40d059f57215e \
+                            sha256  843a2019bcc89f76520ac2c88ada900917f28b90f809a47da50a1cffc9190431 \
+                            ${name}.pdf \
+                            rmd160  3823c6f35f035857fc226fa5741cc04834fddce5 \
+                            sha256  31ad310bf307067e0dcbd0e51fb05846d45ad8ca772e58387a1bd3acbcbaaa7e
+
+depends_build               path:bin/pkg-config:pkgconfig
+
+depends_lib                 port:expat \
+                            port:fontconfig \
+                            port:gd2 \
+                            port:jpeg \
+                            port:pdflib \
+                            port:libiconv \
+                            port:libpng \
+                            port:ncurses \
+                            port:readline \
+                            port:zlib
+
+patchfiles                  patch-configure-aquaterm.diff
+
+minimum_xcodeversions       {9 3.1}
+
+configure.args              --with-readline=${prefix} \
+                            --with-gd=${prefix} \
+                            --with-pdf=${prefix} \
+                            --with-png=${prefix} \
+                            --without-aquaterm \
+                            --without-x \
+                            --enable-datastrings \
+                            --enable-histograms \
+                            --infodir='\${prefix}/share/info' \
+                            --mandir='\${prefix}/share/man' \
+                            --without-lisp-files \
+                            --disable-wxwidgets \
+                            --without-bitmap-terminals \
+                            --without-latex \
+                            --without-tutorial \
+                            --without-cairo \
+                            --without-lua
+
+variant aquaterm description "Enable AquaTerm terminal" {
+    depends_lib-append      port:aquaterm
+    configure.args-delete   --without-aquaterm
+    configure.args-append   --with-aquaterm=${frameworks_dir}
+}
+
+variant x11 {
+    configure.args-delete   --without-x
+    configure.args-append   --with-x
+    depends_lib-append      port:xpm
+}
+
+variant emacs description "An emacs mode for working with gnuplot" {
+    depends_build-append    port:${emacs_binary_provider} 
+    configure.env-append    EMACS=${emacs_binary}
+    configure.args-delete   --without-lisp-files
+    configure.args-append   --with-lisp-files --with-lispdir=${emacs_lispdir}
+}
+
+variant luaterm description "Enable lua-based terminals" {
+    depends_lib-append      port:lua
+    configure.args-delete   --without-lua
+    configure.args-append   --with-lua
+}
+
+variant pangocairo description "Enable cairo-based terminals" {
+    depends_lib-append      path:lib/pkgconfig/pango.pc:pango
+    configure.args-delete   --without-cairo
+}
+
+variant wxwidgets description "Enable wxt terminal" {
+    wxWidgets.use           wxWidgets-3.0
+    depends_lib-append      port:${wxWidgets.port} path:lib/pkgconfig/pango.pc:pango
+    configure.args-delete   --disable-wxwidgets
+    configure.args-append   --with-wx-config=${wxWidgets.wxdir}
+}
+
+# remove in September 2014
+variant wxwidgets30     description "Legacy compatibility variant" {}
+variant wxwidgets_devel description "Legacy compatibility variant" {}
+
+variant qt description "Enable qt terminal" {
+    depends_lib-append      port:qt4-mac
+    configure.args-append   --enable-qt
+}
+
+# Ideally one would enable just PMB by default, but '--with-bitmap-terminals'
+# enables lots of other obsolete terminals which clutter the output of 'set term'.
+variant old_bitmap_terminals description "Enable PBM (Portable Bit Map) and other older bitmap terminals" {
+    configure.args-delete   --without-bitmap-terminals
+    configure.args-append   --with-bitmap-terminals
+}
+
+default_variants            +aquaterm +luaterm +pangocairo +wxwidgets +x11
+
+if {[variant_isset wxwidgets30] || [variant_isset wxwidgets_devel]} {
+    default_variants-append +wxwidgets
+}
+
+# Building and installing TeX macro files for TikZ could/should be done by gnuplot's Makefile,
+# but without a patch that would require a dependency on texlive.
+# Apart from that the files would fly to the wrong place in TDS,
+# so that plain TeX and ConTeXt could not find them (an upstream bug).
+# So we 'manually' generate and copy the necessary files.
+post-build {
+    if {[variant_isset luaterm]} {
+        system -W ${workpath}/${distname}/share/LaTeX "${prefix}/bin/lua ../../term/lua/gnuplot-tikz.lua style"
+    }
+}
+
+post-destroot {
+    if {[variant_isset luaterm]} {
+        set texmf ${destroot}${texlive_texmfports}
+        set luadir ${workpath}/${distname}/share/LaTeX
+        xinstall -d -m 0755 ${texmf}/tex/context/third/gnuplot-lua-tikz
+        xinstall -d -m 0755 ${texmf}/tex/generic/gnuplot-lua-tikz
+        xinstall -d -m 0755 ${texmf}/tex/latex/gnuplot-lua-tikz
+        xinstall -d -m 0755 ${texmf}/tex/plain/gnuplot-lua-tikz
+
+        xinstall -m 0644 ${luadir}/t-gnuplot-lua-tikz.tex      ${texmf}/tex/context/third/gnuplot-lua-tikz
+        xinstall -m 0644 ${luadir}/gnuplot-lua-tikz-common.tex ${texmf}/tex/generic/gnuplot-lua-tikz
+        xinstall -m 0644 ${luadir}/gnuplot-lua-tikz.sty        ${texmf}/tex/latex/gnuplot-lua-tikz
+        xinstall -m 0644 ${luadir}/gnuplot-lua-tikz.tex        ${texmf}/tex/plain/gnuplot-lua-tikz
+    }
+
+    set destdocdir ${destroot}${prefix}/share/doc/${name}
+    xinstall -d -m 0755 ${destdocdir}
+    xinstall -m 0644 ${distpath}/${name}.pdf ${destdocdir}
+
+    # copy demo files
+    file copy ${workpath}/${distname}/demo ${destdocdir}
+    foreach {makefile} {Makefile Makefile.in Makefile.am Makefile.am.in} {
+        delete ${destdocdir}/demo/${makefile}
+    }
+}

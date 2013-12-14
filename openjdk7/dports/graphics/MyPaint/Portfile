@@ -1,0 +1,108 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem                  1.0
+PortGroup                   app 1.0
+
+name                        MyPaint
+set my_name                 mypaint
+version                     1.1.0
+revision                    1
+homepage                    http://mypaint.info/
+categories                  graphics
+maintainers                 ryandesign
+license                     GPL-2 LGPL
+use_xz                      yes
+platforms                   darwin
+use_parallel_build          yes
+distname                    ${my_name}-${version}
+
+description                 a fast and easy graphics application for digital painters
+
+long_description            ${name} is ${description}. It lets you focus on the art \
+                            instead of the program. You work on your canvas with \
+                            minimum distractions, bringing up the interface only \
+                            when you need it.
+
+master_sites                http://download.gna.org/mypaint/
+
+checksums                   rmd160  a102688793e2392f70bd625d65cd5b4ea763adec \
+                            sha256  58fd90b08fa3142b6dddc2a656c0e406fc3ebcf9086b84e83815780ab7698036
+
+depends_build               port:pkgconfig \
+                            port:scons \
+                            port:swig-python
+
+depends_lib                 port:json-c \
+                            port:lcms2 \
+                            port:libpng \
+                            port:py27-pygtk \
+                            port:py27-numpy \
+                            port:py27-protobuf
+
+depends_run                 port:hicolor-icon-theme
+
+patchfiles                  patch-SConstruct.diff
+patchfiles-append           patch-malloc.diff
+
+use_configure               no
+
+variant universal {}
+
+build.cmd                   ${prefix}/bin/scons
+build.target
+build.args                  python_binary=${prefix}/bin/python2.7 \
+                            python_config=${prefix}/bin/python2.7-config
+build.env                   CC="${configure.cc} [get_canonical_archflags cc]" \
+                            CXX="${configure.cxx} [get_canonical_archflags cxx]" \
+                            PKG_CONFIG_PATH="${frameworks_dir}/Python.framework/Versions/2.7/lib/pkgconfig"
+
+eval destroot.args          ${build.args} \
+                            prefix=${prefix}
+eval destroot.env           ${build.env}
+# Setting --install-sandbox to an absolute path to a subdirectory of ${worksrcpath}
+# is supposed to work, but doesn't; see https://gna.org/bugs/?20399
+#destroot.destdir            --install-sandbox=${worksrcpath}/destroot
+destroot.destdir            --install-sandbox=pre-destroot
+
+# prefix must apparently be a nonexistent directory that MacPorts nevertheless has
+# permission to create during the build phase; see https://gna.org/bugs/?20399
+build.args-append           prefix=${workpath}/nonexistent
+
+post-destroot {
+    # Because we must set --install-sandbox to a relative path for now, multiple pre-destroot
+    # directories get created, which must now be combined; see https://gna.org/bugs/?20399
+    fs-traverse d ${worksrcpath} {
+        if {[file tail ${d}] eq "pre-destroot"} {
+            ui_debug "merging ${d} with destroot"
+            system -W ${destroot} "tar -C ${d} -c -f - .${prefix} | tar -x -p -v -f -"
+        }
+    }
+    set docdir ${destroot}${prefix}/share/doc/${name}
+    xinstall -d ${docdir}
+    xinstall -m 644 -W ${worksrcpath} \
+        COPYING \
+        LICENSE \
+        README \
+        ${docdir}
+}
+
+post-activate {
+    system "${prefix}/bin/gtk-update-icon-cache -tf ${prefix}/share/icons/hicolor"
+}
+
+app.executable              ${workpath}/${name}
+app.icon                    pixmaps/mypaint_logo.png
+
+platform macosx {
+    post-extract {
+        xinstall -m 755 ${filespath}/${name}.in ${workpath}/${name}
+    }
+    post-patch {
+        reinplace "s|@PREFIX@|${prefix}|g" ${workpath}/${name}
+    }
+}
+
+livecheck.type              regex
+livecheck.url               [lindex ${master_sites} 0]
+livecheck.regex             ${my_name}-(\[0-9.\]+)\\.tar

@@ -1,0 +1,66 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                ngircd
+version             20.2
+revision            1
+categories          irc
+platforms           darwin
+license             GPL-2+
+maintainers         nomaintainer
+
+description         next generation IRC daemon
+long_description    ngIRCd is a free open source daemon for Internet \
+                    Relay Chat (IRC). It's written from scratch and is \
+                    not based upon the original IRCd like many others.
+
+homepage            http://ngircd.barton.de/
+master_sites        http://arthur.barton.de/pub/ngircd/ \
+                    ftp://ftp.berlios.de/pub/ngircd/
+
+checksums           rmd160  990d6b3de99422442aae0ab828dc7ec223e7777a \
+                    sha256  306c0ef0d2ceac0836a84ecf871a6bc4dd16c25683aa87c0f172b6e68b93357d
+
+depends_lib         port:libident \
+                    port:tcp_wrappers \
+                    port:zlib
+
+# libident does not respect build_arch
+universal_variant   no
+
+patchfiles          patch-contrib-MacOSX-Makefile.in.diff \
+                    patch-doc-Makefile.in.diff
+
+configure.args      --enable-ipv6 \
+                    --with-tcp-wrappers \
+                    --with-ident
+
+# It's easier to create our own startup item than to patch and install
+# the provided plist.
+startupitem.create      yes
+startupitem.executable  ${prefix}/sbin/ngircd --nodaemon
+startupitem.logfile     ${prefix}/var/log/ngIRCd.log
+startupitem.logevents   yes
+
+post-activate {
+    if {![file exists ${prefix}/etc/ngircd.conf]} {
+        xinstall -m 0644 ${prefix}/share/doc/${name}/sample-ngircd.conf \
+            ${prefix}/etc/ngircd.conf
+    }
+}
+
+variant gnutls conflicts openssl description {Build with GnuTLS} {
+    configure.args-append   --with-gnutls
+    depends_lib-append      port:gnutls
+}
+
+variant openssl conflicts gnutls description {Build with OpenSSL} {
+    configure.args-append   --with-openssl
+    depends_lib-append      port:openssl
+}
+
+if {![variant_isset gnutls]} {
+    default_variants        +openssl
+}

@@ -1,0 +1,63 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            eog
+version         3.10.2
+revision        1
+license         GPL-2+
+set branch      [join [lrange [split ${version} .] 0 1] .]
+description     An image viewing and cataloging program.
+long_description \
+                This is the Eye of Gnome, an image viewer program. \
+                It is meant to be a fast and functional image viewer \
+                as well as an image cataloging program.
+maintainers     devans openmaintainer
+categories      gnome
+platforms       darwin
+homepage        https://projects.gnome.org/eog/
+master_sites    gnome:sources/${name}/${branch}/
+
+use_xz          yes
+
+checksums       rmd160  44527bdd11d8dcf87caeb939f131e7410511cfc6 \
+                sha256  5ccc98609ca666420719383cc7d9b44335bbc0aacf048e38036d1f946ce54763
+
+depends_build   port:pkgconfig \
+                port:intltool \
+                port:itstool \
+                port:gtk-doc
+
+depends_lib     port:desktop-file-utils \
+                port:gtk3 \
+                port:gnome-desktop \
+                port:gnome-icon-theme \
+                port:gnome-icon-theme-symbolic \
+                port:shared-mime-info \
+                port:gsettings-desktop-schemas \
+                port:libpeas \
+                port:gobject-introspection \
+                port:jpeg \
+                port:librsvg \
+                port:libexif \
+                port:lcms2 \
+                port:exempi \
+                port:libxml2 \
+                port:xorg-libX11
+
+depends_run     port:gnome-settings-daemon \
+                port:yelp
+               
+configure.args  --disable-schemas-compile \
+                --disable-silent-rules
+
+patchfiles      redefinition-buildfix.patch 
+
+post-activate {
+   system "${prefix}/bin/gtk-update-icon-cache-3.0 -f -t ${prefix}/share/icons/hicolor"
+   system "${prefix}/bin/update-desktop-database ${prefix}/share/applications"
+   system "${prefix}/bin/glib-compile-schemas ${prefix}/share/glib-2.0/schemas"
+}
+
+livecheck.type  gnome

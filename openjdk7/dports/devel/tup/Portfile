@@ -1,0 +1,39 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           github 1.0
+
+github.setup        gittup tup 0.6.5 v
+categories          devel
+maintainers         gmail.com:anatol.pomozov
+platforms           macosx
+description         A build system with amazingly fast incremental build cycle
+
+long_description    \
+    Tup is a file-based build system - it inputs a list of file changes    \
+    and a directed acyclic graph (DAG), then processes the DAG to execute  \
+    the appropriate commands required to update dependent files.  The DAG  \
+    is stored in an SQLite database.  By providing the file change log up  \
+    front and storing the dependencies in an efficient database structure, \
+    updates can be performed with very little overhead.
+
+homepage            http://gittup.org/tup/
+license             GPL-2
+
+checksums           rmd160  830e00e8a3bd8903464ef32c18140db39d0b68ad \
+                    sha256  e135fa8be7468cc200ad8df2037195c6faa8dd9aa59edb39dfe214023c2c6e6a
+
+build.cmd           ./build.sh
+build.env-append    TUP_LABEL=${version}
+
+depends_build       port:pkgconfig
+depends_lib         path:lib/pkgconfig/fuse.pc:fuse4x \
+                    port:libiconv
+
+use_configure no
+
+destroot {
+    file copy ${worksrcpath}/build/tup ${destroot}${prefix}/bin
+    file copy ${worksrcpath}/tup.1 ${destroot}${prefix}/share/man/man1/
+}

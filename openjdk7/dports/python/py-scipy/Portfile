@@ -1,0 +1,132 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem              1.0
+PortGroup               python 1.0
+
+name                    py-scipy
+version                 0.13.2
+platforms               darwin
+license                 BSD
+maintainers             sean michaelld openmaintainer
+description             An opensource library of scientific tools for Python
+long_description        ${description}
+
+homepage                http://www.scipy.org/
+master_sites            sourceforge:project/scipy/scipy/${version}/
+distname                scipy-${version}
+
+checksums               rmd160 d5579d8645be596ce559c51b06776e516d43ae8d \
+                        sha256 485f194c7fe46da92e63bff524346ccaed4040c27df536bbde7b1edc9a07b449
+
+python.versions         26 27 32 33
+
+python.add_archflags    no
+universal_variant       no
+
+if {${name} ne ${subport}} {
+
+    depends_lib-append      port:py${python.version}-numpy \
+                            port:py${python.version}-nose \
+                            port:SuiteSparse \
+                            port:swig-python
+
+    worksrcdir              ${distname}
+
+    build.env-append        CCFLAGS="-I${prefix}/include -L${prefix}/lib"
+    destroot.env-append     CCFLAGS="-I${prefix}/include -L${prefix}/lib"
+
+    if {[string match "*clang*" ${configure.compiler}]} {
+        build.env-append    FFLAGS="-ff2c"
+        destroot.env-append FFLAGS="-ff2c"
+    }
+
+    patchfiles              umfpack_extra_libs.patch
+
+    post-patch {
+        reinplace "s|@@MP_PREFIX@@|${prefix}|g" ${worksrcpath}/site.cfg
+    }
+
+    variant atlas description "Use MacPorts ATLAS libraries" {
+        depends_lib-append  port:atlas
+
+        build.env-append    ATLAS=${prefix}/lib \
+                            LAPACK=${prefix}/lib \
+                            BLAS=${prefix}/lib
+
+        destroot.env-append ATLAS=${prefix}/lib \
+                            LAPACK=${prefix}/lib \
+                            BLAS=${prefix}/lib
+    }
+
+    set gcc_versions {4.3 4.4 4.5 4.6 4.7 4.8 4.9}
+    set default_fortran_variant +gcc48
+
+    foreach ver ${gcc_versions} {
+        set ver_no_dot [join [split ${ver} "."] ""]
+
+        set variant_line {variant gcc${ver_no_dot} description "build with gfortran from gcc${ver_no_dot}"}
+
+        foreach over ${gcc_versions} {
+            if {${ver} == ${over}} {
+                continue
+            }
+
+            set over_no_dot [join [split ${over} "."] ""]
+            append variant_line " conflicts gcc${over_no_dot}"
+        }
+        append variant_line { {}}
+
+        eval $variant_line
+
+        if {[variant_isset gcc${ver_no_dot}]} {
+            if {${default_fortran_variant} != "+gcc${ver_no_dot}"} {
+                set default_fortran_variant ""
+            }
+        }
+    }
+
+    if {${default_fortran_variant} != ""} {
+        default_variants-append "${default_fortran_variant}"
+    }
+
+    foreach ver ${gcc_versions} {
+        set ver_no_dot [join [split ${ver} "."] ""]
+
+        if {[variant_isset gcc${ver_no_dot}]} {
+            depends_lib-append path:lib/libgcc/libgcc_s.1.dylib:libgcc
+            depends_build-append port:gcc${ver_no_dot}
+
+            configure.fc  ${prefix}/bin/gfortran-mp-${ver}
+            configure.f77 ${prefix}/bin/gfortran-mp-${ver}
+            configure.f90 ${prefix}/bin/gfortran-mp-${ver}
+        }
+    }
+
+    set fc_options      "config_fc --fcompiler gnu95 --f77exec ${configure.f77} --f90exec ${configure.f90}"
+    set config_options  "config --cc ${configure.cc} --include-dirs ${prefix}/include --library-dirs ${prefix}/lib"
+    build.cmd-append    ${fc_options} ${config_options}
+    destroot.cmd-append ${fc_options} ${config_options}
+
+    build.env-append    CC="${configure.cc}" \
+                        CXX="${configure.cxx}"
+    destroot.env-append CC="${configure.cc}" \
+                        CXX="${configure.cxx}"
+
+    livecheck.type          none
+} else {
+    livecheck.type          regex
+    livecheck.url           http://sourceforge.net/api/file/index/project-name/scipy/rss
+    livecheck.regex         "scipy\/(\\d+(?:\\.\\d+)*)\]"
+}
+
+subport py32-scipy {
+    pre-activate {
+        set regref [registry_open $subport $version $revision $portvariants ""]
+        foreach f [registry_prop_retr $regref imagefiles] {
+            if {[file extension $f] == ".pyc" && [file exists $f] && [registry_file_registered $f] == "0"} {
+                file delete -force $f
+            }
+        }
+    }
+}

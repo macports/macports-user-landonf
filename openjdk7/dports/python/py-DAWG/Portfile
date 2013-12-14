@@ -1,0 +1,35 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+
+name                py-DAWG
+version             0.7.2
+revision            0
+categories-append   devel
+platforms           darwin
+license             MIT
+
+python.versions     26 27 31 32 33
+
+maintainers         stromnov openmaintainer
+
+description         Fast and memory efficient DAWG for Python.
+long_description    ${description}
+
+homepage            https://github.com/kmike/DAWG/
+master_sites        http://pypi.python.org/packages/source/D/DAWG/
+
+distname            DAWG-${version}
+
+checksums           rmd160  b6b20e6b37dd2db26b7b02f86360aad10f1a2878 \
+                    sha256  9d0c42ceed077a36a2e84af7e181e61b2c1db8013136583efa2055275d6b53cd
+
+if {${name} ne ${subport}} {
+    livecheck.type      none
+} else {
+    livecheck.type      regex
+    livecheck.url       ${master_sites}
+    livecheck.regex     {DAWG-(\d+(?:\.\d+)*)\.[tz]}
+}

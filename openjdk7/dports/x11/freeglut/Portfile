@@ -1,0 +1,34 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                freeglut
+version             2.8.1
+categories          x11 graphics
+license             X11
+maintainers         jeremyhu openmaintainer
+description         The Free OpenGL Utility Toolkit
+long_description    ${description}
+
+homepage            http://freeglut.sourceforge.net/
+
+platforms           macosx darwin
+master_sites        sourceforge:project/freeglut/freeglut/${version}
+
+checksums           sha1    7330b622481e2226c0c9f6d2e72febe96b03f9c4 \
+                    rmd160  22a8de93e68657bb34200fba0124c99704b34f93 \
+                    sha256  dde46626a62a1cd9cf48a11951cdd592e7067c345cffe193a149dfd47aef999a
+
+depends_lib         port:mesa \
+                    port:xorg-libXrandr \
+                    port:xorg-libXxf86vm
+
+use_autoreconf yes
+autoreconf.args -fvi
+
+post-patch {
+	reinplace "/SUBDIRS/s/progs//" ${worksrcpath}/Makefile.am
+}
+
+use_parallel_build yes

@@ -1,0 +1,28 @@
+# $Id$
+
+PortSystem 1.0
+PortGroup ocaml 1.0
+PortGroup           github 1.0
+
+github.setup        janestreet comparelib 109.27.00
+
+name                ocaml-comparelib
+categories          devel ml
+platforms           darwin
+license             Apache-2.0
+maintainers         mww openmaintainer
+description         Syntax extension for deriving "compare" functions automatically
+long_description    ${description}
+
+homepage            https://ocaml.janestreet.com/code
+
+checksums           rmd160  64715f85f75d34d42e6ab856c3bd14f09ce8032c \
+                    sha256  6d7015be475a08e3e4105f10697c0e3139c6a9b62c9c9dbf5039947c522a437f
+
+depends_lib         port:ocaml port:ocaml-findlib port:ocaml-type-conv
+
+use_oasis           yes
+use_oasis_doc       yes
+
+configure.args-append "--destdir ${destroot}"
+

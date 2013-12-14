@@ -1,0 +1,38 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           python 1.0
+PortGroup           bitbucket 1.0
+
+set realname        hgwatchman
+bitbucket.setup     facebook ${realname} 0.3.1
+name                py-${realname}
+categories-append   devel
+platforms           darwin
+maintainers         sean openmaintainer
+supported_archs     noarch
+license             GPL-2+
+
+description         Integrates the file-watching program watchman with \
+                    Mercurial to produce faster status results.
+long_description    ${description}
+
+checksums           rmd160  819dc4f9539b9ac0a909b39a8714c21326072a12 \
+                    sha256  3291de196d27b35ab70dc96eb7834aee35e582c4a13415dac4decb3f5f7260be
+
+python.versions     27
+
+if {${name} ne ${subport}} {
+    depends_lib-append  path:bin/hg:mercurial \
+                        port:watchman
+
+    notes               "
+To enable ${realname}, add the following to your ~/.hgrc:
+
+\[extensions\]
+${realname} =
+"
+
+    livecheck.type      none
+}

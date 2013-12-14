@@ -1,0 +1,43 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           github 1.0
+
+github.setup        jubatus jubatus-msgpack-rpc 0.4.2
+
+categories          devel
+maintainers         hum openmaintainer
+
+description         modified msgpack-rpc for Jubatus
+
+long_description    ${name} is ${description}.
+
+homepage            http://msgpack.org/
+platforms           darwin
+license             Apache-2
+
+dist_subdir         jubatus
+checksums           rmd160  6d9eead40029d299bd677a2eb98a485f1316bdbf \
+                    sha256  b4d47db48985f5119d822869d25c4b30cbf702e03cdeff1302bef138305d7c3c
+
+depends_build       port:autoconf port:automake port:libtool
+
+depends_lib         port:msgpack \
+                    port:jubatus-mpio
+
+configure.dir       ${worksrcpath}/cpp
+build.dir           ${configure.dir}
+
+pre-configure {
+    system -W ${configure.dir} "./bootstrap"
+}
+
+post-destroot {
+    # install an additional document.
+    set doc_dir ${destroot}${prefix}/share/doc/${name}
+    xinstall -d ${doc_dir}
+    xinstall -m 644 -W ${destroot.dir} \
+        AUTHORS COPYING ChangeLog NOTICE README.md \
+        ${doc_dir}
+}

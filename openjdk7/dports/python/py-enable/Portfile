@@ -1,0 +1,42 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem	        1.0
+PortGroup	        python 1.0
+
+name                py-enable
+version             4.2.0
+revision            1
+categories-append   devel
+maintainers         gmail.com:jjstickel openmaintainer
+description         The Enthought enable package
+long_description    The Enable project provides two related multi-platform\
+                    packages for drawing GUI objects.  Enable: An object\
+                    drawing library that supports containment and event\
+                    notification.  Kiva: A multi-platform DisplayPDF vector\
+                    drawing engine.
+license             BSD
+platforms           darwin
+homepage            https://github.com/enthought/enable
+master_sites        http://www.enthought.com/repo/ets/
+distname            enable-${version}
+
+checksums           rmd160  a8b8eb6b8c600127793a08eca3e4ec29cf98aa17 \
+                    sha256  48c510bb833cbc9142babcb1914feac2cf64d5133a8ba7cdcdf0d1d782fafbd7
+
+python.versions     26 27
+
+if {${name} ne ${subport}} {
+    patchfiles              no-64-bit-quartz.diff\
+                            pyqt4_qsize.patch
+    patch.pre_args          -p1
+
+    depends_build-append    port:py${python.version}-setuptools \
+                            port:py${python.version}-cython \
+                            port:swig-python
+    depends_lib-append      port:py${python.version}-traitsui\
+                            port:py${python.version}-reportlab
+}
+
+# haven't retested if this is still true for version >= 4.0
+universal_variant no

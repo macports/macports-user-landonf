@@ -1,0 +1,65 @@
+--- gqrx.pro.orig	2013-11-18 07:55:40.000000000 -0500
++++ gqrx.pro	2013-11-18 09:21:24.000000000 -0500
+@@ -45,23 +45,21 @@
+     PREFIX=/usr/local
+ }
+ 
+-target.path  = $$PREFIX/bin
++target.path  = @APPSDIR@
+ INSTALLS    += target 
+ 
+-#CONFIG += debug
++CONFIG -= debug
++VER = @VERSION@
++CONFIG += @ARCHES@
+ 
+ # disable debug messages in release
+ CONFIG(debug, debug|release) {
+     # Use for valgrind
+     #QMAKE_CFLAGS_DEBUG += '-g -O0'
+ 
+-    # Define version string (see below for releases)
+-    VER = $$system(git describe --abbrev=8)
+-
+ } else {
+     DEFINES += QT_NO_DEBUG
+     DEFINES += QT_NO_DEBUG_OUTPUT
+-    VER = $$system(git describe --abbrev=1)
+ 
+     # Release binaries with gr bundled
+     # QMAKE_RPATH & co won't work with origin
+@@ -210,21 +208,23 @@
+ }
+ 
+ macx {
+-    # macports
+-    INCLUDEPATH += /opt/local/include
++    INCLUDEPATH += $$PREFIX/include
++
++    CONFIG += link_pkgconfig
+ 
+-    # local stuff
+-    INCLUDEPATH += /Users/alexc/gqrx/runtime/include
+-    LIBS += -L/opt/local/lib -L/Users/alexc/gqrx/runtime/lib
++    contains(AUDIO_BACKEND, portaudio) {
++        PKGCONFIG += portaudio-2.0
++    }
++
++    PKGCONFIG += gnuradio-analog \
++                 gnuradio-audio \
++                 gnuradio-blocks \
++                 gnuradio-filter \
++                 gnuradio-fft \
++                 gnuradio-osmosdr
+ 
+     LIBS += -lboost_system-mt -lboost_program_options-mt
+-    LIBS += -lgnuradio-runtime -lgnuradio-pmt -lgnuradio-audio -lgnuradio-analog
+-    LIBS += -lgnuradio-blocks -lgnuradio-filter -lgnuradio-fft -lgnuradio-osmosdr
+ 
+-    # portaudio
+-    contains(AUDIO_BACKEND, portaudio): {
+-        LIBS    += -lportaudio
+-    }
+ }
+ 
+ OTHER_FILES += \

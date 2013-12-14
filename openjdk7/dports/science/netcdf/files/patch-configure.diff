@@ -1,0 +1,10 @@
+--- configure.orig	2013-05-10 01:24:18.000000000 +0900
++++ configure	2013-11-05 21:24:27.000000000 +0900
+@@ -16711,6 +16711,7 @@
+ else
+   USE_SZIP_TRUE='#'
+   USE_SZIP_FALSE=
++  LIBS=`echo ${LIBS} | sed 's/-lsz //'`
+ fi
+ 
+  if test ! "x$PNETCDFDIR" = x; then

@@ -1,0 +1,56 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           conflicts_build 1.0
+
+name                notmuch
+version             0.16
+revision            1
+categories          mail
+platforms           darwin
+license             GPL-3+
+maintainers         yeled
+description         The mail indexer
+long_description    “Not much mail” is what Notmuch thinks about your email \
+                    collection, even if you receive 12000 messages per month or have on the \
+                    order of millions of messages that you’ve been saving for decades. \
+                    Regardless, Notmuch will be able to quickly search all of it. It’s just \
+                    plain not much mail.
+
+homepage            http://notmuchmail.org/
+master_sites        ${homepage}releases/
+
+checksums           rmd160  9c3864ea157b32ab7c2d33248e5cc83402607546 \
+                    sha256  e7792dec15be845c55ad265d06339325f03b9c886ab3836b7e80a6eb6841f344
+
+depends_build       port:pkgconfig
+
+depends_lib         port:xapian-bindings\
+                    port:gmime\
+                    port:talloc
+
+patchfiles          patch-bindings-python-notmuch-globals.py.diff \
+                    patch-lib-Makefile.local.diff \
+                    visibility.patch
+
+post-patch {
+    reinplace "s|@PREFIX@|${prefix}|g" ${worksrcpath}/bindings/python/notmuch/globals.py
+}
+
+conflicts_build     ${name}
+
+configure.args      --without-emacs
+
+# disable silent rules
+build.args          V=1
+
+variant emacs description {EMACS support} {
+    depends_lib-append      port:emacs
+    configure.args-delete   --without-emacs
+    configure.args-append   --with-emacs
+}
+
+livecheck.type      regex
+livecheck.url       [lindex ${master_sites} 0]
+livecheck.regex     ${name}-(\[0-9.\]+)${extract.suffix}

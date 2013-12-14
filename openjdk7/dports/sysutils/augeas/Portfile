@@ -1,0 +1,43 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem              1.0
+
+name                    augeas
+version                 1.1.0
+categories              sysutils
+license                 LGPL-2.1+
+platforms               darwin
+maintainers             nomaintainer
+
+description             configuration editing tool
+
+long_description        ${name} is a ${description}. It parses configuration \
+                        files in their native formats and transforms them \
+                        into a tree. Configuration changes are made by \
+                        manipulating this tree and saving it back into native \
+                        config files
+
+homepage                http://www.augeas.net/
+master_sites            http://download.augeas.net/
+
+checksums               rmd160 5a95a3bb174c53b528a2f62dadd4ca10d834367c \
+                        sha256 9d81e4228329e2d5cccb018ab06bc8b734fb2dede2c4d9b5c02303d4a690b76b
+
+depends_build           port:pkgconfig port:naturaldocs
+depends_lib             port:readline port:libxml2
+
+configure.args          --disable-silent-rules
+
+#use_parallel_build      no
+
+post-destroot {
+    file mkdir ${destroot}${prefix}/share/doc/${name}
+    move ${worksrcpath}/doc/naturaldocs/output/c_api ${destroot}${prefix}/share/doc/${name}
+    move ${worksrcpath}/doc/naturaldocs/output/lenses ${destroot}${prefix}/share/doc/${name}
+}
+
+
+livecheck.type          regex
+livecheck.url           [lindex ${master_sites} 0]
+livecheck.regex         ${name}-(\[0-9.\]+)${extract.suffix}

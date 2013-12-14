@@ -1,0 +1,90 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem              1.0
+PortGroup               qt4 1.0
+
+name                    KeePassX
+version                 2.0-alpha4
+revision                2
+categories              security aqua
+maintainers             nomaintainer
+
+description             KeePassX is a password manager compatiable with KeePass
+long_description        KeePassX is an application for people with extremely \
+                        high demands on secure personal data management. It \
+                        has a light interface and is cross platform. KeePassX \
+                        saves many different types of information including \
+                        user names, passwords, URLs, attachments and comments \
+                        in one single database.
+
+platforms               darwin
+license                 GPL-2 LGPL-2 LGPL-3 BSD permissive
+license_noconflict      openssl
+
+notes "
+BEWARE, THIS IS AN ALPHA RELEASE AND NOT INTENDED TO BE USED IN A PRODUCTION\
+ENVIRONMENT.
+"
+
+homepage                https://www.keepassx.org/
+master_sites            https://www.keepassx.org/dev/attachments/download/36
+distname                keepassx-${version}
+
+checksums \
+    rmd160  aca24fd3bd25ef09ccee59be1cecd2c42c0e05c1 \
+    sha256  e71d36a3dbe35dc3d6e0cc9d1e6492f9c99381696abc664f596326258ef3bb0a \
+    md5     f2937efe182665c3104c869ebc731f90
+
+depends_lib-append      port:libgcrypt \
+                        port:zlib
+
+depends_build-append    port:cmake
+
+worksrcdir              build
+
+post-extract {
+    file mkdir ${worksrcpath}
+    reinplace "s|zlib.h|${prefix}/include/zlib.h|" ../${distname}/CMakeLists.txt
+    platform darwin {
+        if {${os.major} >= 13} {
+            reinplace "s|-stack-protector-buffer-size=4||g" \
+                      ../${distname}/CMakeLists.txt
+            reinplace "s|-mllvm||g" \
+                      ../${distname}/CMakeLists.txt
+        }
+    }
+}
+
+configure.cmd           cmake
+configure.pre_args      -DCMAKE_INSTALL_PREFIX=${applications_dir} \
+                        -DZLIB_ROOT=${prefix}
+configure.args          ${qt_cmake_defines} ../${distname}
+
+platform darwin {
+    if {${os.major} < 13} {
+        # Build fails with clang: unsupported -stack-protector-buffer-size=4
+        # (even though clang -help lists option)
+        compiler.blacklist          clang
+    } else {
+        revision                    3
+        configure.pre_args-append   -DWITH_CXX11=On
+    }
+}
+
+# Don't make copies of all the QT4 libraries etc... (MUCH smaller install)
+post-configure {
+    reinplace "s/FIXUP_QT4_EXECUTABLE.*//" src/cmake_install.cmake
+}
+
+post-destroot {
+    xinstall -d ${destroot}${prefix}/share/doc/${name}
+    xinstall -W ${workpath}/${distname} COPYING LICENSE.BSD LICENSE.CC0 \
+             LICENSE.GPL-2 LICENSE.LGPL-2.1 LICENSE.LGPL-3 \
+             LICENSE.NOKIA-LGPL-EXCEPTION \
+             ${destroot}${prefix}/share/doc/${name}
+}
+
+livecheck.type          regex
+livecheck.url           ${homepage}dev/projects/keepassx/files
+livecheck.regex         keepassx-(\[-alphabet\\d\.\]+).tar.gz

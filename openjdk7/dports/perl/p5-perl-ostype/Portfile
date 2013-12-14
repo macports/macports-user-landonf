@@ -1,0 +1,22 @@
+# $Id$
+
+PortSystem            1.0
+PortGroup             perl5 1.0
+
+perl5.branches      5.8 5.10 5.12 5.14 5.16
+perl5.setup           Perl-OSType 1.003 ../by-authors/id/D/DA/DAGOLDEN/
+license               {Artistic GPL}
+maintainers           nomaintainer
+description           Map Perl operating system names to generic types
+long_description      ${description}
+
+platforms             darwin
+
+checksums             rmd160  c7ead653ff2146ed136bb389a274608c464fb699 \
+                      sha256  b6d65661bfc20eed0b258b6339a20d479991d508e5f486d6ecbd47a269902506
+                      
+if {${perl5.major} != ""} {
+depends_lib-append    port:p${perl5.major}-test-simple
+
+supported_archs       noarch
+}

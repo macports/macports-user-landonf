@@ -1,0 +1,32 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+
+name                jansson
+version             2.5
+revision            0
+categories          devel
+platforms           darwin
+license             MIT
+
+maintainers         stromnov openmaintainer
+
+description         C library for encoding, decoding and manipulating JSON data.
+long_description    ${description}
+
+homepage            http://www.digip.org/jansson/
+master_sites        http://www.digip.org/jansson/releases/
+
+checksums           rmd160  2e7243879bf2b4dfb8b3e162cce31a5c86ecf18f \
+                    sha256  dd8bbfb38ad5031ce88e066b14d3b7e9c7113243daa7f4cde1994b7fc90bb1b1
+
+post-destroot {
+    set docdir ${destroot}${prefix}/share/doc/${subport}
+    xinstall -d ${docdir}
+    eval xinstall -m 644 [glob ${worksrcpath}/doc/*.rst] ${docdir}
+}
+
+livecheck.type      regex
+livecheck.url       ${master_sites}
+livecheck.regex     {jansson-(\d+(?:\.\d+)*)\.[tz]}

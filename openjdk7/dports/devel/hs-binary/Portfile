@@ -1,0 +1,23 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           haskell 1.0
+
+haskell.setup       binary 0.7.1.0
+revision            2
+license             BSD
+maintainers         cal openmaintainer
+platforms           darwin
+
+checksums           rmd160  fdd4d824cbb863a72272cab7d8c641b19c8e70c6 \
+                    sha256  9622efca717cd4f606dc3f43e93464b6eeb0f35e12dd0207065cc6533e498b99
+
+description         Binary serialisation for Haskell values using lazy ByteStrings
+long_description    \
+    Efficient, pure binary serialisation using lazy ByteStrings. Haskell values \
+    may be encoded to and from binary formats, written to disk as binary, or \
+    sent over the network. The format used can be automatically generated, or \
+    you can choose to implement a custom format if needed. Serialisation speeds \
+    of over 1 G/sec have been observed, so this library should be suitable for \
+    high performance scenarios.

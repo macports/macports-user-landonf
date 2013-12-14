@@ -1,0 +1,90 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem              1.0
+PortGroup               compiler_blacklist_versions 1.0
+PortGroup               muniversal 1.0
+
+name                    gettext
+version                 0.18.3.1
+revision                1
+categories              devel
+maintainers             ryandesign
+# libs are LGPL and executables are GPL
+license                 {LGPL-2.1+ GPL-3+}
+homepage                http://www.gnu.org/software/gettext/
+master_sites            gnu
+platforms               darwin freebsd linux
+use_parallel_build      yes
+
+description             GNU internationalization (i18n) and localization (l10n) library
+
+long_description        ${name} is the ${description}, used for writing multilingual programs.
+
+checksums               rmd160  c3b6a16a6b50e899b87d879db7363376b724c383 \
+                        sha256  0d8f9a33531b77776b3dc473e7940019ca19bfca5b4c06db6e96065eeb07245d
+
+# Generate newer libtool that passes -stdlib when linking dylibs.
+#
+# TODO: Fix this some other way, as requiring autoconf creates
+#       a circular dependency:
+#
+#       gettext > autoconf > perl5 > perl5.12 > gdbm > gettext
+#
+#use_autoreconf          yes
+#autoreconf.args         --force --verbose
+
+# https://trac.macports.org/ticket/31167
+compiler.blacklist-append   {clang < 211.10.1}
+
+configure.cppflags      -no-cpp-precomp
+
+configure.args          ac_cv_prog_AWK=/usr/bin/awk \
+                        ac_cv_path_GREP=/usr/bin/grep \
+                        ac_cv_path_SED=/usr/bin/sed \
+                        --disable-csharp \
+                        --disable-native-java \
+                        --disable-openmp \
+                        --without-emacs \
+                        --with-included-gettext \
+                        --with-included-glib \
+                        --with-included-libcroco \
+                        --with-included-libunistring \
+                        --with-included-libxml
+
+# Don't use git (if it's installed) nor cvs to create the autopoint archive
+# because the archives they create for each architecture under muniversal
+# will differ and cannot be merged.
+configure.args-append   --without-git \
+                        --without-cvs
+
+depends_lib             port:expat \
+                        port:libiconv \
+                        port:ncurses
+
+test.run                yes
+test.target             check
+
+post-destroot {
+    if {[file exists ${destroot}${prefix}/lib/charset.alias]} {
+        delete ${destroot}${prefix}/lib/charset.alias
+    }
+    if {[file exists ${destroot}${prefix}/share/locale/locale.alias]} {
+        delete ${destroot}${prefix}/share/locale/locale.alias
+    }
+    xinstall -m 644 -W ${worksrcpath} \
+        AUTHORS \
+        COPYING \
+        ChangeLog \
+        ChangeLog.0 \
+        DEPENDENCIES \
+        HACKING \
+        NEWS \
+        README \
+        THANKS \
+        ${destroot}${prefix}/share/doc/${name}
+}
+
+livecheck.type          regex
+livecheck.url           http://ftp.gnu.org/gnu/gettext/?C=M&O=D
+livecheck.regex         ${name}-(\[0-9.\]+)\\.tar

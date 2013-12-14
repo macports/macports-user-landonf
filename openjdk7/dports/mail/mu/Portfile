@@ -1,0 +1,50 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           github 1.0
+PortGroup           elisp 1.0
+
+github.setup        djcb mu 0.99 v
+version             0.9.9
+revision            1
+license             GPL-3
+categories          mail
+maintainers         sean openmaintainer
+description         Command-line tools to index and search email (aka maildir-utils)
+long_description \
+   mu is a set of command-line tools for Linux/Unix that enable you to \
+   quickly find the e-mails you are looking for. First, a tool called \
+   mu-index fills a database with information about all your e-mails. After \
+   that, you can easily search for them, using mu-find and its dedicated \
+   query language.
+
+platforms           darwin
+
+homepage            http://www.djcbsoftware.nl/code/mu/
+
+checksums           rmd160  6ff6a01469c997cad295706074f7e6c94755317a \
+                    sha256  df0b3132dbda502a8db148fc4fa76982a8e37a30c782846368c185dddc25b161
+
+depends_build       port:pkgconfig
+depends_lib         port:gmime port:xapian-core
+
+use_autoreconf      yes
+configure.args      --with-gui=none --disable-mu4e --disable-webkit --disable-guile
+
+variant emacs description {Build with emacs bindings} {
+    depends_lib-append    path:${emacs_binary}:${emacs_binary_provider}
+    configure.env-append  EMACS=${emacs_binary}
+    configure.args-delete --disable-mu4e
+    configure.args-append --enable-mu4e
+}
+
+subport mu-devel {
+    github.setup    djcb mu 4d45b8b54ca9
+    name            mu-devel
+    version         0.9.9.0.99
+    revision        8
+
+    checksums       rmd160  a697f22a43a068b3d701b18fc089e33da9ac0ff6 \
+                    sha256  cf6600e06ce3806075873529f2da873e07e877d3d933bc4a78facfe154305d83
+}

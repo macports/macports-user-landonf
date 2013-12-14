@@ -1,0 +1,179 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem                  1.0
+PortGroup                   conflicts_build 1.0
+
+# Keep relevant lines in sync between ImageMagick and p5-perlmagick.
+
+name                        ImageMagick
+version                     6.8.7-7
+set reasonable_version      [lindex [split ${version} -] 0]
+homepage                    http://www.imagemagick.org/
+categories                  graphics devel
+maintainers                 ryandesign
+license                     Apache-2
+use_xz                      yes
+platforms                   darwin
+use_parallel_build          yes
+
+description                 Tools and libraries to manipulate images in many formats
+
+long_description            ImageMagick is a robust collection of tools and \
+                            libraries to create, edit and compose bitmap images \
+                            in a wide variety of formats. You can crop, resize, \
+                            rotate, sharpen, color reduce or add effects or text \
+                            or straight or curved lines to an image or image \
+                            sequence and save your completed work in the same or \
+                            differing image format. You can even create images \
+                            from scratch. Image processing operations are \
+                            available from the command line as well as through \
+                            C, Ch, C++, Java, Perl, PHP, Python, Ruby and Tcl/Tk \
+                            programming interfaces. Over 90 image formats are \
+                            supported, including GIF, JPEG, JPEG 2000, PNG, PDF, \
+                            PhotoCD and TIFF.
+
+master_sites                http://www.imagemagick.org/download/ \
+                            http://mirror.checkdomain.de/imagemagick/ \
+                            ftp://ftp.u-aizu.ac.jp/pub/graphics/image/ImageMagick/imagemagick.org/ \
+                            ftp://ftp.sunet.se/pub/multimedia/graphics/ImageMagick \
+                            ftp://sunsite.icm.edu.pl/packages/ImageMagick
+
+checksums                   rmd160  0f6b4f8512aeac456e62b01786d82d9f9f1bb9c9 \
+                            sha256  f85a52a47b590865d3a5fb7dacd617adeef22df20873debe10b12b5d0d0ada28
+
+depends_lib                 port:bzip2 \
+                            port:djvulibre \
+                            port:xz \
+                            port:jpeg \
+                            port:lcms2 \
+                            port:libpng \
+                            port:tiff \
+                            port:webp \
+                            port:zlib \
+                            port:fftw-3 \
+                            port:freetype \
+                            port:fontconfig \
+                            port:ghostscript \
+                            port:libiconv \
+                            port:libtool \
+                            port:expat \
+                            port:libxml2
+
+# Magick-config etc. use pkg-config
+depends_lib-append          port:pkgconfig
+
+depends_run                 port:urw-fonts
+
+# On case-insensitive filesystems, ImageMagick finds cryptlib's libcl and
+# tries to use it as if it were Apple's OpenCL, which fails; see #23354.
+if {[file exists ${prefix}/lib/libCL.dylib]} {
+    conflicts_build         cryptlib
+}
+
+configure.ccache            no
+
+use_autoreconf              yes
+autoreconf.args             -fvi
+
+configure.args              --enable-shared \
+                            --enable-static \
+                            --disable-ltdl-install \
+                            --disable-silent-rules \
+                            --with-frozenpaths \
+                            --without-openexr \
+                            --disable-hdri \
+                            --with-dps \
+                            --with-bzlib \
+                            --with-djvu \
+                            --with-fontconfig \
+                            --with-gslib \
+                            --with-jpeg \
+                            --with-lcms \
+                            --with-png \
+                            --with-tiff \
+                            --with-webp \
+                            --with-zlib \
+                            --with-modules \
+                            --with-xml \
+                            --without-perl \
+                            --without-fpx \
+                            --without-jbig \
+                            --without-jp2 \
+                            --without-wmf \
+                            --without-gvc \
+                            --without-rsvg \
+                            --without-lqr \
+                            --without-pango \
+                            --without-x \
+                            --with-gs-font-dir=${prefix}/share/fonts/urw-fonts
+
+test.run                    yes
+test.target                 check
+test.env                    DYLD_LIBRARY_PATH=${worksrcpath}/magick/.libs
+
+# ImageMagick uses .la files at runtime to find its coder modules.
+destroot.delete_la_files    no
+
+variant graphviz description {Support Graphviz} {
+    depends_lib-append      path:bin/dot:graphviz
+    configure.args-replace  --without-gvc --with-gvc
+}
+
+variant jbig description {Support JBIG} {
+    depends_lib-append      port:jbigkit
+    configure.args-replace  --without-jbig --with-jbig
+}
+
+variant jpeg2 description {Support JPEG-2000 using JasPer} {
+    depends_lib-append      port:jasper
+    configure.args-replace  --without-jp2 --with-jp2
+}
+
+variant lqr description {Support Liquid Rescale (experimental)} {
+    depends_lib-append      port:liblqr
+    configure.args-replace  --without-lqr --with-lqr
+}
+
+variant pango description {Support Pango} {
+    depends_lib-append      path:lib/pkgconfig/pango.pc:pango
+    configure.args-replace  --without-pango --with-pango
+}
+
+# Legacy perl variant to be removed after May 2014.
+variant perl description {Obsolete variant} {
+    pre-configure {
+        return -code error "The +perl variant is no longer used\; use the separate p5-perlmagick port instead."
+    }
+}
+
+variant rsvg description {Support SVG using librsvg} {
+    depends_lib-append      port:librsvg
+    configure.args-replace  --without-rsvg --with-rsvg
+}
+
+variant wmf description {Support the Windows Metafile Format} {
+    depends_lib-append      port:libwmf
+    configure.args-replace  --without-wmf --with-wmf
+}
+
+# Legacy no_x11 variant to be removed after May 2014.
+variant no_x11 conflicts x11 description {Legacy compatibility variant} {}
+
+variant x11 conflicts no_x11 {
+    depends_lib-append      port:xorg-libX11 \
+                            port:xorg-libXext \
+                            port:xorg-libXt
+    configure.args-replace  --without-x --with-x
+}
+
+if {[variant_isset no_x11]} {
+    default_variants -x11
+} else {
+    default_variants +x11
+}
+
+livecheck.version           ${reasonable_version}
+livecheck.type              regex
+livecheck.url               [lindex ${master_sites} 0]
+livecheck.regex             ${name}-(\\d+(?:\\.\\d+)*)(?:-\\d+)?

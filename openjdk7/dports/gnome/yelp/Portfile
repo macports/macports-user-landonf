@@ -1,0 +1,82 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            yelp
+version         3.10.1
+license         GPL-2
+set branch      [join [lrange [split ${version} .] 0 1] .]
+description     Help browser for GNOME.
+long_description \
+                Yelp is the default help browser for the \
+                GNOME desktop. Yelp provides a simple graphical \
+                interface for viewing DocBook, HTML, man, and info \
+                formatted documentation.
+maintainers     devans openmaintainer
+categories      gnome
+platforms       darwin
+homepage        http://www.gnome.org/
+master_sites    gnome:sources/${name}/${branch}/
+
+use_xz          yes
+
+checksums       rmd160  dcb874dd98611968ffe3e8d42a3514af1fecf0ca \
+                sha256  17736479b7d0b1128c7d6cb3073f2b09e4bbc82670731b2a0d3a3219a520f816
+
+depends_skip_archcheck gnome-settings-daemon
+
+depends_build   port:pkgconfig \
+                port:intltool \
+                port:itstool
+
+depends_lib     port:desktop-file-utils \
+                port:gnome-icon-theme \
+                port:gnome-icon-theme-symbolic \
+                port:gtk3 \
+                path:lib/pkgconfig/webkitgtk-3.0.pc:webkit-gtk3 \
+                port:sqlite3 \
+                port:xz \
+                port:bzip2 \
+                port:yelp-xsl
+
+#
+# if yelp is invoked without a URI argument
+# it defaults to ghelp:user-guide
+#
+
+depends_run     port:gnome-user-docs \
+                port:gnome-settings-daemon
+
+configure.args  --x-includes=${prefix}/include \
+                --x-libraries=${prefix}/lib \
+                --disable-schemas-compile \
+                --disable-silent-rules \
+                --enable-debug
+
+post-activate {
+    system "${prefix}/bin/glib-compile-schemas ${prefix}/share/glib-2.0/schemas"
+    system "${prefix}/bin/update-desktop-database ${prefix}/share/applications"
+}
+
+platform darwin {
+    set cxx_stdlib {}
+
+    if {[info exists configure.cxx_stdlib] &&
+        ${configure.cxx_stdlib} ne {} &&
+        [string match *clang* ${configure.cxx}]} {
+        set cxx_stdlib ${configure.cxx_stdlib}
+    } elseif {[string match *clang* ${configure.cxx}] &&
+              ${os.major} >= 13} {
+        set cxx_stdlib libc++
+    } else {
+        set cxx_stdlib libstdc++
+    }
+
+    if {${cxx_stdlib} == "libstdc++"} {
+       depends_lib-delete path:lib/pkgconfig/webkitgtk-3.0.pc:webkit-gtk3
+       depends_lib-append path:lib/pkgconfig/webkitgtk-3.0.pc:webkit-gtk3-2.0
+    }
+}
+
+livecheck.type  gnome

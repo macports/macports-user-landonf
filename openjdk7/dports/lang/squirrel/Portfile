@@ -1,0 +1,61 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem              1.0
+
+name                    squirrel
+version                 3.0.4
+categories              lang
+platforms               darwin
+license                 MIT
+maintainers             nomaintainer
+
+description             The Squirrel programming language
+long_description        Squirrel is a high level imperative, \
+                        object-oriented programming language, designed \
+                        to be a light-weight scripting language that \
+                        fits in the size, memory bandwidth, and \
+                        real-time requirements of applications like \
+                        video games.
+homepage                http://www.squirrel-lang.org/
+
+master_sites            googlecode
+distname                squirrel_[string map {. _} ${version}]_stable
+checksums               rmd160  0a60aa77d55b32839a16c4b954238a2b856ff4b4 \
+                        sha256  6a3706accf9872aafea1eb3f3f3018b135e2671033824ccebf0735a98b2440a5
+
+worksrcdir              SQUIRREL[lindex [split ${version} .] 0]
+
+patchfiles              patch-Makefile.diff \
+                        patch-sq-Makefile.diff \
+                        patch-sqstdlib-Makefile.diff \
+                        patch-squirrel-Makefile.diff
+
+use_configure           no
+
+build.args              CC=${configure.cc} \
+                        CXX=${configure.cxx}
+
+set cflags "[get_canonical_archflags cc]"
+set cxxflags "[get_canonical_archflags cxx]"
+set ldflags "[get_canonical_archflags ld]"
+if {${configure.sdkroot} != ""} {
+    set cflags "${cflags} -isysroot ${configure.sdkroot}"
+    set cxxflags "${cxxflags} -isysroot ${configure.sdkroot}"
+    set ldflags "${ldflags} -Wl,-syslibroot,${configure.sdkroot}"
+}
+build.args-append       CFLAGS="${cflags}" \
+                        CXXFLAGS="${cxxflags}" \
+                        LDFLAGS="${ldflags}"
+
+destroot {
+    xinstall ${worksrcpath}/bin/sq ${destroot}${prefix}/bin
+    xinstall -d ${destroot}${prefix}/share/doc/${name}
+    copy ${worksrcpath}/samples ${destroot}${prefix}/share/doc/${name}/examples
+    xinstall -m 644 -W ${worksrcpath}/lib libsqstdlib.a libsquirrel.a \
+        ${destroot}${prefix}/lib
+    eval xinstall -m 644 [glob ${worksrcpath}/include/*.h] \
+        ${destroot}${prefix}/include
+}
+
+livecheck.version       [string map {. _} $version]

@@ -1,0 +1,18 @@
+# $Id$
+
+PortSystem          1.0
+PortGroup           perl5 1.0
+
+perl5.branches      5.8 5.10 5.12 5.14 5.16
+perl5.setup         Module-Load 0.24
+license             {Artistic GPL}
+maintainers         nomaintainer
+description         runtime require of both modules and files
+long_description    ${description}
+
+platforms           darwin
+
+checksums           rmd160  04e23205d311bbe7c166c6bfb9f5ea14673fafa8 \
+                    sha256  da16ec02899d39e0e7aeeced876350fb530d811f3468a64298f085db8ca56a82
+
+supported_archs     noarch

@@ -1,0 +1,56 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem      1.0
+
+name            seahorse
+version         3.8.2
+license         GPL-2+ GFDL-1.1+
+set branch      [join [lrange [split ${version} .] 0 1] .]
+description     Seahorse is a graphical interface for managing and using encryption keys.
+long_description \
+                ${description} \
+                Currently it supports PGP keys (using GPG/GPGME) and SSH keys. Its goal is to \
+                provide an easy to use Key Management Tool, along with an easy to use interface \
+                for encryption operations.
+maintainers     devans openmaintainer
+categories      gnome crypto
+platforms       darwin
+homepage        http://projects.gnome.org/${name}/
+master_sites    gnome:sources/${name}/${branch}/
+
+use_xz          yes
+
+checksums       rmd160  4d7e73387371fbd2175341652fa8d46fcdcd9662 \
+                sha256  b3837d088b7e3f7ebc41cb3f11c5c85e2df7e06bdc538a3e85bb1a13c34c9a12
+
+depends_build   port:pkgconfig \
+                port:intltool \
+                port:itstool
+
+depends_lib     port:desktop-file-utils \
+                port:gtk3 \
+                port:gcr \
+                port:gpgme \
+                port:openldap \
+                port:libsoup \
+                port:libsecret \
+                port:openssh
+
+depends_run     port:gnome-settings-daemon \
+                port:yelp
+
+configure.args  --disable-sharing \
+                --disable-schemas-compile \
+                --disable-silent-rules
+
+patchfiles      patch-gkr-seahorse-gkr-actions.c.diff \
+                patch-gkr-seahorse-gkr-backend.c.diff
+
+post-activate {
+    system "${prefix}/bin/update-desktop-database -q ${prefix}/share/applications"
+    system "${prefix}/bin/gtk-update-icon-cache-3.0 -f -t ${prefix}/share/icons/hicolor"
+    system "${prefix}/bin/glib-compile-schemas ${prefix}/share/glib-2.0/schemas"
+}
+
+livecheck.type  gnome
