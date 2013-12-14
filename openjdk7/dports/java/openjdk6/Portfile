@@ -1,6 +1,7 @@
 # $Id$
 
 PortSystem 1.0
+PortGroup select 1.0
 
 name                openjdk7
 
@@ -31,6 +32,13 @@ long_description \
 license             Permissive 
 
 
+select.group        java
+select.file         ${filespath}/${name}
+
+notes \
+"To make $name the default, please run
+\tsudo port select --set ${select.group} $name"
+
 # Use our own version of ant to avoid circular dependencies
 set ant_version     1.8.4
 set ant_distfile    apache-ant-${ant_version}-bin
@@ -50,6 +58,8 @@ checksums           ${distname}${extract.suffix} sha256  00f8ea561876cbcad174ba3
 
 use_configure       no
 use_parallel_build  no
+
+depends_run         port:java_select
 
 depends_lib         port:libiconv \
                     port:freetype \
