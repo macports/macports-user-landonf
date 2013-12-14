@@ -12,7 +12,7 @@ set jdk_minor_version   40
 set jdk_build_number    43
 set jdk_build_date      26_aug_2013
 version             ${jdk_major_version}.${jport_minor_version}.${jport_build_number}
-revision            1
+revision            2
 
 categories          java
 maintainers         landonf openmaintainer
@@ -154,26 +154,33 @@ build.args \
     JDK_MICRO_VERSION="0_${jport_minor_version}" \
     BUILD_NUMBER="b${jport_build_number}" \
     MILESTONE=fcs \
-    BUNDLE_NAME="OpenJDK 1.${jdk_major_version}.0_${jport_minor_version} (MacPorts)" \
-    BUNDLE_INFO="OpenJDK MacPorts-${version}" \
+    BUNDLE_NAME="OpenJDK ${jdk_major_version} (MacPorts)" \
+    BUNDLE_INFO="OpenJDK MacPorts ${name}-${version}" \
     BUNDLE_ID="org.macports.openjdk" \
     BUNDLE_VENDOR="MacPorts" \
     HOTSPOT_BUILD_JOBS="${build.jobs}"
 
-# We violate mtree in one way:
+# We violate mtree in two ways:
 # - We install in $prefix/<name><major>. This has long been a standard path for installed JVMs
 #   and models the approach taken by the FreeBSD Java ports.
+# - We install a link to our JDK bundle in /Library/Java/JavaVirtualMachines. This is the only
+#   path in which we can register our VMs with Mac OS X.
 destroot.violate_mtree yes
 destroot {
     # Copy in the bundle
     set target_bundle_name "macports-jdk1.${jdk_major_version}.0_${jport_minor_version}.jdk"
     set src_bundle_name "jdk1.${jdk_major_version}.0_${jport_minor_version}.jdk"
 
-    set path "${destroot}${prefix}/Library/Java/JavaVirtualMachines/${target_bundle_name}/"
+    set bundle_path "${prefix}/Library/Java/JavaVirtualMachines/${target_bundle_name}"
+    set path "${destroot}${bundle_path}/"
     xinstall -m 755 -d ${path}
     system "(cd \"${worksrcpath}/build/macosx-${openjdk_build_arch}/j2sdk-bundle/${src_bundle_name}\" && tar cf - *) | (tar -C \"${path}\" -xf -)"
 
     # Create a standard path for our Java Home; this is intended to be used by ports (and users)
     # that don't want to reference the version-and-build-specific bundle path.
     ln -sf "Library/Java/JavaVirtualMachines/${target_bundle_name}/Contents/Home" "${destroot}${prefix}/${name}"
+
+    # Add the link to /Library/Java/JavaVirtualMachines
+    xinstall -m 755 -d "${destroot}/Library/Java/JavaVirtualMachines"
+    ln -sf "${bundle_path}" "${destroot}/Library/Java/JavaVirtualMachines/"
 }
