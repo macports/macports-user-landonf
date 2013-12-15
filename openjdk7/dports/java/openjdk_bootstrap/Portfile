@@ -2,34 +2,36 @@
 
 PortSystem 1.0
 
-name                openjdk6_bootstrap
-version             b16-r1
-set builddate 24_apr_2009
+name                openjdk_bootstrap
+
+# Built from the openjdk7-7.45.18_0 port release
+version             7.45.18_0
 
 categories          java
-maintainers         landonf
+maintainers         landonf openmaintainer
 platforms           darwin
 
 homepage            http://landonf.bikemonkey.org/static/soylatte
-description         A binary build of OpenJDK6 to be used for bootstrapping the OpenJDK6 port.
+description         A binary build of OpenJDK to be used for bootstrapping the OpenJDK ports.
 long_description \
-                    OpenJDK is an open-source implementation of the Java Platform, Standard Edition. \
-                    This port provides binaries to be used for bootstrapping the openjdk6 port, \
-                    as a Java 6 bootstrap environment is currently required, and Apple's Java 6 \
-                    is both incompatible with the bootstrapping requirements and not available \
-                    on 32-bit platforms.
+                    This port provides binaries to be used for bootstrapping the OpenJDK ports.
+		    Security updates may not be applied, and the port should not be used for
+		    any other purpose.
 
-distname            openjdk6-b16-24_apr_2009-r1
+select.group        java
+select.file         ${filespath}/${name}
+
 use_bzip2           yes
-master_sites        http://hg.bikemonkey.org/archive/openjdk6_darwin_macports/
-checksums           md5     56b57e1bfbffc65ed7588d2b7166f3ed\
-                    sha1    0a78144c75380ae5a611d66b724fad348ff29f61 
+master_sites        macports:${name}
+checksums           sha256  94cf0e8b1c45561efb2cf7432382a77cbce079a63da3c12a0e77de888dc95ee7
 
 use_configure        no
 
-depends_lib         port:freetype \
-                    port:openmotif \
-                    port:xorg-libX11
+depends_lib         port:libiconv \
+                    port:freetype \
+                    port:xorg-libX11 \
+                    port:xorg-libXtst \
+                    port:dejavu-fonts
 
 build {}
 
