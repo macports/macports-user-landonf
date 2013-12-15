@@ -5,14 +5,18 @@ PortGroup select 1.0
 
 name                openjdk7
 
+# Actual port patchset version
 set jport_minor_version 45
 set jport_build_number  18
 set jdk_major_version   7
+
+# Source drop version
 set jdk_minor_version   40
 set jdk_build_number    43
 set jdk_build_date      26_aug_2013
+
 version             ${jdk_major_version}.${jport_minor_version}.${jport_build_number}
-revision            2
+revision            3
 
 categories          java
 maintainers         landonf openmaintainer
@@ -55,7 +59,9 @@ master_sites        http://download.java.net/openjdk/jdk${jdk_major_version}u${j
 checksums           ${distname}${extract.suffix} sha256  00f8ea561876cbcad174ba3ca7a9ae10b50df46a782ac64c2ac57ac357b50596 \
                     \
                     ${ant_distfile}${extract.suffix} sha256 d49d60bc0468279125e4a0db4d9b6637cab342a4bd736c90c0b71865b26c1479
-    
+
+patchfiles          patch-jdk7u45-b18 \
+                    patch-src-os-bsd-vm-os_bsd.cpp
 
 use_configure       no
 use_parallel_build  no
@@ -96,6 +102,9 @@ if {false} {
 worksrcdir          "openjdk"
 
 post-patch {
+    # Allow loading of extensions and libraries from $prefix
+    reinplace "s|@@PREFIX@@|${prefix}|g" "${worksrcpath}/hotspot/src/os/bsd/vm/os_bsd.cpp"
+
     # The jobjc build system includes hard-coded references to /usr/bin/ant; Java build tools (such as ant)
     # are no longer shipped with Xcode 5.0+ on Mavericks.
     reinplace "s|/usr/bin/ant|${workpath}/apache-ant-${ant_version}/bin/ant|g" \
