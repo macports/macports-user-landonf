@@ -143,7 +143,7 @@ build.pre_args {}
 build.post_args {}
 
 # Determine the OpenJDK architecture name
-supported_archs     x86_64
+supported_archs     i386 x86_64
 if {${build_arch} == "i386"} {
     set openjdk_build_arch "i586"
 } elseif {${build_arch} == "x86_64"} {
