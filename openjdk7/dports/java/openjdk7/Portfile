@@ -80,10 +80,12 @@ depends_lib         port:libiconv \
 
 # NOTES:
 # OpenJDK7 requires gcc/llvm-gcc; java 8 should support clang directly
-# Apple's jobjc depends on both Ruby and Haskell. Go figure.
+# Apple's jobjc depends on both Ruby and Haskell.
+# The test suite requires jtreg.
 depends_build       port:llvm-gcc42 \
                     port:ghc \
-                    port:ruby
+                    port:ruby \
+                    port:jtreg
 
 set cryptoflag "UNLIMITED_CRYPTO=true"
 variant limited_strength_jce description {Use the limited stength JCE policy files. By default, the unlimited strength policy files will be included.} {
@@ -192,7 +194,12 @@ build.args \
     BUNDLE_VENDOR="MacPorts" \
     HOTSPOT_BUILD_JOBS="${build.jobs}"
 
-test {
+# jtreg-based tests
+test.run yes
+test.args "JT_HOME=${prefix}/share/java/jtreg" {*}${build.args} 
+
+# Our own tests; they run prior to the JVM's tests.
+pre-test {
     set testpath "${workpath}/tests"
     set build "${worksrcpath}/build/macosx-${openjdk_build_arch}"
 
