@@ -1,0 +1,33 @@
+--- jdk/make/sun/Makefile.orig	2013-12-15 09:17:06.000000000 -0500
++++ jdk/make/sun/Makefile	2013-12-15 09:24:22.000000000 -0500
+@@ -31,11 +31,8 @@
+ PRODUCT  = sun
+ include $(BUILDDIR)/common/Defs.gmk
+ 
+-# Rhino/Mozilla java sources
+-ORG_EXISTS := $(call DirExists,$(CLOSED_SRC)/share/classes/sun/org,,)
+-ifneq ("$(ORG_EXISTS)", "")
+-  ORG_SUBDIR = org
+-endif
++# Rhino/Mozilla Sources
++ORG_SUBDIR = org
+ 
+ # Non windows subdirs
+ ifneq ($(PLATFORM), windows)
+--- jdk/make/com/sun/Makefile.orig	2013-12-15 09:18:11.000000000 -0500
++++ jdk/make/com/sun/Makefile	2013-12-15 09:24:05.000000000 -0500
+@@ -31,12 +31,8 @@
+ PRODUCT = sun
+ include $(BUILDDIR)/common/Defs.gmk
+ 
+-ifndef OPENJDK
+-  ORG_EXISTS := $(call DirExists,$(CLOSED_SRC)/share/classes/sun/org,,)
+-  ifneq ("$(ORG_EXISTS)", "") 
+-    SCRIPT_SUBDIR = script
+-  endif
+-endif
++# Rhino script bindings
++SCRIPT_SUBDIR = script
+ 
+ # jarsigner is part of JRE
+ SUBDIRS = java security net/ssl jarsigner

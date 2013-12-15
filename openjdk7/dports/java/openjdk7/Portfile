@@ -16,7 +16,7 @@ set jdk_build_number    43
 set jdk_build_date      26_aug_2013
 
 version             ${jdk_major_version}.${jport_minor_version}.${jport_build_number}
-revision            3
+revision            4
 
 categories          java
 maintainers         landonf openmaintainer
@@ -47,21 +47,25 @@ notes \
 # Use our own version of ant to avoid circular dependencies
 set ant_version     1.8.4
 set ant_distfile    apache-ant-${ant_version}-bin
+set rhino_distfile  rhino_jdk7.tar.gz
 
 use_zip             yes
 distname            openjdk-${jdk_major_version}u${jdk_minor_version}-fcs-src-b${jdk_build_number}-${jdk_build_date}
 distfiles           ${distname}${extract.suffix} \
-                    ${ant_distfile}${extract.suffix}:ant
+                    ${ant_distfile}${extract.suffix}:ant \
+                    ${rhino_distfile}:rhino
 
 master_sites        http://download.java.net/openjdk/jdk${jdk_major_version}u${jdk_minor_version}/promoted/b${jdk_build_number}/ \
+                    http://download.oracle.com/otn-pub/oss/jdk/:rhino \
                     apache:ant/binaries:ant
 
-checksums           ${distname}${extract.suffix} sha256  00f8ea561876cbcad174ba3ca7a9ae10b50df46a782ac64c2ac57ac357b50596 \
-                    \
-                    ${ant_distfile}${extract.suffix} sha256 d49d60bc0468279125e4a0db4d9b6637cab342a4bd736c90c0b71865b26c1479
+checksums           ${distname}${extract.suffix}        sha256 00f8ea561876cbcad174ba3ca7a9ae10b50df46a782ac64c2ac57ac357b50596 \
+                    ${rhino_distfile}                   sha256 cfd2459bd77e90c7b4fe3092af8b82f34f649f9c91bf59fabaf24a46d9bbb9c2 \
+                    ${ant_distfile}${extract.suffix}    sha256 d49d60bc0468279125e4a0db4d9b6637cab342a4bd736c90c0b71865b26c1479
 
 patchfiles          patch-jdk7u45-b18 \
-                    patch-src-os-bsd-vm-os_bsd.cpp
+                    patch-src-os-bsd-vm-os_bsd.cpp \
+                    patch-rhino
 
 use_configure       no
 use_parallel_build  no
@@ -81,7 +85,7 @@ depends_build       port:llvm-gcc42 \
                     port:ghc \
                     port:ruby
 
-# Check if the bootstrap is required
+# Find a usable bootstrap VM
 if {[file exists ${prefix}/share/java/openjdk7/bin/java]} {
     # A previous OpenJDK7 release is already installed
     set bootflags   {}
@@ -99,9 +103,22 @@ if {false} {
     set bootstrapvm [exec /usr/libexec/java_home -v 1.6]
 }
 
+# Extract the Rhino sources. This has to e done manually, as MacPorts
+# does not support extracting multiple types of distfiles automatically.
+extract.only-delete ${rhino_distfile}
+post-extract {
+    set expand "gzip -cd ${distpath}/${rhino_distfile}"
+    set untar "${portutil::autoconf::tar_command} -xf -"
+    system -W ${workpath} "${expand} | ${untar}"
+}
+
 worksrcdir          "openjdk"
+set rhino_srcpath   "${workpath}/rhino_jdk7"
 
 post-patch {
+    # Inject the Rhino sources
+    file copy "${rhino_srcpath}/src/sun/org" "${worksrcpath}/jdk/src/share/classes/sun"
+
     # Allow loading of extensions and libraries from $prefix
     reinplace "s|@@PREFIX@@|${prefix}|g" "${worksrcpath}/hotspot/src/os/bsd/vm/os_bsd.cpp"
 
@@ -112,7 +129,7 @@ post-patch {
         "${worksrcpath}/jdk/src/macosx/native/jobjc/JObjC.xcodeproj/project.pbxproj"
 
     # Fix missing executable permissions on the code generator
-    file attributes "${worksrcpath}/jdk/src/macosx/native/jobjc/src/core/PrimitiveCoder.hs" -permissions 0755 
+    file attributes "${worksrcpath}/jdk/src/macosx/native/jobjc/src/core/PrimitiveCoder.hs" -permissions 0755
 }
 
 # Override the overzealous setting of build environmental variables and settings. These
@@ -181,9 +198,16 @@ destroot {
     set src_bundle_name "jdk1.${jdk_major_version}.0_${jport_minor_version}.jdk"
 
     set bundle_path "${prefix}/Library/Java/JavaVirtualMachines/${target_bundle_name}"
-    set path "${destroot}${bundle_path}/"
-    xinstall -m 755 -d ${path}
-    system "(cd \"${worksrcpath}/build/macosx-${openjdk_build_arch}/j2sdk-bundle/${src_bundle_name}\" && tar cf - *) | (tar -C \"${path}\" -xf -)"
+    set destroot_bundle_path "${destroot}${bundle_path}/"
+    xinstall -m 755 -d ${destroot_bundle_path}
+    system "(cd \"${worksrcpath}/build/macosx-${openjdk_build_arch}/j2sdk-bundle/${src_bundle_name}\" && tar cf - *) | (tar -C \"${destroot_bundle_path}\" -xf -)"
+
+    # Embed the Rhino sources in the bundle
+    set demo_rhino_path ${destroot_bundle_path}/Contents/Home/demo/scripting/rhino
+    xinstall -m 755 -d ${demo_rhino_path}
+
+    system -W ${rhino_srcpath}/src {zip -r ../src.zip *}
+    xinstall -m 644 ${rhino_srcpath}/README.txt ${rhino_srcpath}/LICENSE ${rhino_srcpath}/src.zip ${demo_rhino_path}
 
     # Create a standard path for our Java Home; this is intended to be used by ports (and users)
     # that don't want to reference the version-and-build-specific bundle path.
