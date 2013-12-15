@@ -193,3 +193,8 @@ destroot {
     xinstall -m 755 -d "${destroot}/Library/Java/JavaVirtualMachines"
     ln -sf "${bundle_path}" "${destroot}/Library/Java/JavaVirtualMachines/"
 }
+
+livecheck.url       http://www.oracle.com/technetwork/java/javase/downloads/index.html
+livecheck.type      regexm
+livecheck.regex     {Java SE (7u[0-9a-z]*)}
+livecheck.version   "${jdk_major_version}u${jport_minor_version}"
