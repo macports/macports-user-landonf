@@ -196,7 +196,7 @@ build.args \
 
 # jtreg-based tests
 test.run yes
-test.args "JT_HOME=${prefix}/share/java/jtreg" {*}${build.args} 
+test.args "JT_HOME=${prefix}/share/java/jtreg" CONCURRENCY="${build.jobs}" {*}${build.args} 
 
 # Our own tests; they run prior to the JVM's tests.
 pre-test {
