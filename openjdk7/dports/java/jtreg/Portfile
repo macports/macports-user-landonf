@@ -1,0 +1,87 @@
+# $Id$
+
+PortSystem 1.0
+
+name                jtreg
+version             4.1-tip-e08a5e0b79ba
+
+categories          java
+maintainers         landonf openmaintainer
+platforms           darwin
+
+homepage            http://openjdk.java.net/jtreg
+description         jtreg is the test harness used by the OpenJDK test framework.
+long_description    ${description}
+
+use_bzip2           yes
+master_sites        macports:${name} \
+                    http://download.java.net/jtharness/4.4.1/Rel:jth \
+                    http://download.java.net/javadesktop/javahelp:jh \
+                    http://testng.org:tng
+
+set jth_distfile    jtharness-4_4_1-MR1-bin-b13-20_dec_2011.zip
+set jh_distfile     javahelp2_0_05.zip
+set tng_distfile    testng-6.8.zip
+set tng_distrib     [file rootname ${tng_distfile}]
+
+distfiles           ${distname}${extract.suffix} \
+                    ${jth_distfile}:jth \
+                    ${jh_distfile}:jh \
+                    ${tng_distfile}:tng
+
+extract.only        ${distname}${extract.suffix}
+
+checksums           ${distname}${extract.suffix} sha256 1121e487f7ab073a28ac5a0e02b37ac4d4e46968457a592dfb2bff4eb6a08d94 \
+                    ${jth_distfile}              sha256 96c4cdc118ea5ab080cd9cc9c2b6be10b961b910257d067df4b55f3d8c271338 \
+                    ${jh_distfile}               sha256 285728ab8cbebd2b51531fb7c7fb3213e6cf82bd8d1851ccd0ca78af7a11189f \
+                    ${tng_distfile}              sha256 72c7241109b149caea01af5f5c37c86b61b08f15864a8a40e15d069593625e0c
+
+depends_build       port:xalanj \
+                    port:apache-ant \
+                    port:junit
+
+use_configure       no
+use_parallel_build  no
+
+# Find a build JVM. This should be moved to a PortGroup, along with
+# a mechanism for allowing multiple Java ports to satisfy a dependency.
+if { [catch [exec /usr/libexec/java_home -F -v 1.7+ -t CommandLine] JVM] } {
+    # No JVM found
+    depends_build-append    port:openjdk_bootstrap
+    set JVM "${prefix}/share/java/openjdk_bootstrap"
+}
+
+post-extract {
+    # Set up embedded build dependencies.
+    file mkdir ${workpath}/jth
+    system -W ${workpath}/jth "unzip \"${distpath}/${jth_distfile}\""
+
+    file mkdir ${workpath}
+    system -W ${workpath} "unzip \"${distpath}/${jh_distfile}\""
+
+    file mkdir ${workpath}
+    system -W ${workpath} "unzip \"${distpath}/${tng_distfile}\""
+}
+
+build.target images
+build.args \
+    "-C make" \
+    "JDK15HOME=${JVM}" \
+    "JDK16HOME=${JVM}" \
+    "JDK17HOME=${JVM}" \
+    "XALANHOME=${prefix}/share/java" \
+    "JTHARNESS_HOME=${workpath}/jth" \
+    "JAVAHELP_HOME=${workpath}/jh2.0/javahelp" \
+    "ANTHOME=${prefix}/share/java/apache-ant" \
+    "TESTNG_HOME=${workpath}/${tng_distrib}" \
+    "TESTNG_JAR=${workpath}/${tng_distrib}/${tng_distrib}.jar" \
+    "JUNIT_JAR=${prefix}/share/java/junit.jar"
+
+test.run yes
+test.args {*}${build.args}
+
+destroot {
+    set path "${destroot}${prefix}/share/java/${name}/"
+    xinstall -m 755 -d ${path}
+    file copy ${worksrcpath}/build/images/jtreg ${path}
+}
