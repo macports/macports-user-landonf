@@ -16,7 +16,7 @@ set jdk_build_number    43
 set jdk_build_date      26_aug_2013
 
 version             ${jdk_major_version}.${jport_minor_version}.${jport_build_number}
-revision            4
+revision            5
 
 categories          java
 maintainers         landonf openmaintainer
@@ -84,6 +84,11 @@ depends_lib         port:libiconv \
 depends_build       port:llvm-gcc42 \
                     port:ghc \
                     port:ruby
+
+set cryptoflag "UNLIMITED_CRYPTO=true"
+variant limited_strength_jce description {Use the limited stength JCE policy files. By default, the unlimited strength policy files will be included.} {
+    build.args-delete ${cryptoflag}
+}
 
 # Find a usable bootstrap VM
 if {[file exists ${prefix}/share/java/openjdk7/bin/java]} {
@@ -162,6 +167,7 @@ build.args \
     EXTRA_CFLAGS="-Wno-deprecated-declarations -I\"${filespath}/clang-compat-headers\"" \
     LANG="C" \
     "${bootflags}" \
+    "${cryptoflag}" \
     ALT_BOOTDIR="${bootstrapvm}" \
     ALT_COMPILER_PATH="${prefix}" \
     ANT_HOME="${workpath}/apache-ant-${ant_version}" \
@@ -185,6 +191,29 @@ build.args \
     BUNDLE_ID="org.macports.openjdk" \
     BUNDLE_VENDOR="MacPorts" \
     HOTSPOT_BUILD_JOBS="${build.jobs}"
+
+test {
+    set testpath "${workpath}/tests"
+    set build "${worksrcpath}/build/macosx-${openjdk_build_arch}"
+
+    # Buld the tests
+    file mkdir ${testpath}
+    exec ${build}/bin/javac -d ${testpath} {*}[glob ${filespath}/tests/*.java]
+
+    # Create the variant list we'll pass to our test cases
+    set variants {}
+    foreach v $PortInfo(variants) {
+        if {[variant_isset $v]} {
+            lappend variants $v
+        }
+    }
+
+    # Execute
+    foreach class_file [glob -tails -directory ${testpath} *Test.class] {
+        set class [file rootname $class_file]
+        exec ${build}/bin/java -cp ${testpath} ${class} {*}$variants
+    }
+}
 
 # We violate mtree in two ways:
 # - We install in $prefix/<name><major>. This has long been a standard path for installed JVMs
