@@ -81,7 +81,16 @@ test.run yes
 test.args {*}${build.args}
 
 destroot {
-    set path "${destroot}${prefix}/share/java/${name}/"
+    set path "${destroot}${prefix}/share/java/"
     xinstall -m 755 -d ${path}
     file copy ${worksrcpath}/build/images/jtreg ${path}
+
+    # Write out wrapper scripts
+    set fd [open "${destroot}${prefix}/bin/jtreg" w 0755]
+    puts $fd "#!/bin/bash\nexec ${prefix}/share/java/jtreg/bin/jtreg \"$@\""
+    close $fd
+
+    set fd [open "${destroot}${prefix}/bin/jtdiff" w 0755]
+    puts $fd "#!/bin/bash\nexec ${prefix}/share/java/jtreg/bin/jtdiff \"$@\"" 
+    close $fd
 }
