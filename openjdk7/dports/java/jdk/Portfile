@@ -1,0 +1,31 @@
+PortSystem 1.0
+
+name			jdk
+version			1.0
+categories		sysutils
+platforms		darwin
+license			BSD
+maintainers		landonf
+supported_archs		noarch
+description		Provides the latest stable release of OpenJDK.
+long_description	Java Runtime is a virtual port that depends on the latest \
+			stable release of OpenJDK 7+. A symlink to the installed \
+			JDK may be found at ${prefix}/share/java/jdk
+
+homepage		http://www.macports.org/
+distfiles
+
+set current_java_port "openjdk7"
+
+depends_run		port:${current_java_port}
+
+use_configure           no
+build                   {}
+
+destroot {
+	# Provide the consistent symlink
+	xinstall -m 755 -d ${destroot}${prefix}/share/java
+	ln -s ${prefix}/${current_java_port} ${destroot}${prefix}/share/java/jdk
+}
+
+livecheck.type	none
