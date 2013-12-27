@@ -78,12 +78,13 @@ depends_lib         port:libiconv \
                     port:xorg-libXtst \
                     port:dejavu-fonts
 
-# NOTES:
 # OpenJDK7 requires gcc/llvm-gcc; java 8 should support clang directly
+compiler.blacklist *clang*
+
+# NOTES:
 # Apple's jobjc depends on both Ruby and Haskell.
 # The test suite requires jtreg.
-depends_build       port:llvm-gcc42 \
-                    port:ghc \
+depends_build       port:ghc \
                     port:ruby \
                     port:jtreg
 
@@ -164,8 +165,8 @@ if {${build_arch} == "i386"} {
 # In addition, Mavericks has marked a number of APIs required by JDK 7
 # as deprecated, mandating the use of -Wno-deprecated-declarations
 build.args \
-    CC="${prefix}/bin/llvm-gcc-4.2" \
-    CXX="${prefix}/bin/llvm-g++-4.2" \
+    CC="${configure.cc}" \
+    CXX="${configure.cxx}" \
     EXTRA_CFLAGS="-Wno-deprecated-declarations -I\"${filespath}/clang-compat-headers\"" \
     LANG="C" \
     "${bootflags}" \
