@@ -78,8 +78,9 @@ depends_lib         port:libiconv \
                     port:xorg-libXtst \
                     port:dejavu-fonts
 
-# OpenJDK7 requires gcc/llvm-gcc; java 8 should support clang directly
-compiler.blacklist *clang*
+# OpenJDK7 requires gcc/llvm-gcc; we whitelist llvm-gcc-42 to help ensure a consistent build environment.
+# Java 8 should support clang directly
+compiler.whitelist llvm-gcc-4.2
 
 # NOTES:
 # Apple's jobjc depends on both Ruby and Haskell.
